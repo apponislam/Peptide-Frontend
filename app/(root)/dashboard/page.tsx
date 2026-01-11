@@ -5,10 +5,6 @@ import TierSystem from "@/app/components/TierSystem";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { getTier } from "@/app/lib/products";
 import { useState } from "react";
-// import DashboardStats from "@/components/DashboardStats";
-// import TierSystem from "@/components/TierSystem";
-// import { useAuth } from "@/hooks/useAuth";
-// import { getTier } from "@/lib/products";
 
 export default function DashboardPage() {
     const { user } = useAuth();

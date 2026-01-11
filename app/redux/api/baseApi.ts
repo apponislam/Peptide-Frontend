@@ -10,7 +10,7 @@ interface RefreshTokenResponse {
 }
 
 const baseQuery = fetchBaseQuery({
-    baseUrl: `${process.env.NEXT_PUBLIC_BASE_API}/api/v1/`,
+    baseUrl: `${process.env.NEXT_PUBLIC_BASE_API}/api/`,
     credentials: "include",
     prepareHeaders: (headers, { getState }) => {
         const token = (getState() as RootState)?.auth?.token;

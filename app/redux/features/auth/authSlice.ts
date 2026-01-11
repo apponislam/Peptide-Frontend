@@ -2,25 +2,22 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../store";
 
 export const roles = {
-    GUEST: "GUEST" as const,
-    HOST: "HOST" as const,
+    USER: "USER" as const,
     ADMIN: "ADMIN" as const,
 };
 
 export type Role = (typeof roles)[keyof typeof roles];
 
 export type TUser = {
-    _id: string;
+    id: string;
     name: string;
     email: string;
-    phone?: string;
     role: Role;
-    isActive: boolean;
-    isEmailVerified?: boolean;
-    verificationToken?: string;
-    verificationTokenExpiry?: string;
-    createdAt?: string;
-    updatedAt?: string;
+    referralCode: string;
+    tier: string;
+    storeCredit: number;
+    referralCount: number;
+    createdAt: string;
     profileImg?: string;
 };
 

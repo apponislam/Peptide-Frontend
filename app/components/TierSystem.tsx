@@ -3,9 +3,6 @@
 import { getTier } from "../lib/products";
 import { User } from "../types";
 
-// import { User } from "@/types";
-// import { getTier } from "@/lib/products";
-
 interface TierSystemProps {
     user: User;
 }
@@ -123,7 +120,7 @@ export default function TierSystem({ user }: TierSystemProps) {
                 </div>
                 <div className="w-full bg-slate-700 rounded-full h-2.5">
                     <div
-                        className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2.5 rounded-full transition-all duration-500"
+                        className="bg-linear-to-r from-cyan-500 to-blue-500 h-2.5 rounded-full transition-all duration-500"
                         style={{
                             width: `${currentTier.name === "Founder" ? 100 : currentTier.name === "VIP" ? (user.referralCount / 10) * 100 : (user.referralCount / 3) * 100}%`,
                         }}
