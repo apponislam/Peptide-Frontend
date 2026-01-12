@@ -28,7 +28,7 @@ export default function ProductPage() {
                 setProduct(foundProduct);
             } else {
                 // Redirect to store if product not found
-                router.push("/store");
+                router.push("/");
             }
             setLoading(false);
         }
@@ -47,7 +47,7 @@ export default function ProductPage() {
             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-400 mb-4">Product not found</p>
-                    <Link href="/store" className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold">
+                    <Link href="/" className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold">
                         Back to Store
                     </Link>
                 </div>

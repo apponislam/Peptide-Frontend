@@ -65,13 +65,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </head>
             <body className={`${inter.className}`}>
                 <ReduxProvider>
-                    <AuthProvider>
+                    {children}
+                    {/* <AuthProvider>
                         <CartProvider>
                             <Header />
                             <main className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">{children}</main>
                             <CartSidebar />
                         </CartProvider>
-                    </AuthProvider>
+                    </AuthProvider> */}
                 </ReduxProvider>
             </body>
         </html>

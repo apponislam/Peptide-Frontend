@@ -97,7 +97,7 @@ export default function RegisterPage() {
 
             // Redirect after success
             setTimeout(() => {
-                router.push("/store");
+                router.push("/");
             }, 1500);
         } catch (err) {
             setError("Registration failed. Please try again.");

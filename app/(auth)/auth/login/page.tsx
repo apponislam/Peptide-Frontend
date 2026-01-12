@@ -33,7 +33,7 @@ export default function LoginPage() {
                             tier: "Founder",
                         })
                     );
-                    router.push("/store");
+                    router.push("/");
                 } else if (loginEmail && loginPassword) {
                     // Regular user login
                     const referralCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -47,7 +47,7 @@ export default function LoginPage() {
                             tier: "Member",
                         })
                     );
-                    router.push("/store");
+                    router.push("/");
                 } else {
                     setError("Please enter valid credentials");
                 }
@@ -82,7 +82,7 @@ export default function LoginPage() {
             })
         );
 
-        router.push("/store");
+        router.push("/");
     };
 
     return (
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 {/* Logo */}
                 <div className="text-center mb-8 md:mb-12">
                     <div className="flex justify-center mb-4">
-                        <Link href="/store">
+                        <Link href="/">
                             <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={350} height={80} className="h-16 md:h-20 w-auto" />
                         </Link>
                     </div>
