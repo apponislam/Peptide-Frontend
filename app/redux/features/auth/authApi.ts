@@ -1,7 +1,6 @@
 import { baseApi } from "../../api/baseApi";
 import { TUser } from "./authSlice";
 
-// Response types for your existing endpoints
 type LoginResponse = {
     success: boolean;
     message: string;
