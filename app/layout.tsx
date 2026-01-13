@@ -63,7 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <meta name="twitter:description" content="Premium Peptides Delivered" />
                 <meta name="twitter:image" content="https://peptide.club/assets/peptide-social.png" />
             </head>
-            <body className={`${inter.className}`}>
+            <body className={`${inter.className}`} style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
                 <ReduxProvider>
                     {children}
                     {/* <AuthProvider>

@@ -174,6 +174,10 @@ export default function LoginPage() {
         formState: { errors: loginErrors, isSubmitting: loginSubmitting },
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: "master@peptide.club",
+            password: "master123",
+        },
     });
 
     // Referral form
@@ -241,7 +245,16 @@ export default function LoginPage() {
                     <div className="bg-slate-800 rounded-xl md:rounded-2xl p-6 md:p-8 border border-slate-700">
                         <h2 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">New Member</h2>
                         <form onSubmit={handleReferralSubmit(onReferralSubmit)}>
-                            <input type="text" placeholder="Invitation Code" {...registerReferral("referralCode")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white mb-4 uppercase" />
+                            <input
+                                type="text"
+                                placeholder="Invitation Code"
+                                {...registerReferral("referralCode")}
+                                onInput={(e) => {
+                                    const target = e.target as HTMLInputElement;
+                                    target.value = target.value.toUpperCase();
+                                }}
+                                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white mb-4 "
+                            />
                             {referralErrors.referralCode && <p className="text-red-400 text-sm mb-2">{referralErrors.referralCode.message}</p>}
                             <button type="submit" disabled={referralSubmitting} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50">
                                 {referralSubmitting ? "Processing..." : "Unlock Access"}

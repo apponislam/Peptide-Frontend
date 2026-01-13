@@ -39,7 +39,7 @@ export default function StorePage() {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchQuery);
-            setPage(1); // Reset to first page when searching
+            setPage(1);
         }, 300);
 
         return () => clearTimeout(timer);
@@ -54,13 +54,17 @@ export default function StorePage() {
         sortOrder: "asc",
     });
 
+    console.log(data);
     // Extract data from API response
     const products = data?.data || [];
     const meta = data?.meta;
 
+    // Calculate hasNextPage based on current page and total pages
+    const hasNextPage = meta ? page < meta.totalPages : false;
+
     // Handle pagination
     const handleNextPage = () => {
-        if (meta?.hasNextPage) {
+        if (hasNextPage) {
             setPage(page + 1);
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
@@ -79,6 +83,8 @@ export default function StorePage() {
     };
 
     // Generate page numbers for pagination
+    // Generate page numbers for pagination
+    // Generate page numbers for pagination
     const getPageNumbers = () => {
         if (!meta?.totalPages) return [];
 
@@ -86,15 +92,58 @@ export default function StorePage() {
         const totalPages = meta.totalPages;
         const maxVisiblePages = 5;
 
-        let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        // Always show first page
+        pages.push(1);
 
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        // Add ellipsis after first page if current page is far from start
+        if (page > 3) {
+            pages.push("...");
         }
 
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
+        // Calculate which pages to show in the middle
+        let startPage = Math.max(2, page - 1);
+        let endPage = Math.min(totalPages - 1, page + 1);
+
+        // Adjust for small number of total pages
+        if (totalPages <= maxVisiblePages) {
+            // Show all pages if total pages is 5 or less
+            for (let i = 2; i <= totalPages - 1; i++) {
+                pages.push(i);
+            }
+        } else {
+            // For more than 5 total pages
+            if (page <= 3) {
+                // When near the beginning, show 2, 3, 4
+                for (let i = 2; i <= Math.min(4, totalPages - 1); i++) {
+                    if (!pages.includes(i)) {
+                        pages.push(i);
+                    }
+                }
+            } else if (page >= totalPages - 2) {
+                // When near the end, show pages near the end
+                for (let i = Math.max(2, totalPages - 3); i <= totalPages - 1; i++) {
+                    if (!pages.includes(i)) {
+                        pages.push(i);
+                    }
+                }
+            } else {
+                // Show current page -1, current, current +1
+                for (let i = page - 1; i <= page + 1; i++) {
+                    if (i > 1 && i < totalPages && !pages.includes(i)) {
+                        pages.push(i);
+                    }
+                }
+            }
+
+            // Add ellipsis before last page if needed
+            if (page < totalPages - 2) {
+                pages.push("...");
+            }
+        }
+
+        // Always show last page if there is more than 1 page
+        if (totalPages > 1) {
+            pages.push(totalPages);
         }
 
         return pages;
@@ -102,19 +151,20 @@ export default function StorePage() {
 
     return (
         <div className="container mx-auto px-4 py-6 md:py-8">
-            {/* Header with Search */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            {/* Header with Search BELOW the title */}
+            <div className="flex flex-col gap-6 mb-6">
+                {/* Title Section */}
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">Research Peptides & Compounds</h1>
 
-                {/* Search Bar */}
-                <div className="w-full md:w-auto">
+                {/* Search Bar - Now placed below the h1 */}
+                <div className="w-full">
                     <div className="relative max-w-md">
                         <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <input type="text" placeholder="Search products..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full md:w-64 px-10 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all" />
+                        <input type="text" placeholder="Search products..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full px-10 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 transition-all" />
                         {searchQuery && (
-                            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white">
+                            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
                                 ✕
                             </button>
                         )}
@@ -167,18 +217,21 @@ export default function StorePage() {
 
                                 {/* Page Numbers */}
                                 <div className="flex items-center gap-1">
-                                    {getPageNumbers().map((pageNum) => (
-                                        <button key={pageNum} onClick={() => handlePageClick(pageNum)} className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${page === pageNum ? "bg-cyan-600 text-white" : "bg-slate-700 text-white hover:bg-slate-600"}`}>
-                                            {pageNum}
-                                        </button>
-                                    ))}
-
-                                    {/* Show ellipsis if there are more pages */}
-                                    {meta.totalPages > 5 && page < meta.totalPages - 2 && <span className="px-2 text-gray-500">...</span>}
+                                    {getPageNumbers().map((pageNum, index) =>
+                                        pageNum === "..." ? (
+                                            <span key={`ellipsis-${index}`} className="px-2 text-gray-500">
+                                                ...
+                                            </span>
+                                        ) : (
+                                            <button key={pageNum} onClick={() => handlePageClick(pageNum as number)} className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${page === pageNum ? "bg-cyan-600 text-white" : "bg-slate-700 text-white hover:bg-slate-600"}`}>
+                                                {pageNum}
+                                            </button>
+                                        )
+                                    )}
                                 </div>
 
                                 {/* Next Button */}
-                                <button onClick={handleNextPage} disabled={!meta.hasNextPage} className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${!meta.hasNextPage ? "bg-slate-800 text-gray-500 cursor-not-allowed" : "bg-slate-700 text-white hover:bg-slate-600 hover:text-cyan-300"}`}>
+                                <button onClick={handleNextPage} disabled={!hasNextPage} className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${!hasNextPage ? "bg-slate-800 text-gray-500 cursor-not-allowed" : "bg-slate-700 text-white hover:bg-slate-600 hover:text-cyan-300"}`}>
                                     Next →
                                 </button>
                             </div>
@@ -190,7 +243,7 @@ export default function StorePage() {
                                     value={limit}
                                     onChange={(e) => {
                                         setLimit(Number(e.target.value));
-                                        setPage(1); // Reset to first page when changing limit
+                                        setPage(1);
                                     }}
                                     className="bg-slate-800 border border-slate-700 text-white rounded px-2 py-1 text-sm focus:border-cyan-500 focus:outline-none"
                                 >

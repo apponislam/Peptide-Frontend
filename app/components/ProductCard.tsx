@@ -69,9 +69,10 @@
 
 import Link from "next/link";
 import { Product } from "../types";
-import { useCart } from "../hooks/useCart";
+// import { useCart } from "../hooks/useCart";
 import { useAuth } from "../contexts/AuthContext";
 import { getMemberPrice } from "../lib/products";
+import { useCart } from "../contexts/CartContext";
 
 interface ProductCardProps {
     product: Product;
