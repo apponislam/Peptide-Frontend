@@ -25,12 +25,14 @@ type TAuthState = {
     user: null | TUser;
     token: null | string;
     redirectPath: string | null;
+    isAuthenticated: boolean;
 };
 
 const initialState: TAuthState = {
     user: null,
     token: null,
     redirectPath: null,
+    isAuthenticated: false,
 };
 
 const authSlice = createSlice({
@@ -40,10 +42,12 @@ const authSlice = createSlice({
         setUser: (state, action: PayloadAction<{ user: TUser; token: string }>) => {
             state.user = action.payload.user;
             state.token = action.payload.token;
+            state.isAuthenticated = true;
         },
         logOut: (state) => {
             state.user = null;
             state.token = null;
+            state.isAuthenticated = false;
         },
         setRedirectPath: (state, action: PayloadAction<string | null>) => {
             state.redirectPath = action.payload;

@@ -121,11 +121,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-// import { getTier } from "../lib/products";
-import { useCart } from "../contexts/CartContext"; // Make sure this path is correct
+import { useCart } from "../contexts/CartContext";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
-import { logOut } from "@/app/redux/features/auth/authSlice";
-import { useLogoutMutation } from "@/app/redux/features/auth/authApi";
+import { currentUser, logOut } from "@/app/redux/features/auth/authSlice";
+import { useGetMeQuery, useLogoutMutation } from "@/app/redux/features/auth/authApi";
 
 const getTier = (count: number) => {
     if (count >= 10) return { name: "Founder", discount: 20, commission: 15, freeShipping: true };
@@ -134,21 +133,18 @@ const getTier = (count: number) => {
 };
 
 export default function Header() {
-    // Use cartCount as a function call
     const { cartCount, setIsOpen, cart } = useCart();
     const [showMobileMenu, setShowMobileMenu] = useState(false);
-    // const [searchQuery, setSearchQuery] = useState("");
+    const { data, error } = useGetMeQuery();
 
-    // Redux hooks
+    const userData = data?.data;
+
     const dispatch = useAppDispatch();
-    const user = useAppSelector((state) => state.auth.user);
-    console.log("User from Redux:", user);
+    const user = useAppSelector(currentUser);
+    console.log(user);
     const [logoutApi] = useLogoutMutation();
-
-    // Check if user exists and has the required properties
     const hasUser = user && user.id;
-    // const tierName = user?.tier || "Member";
-    const referralCount = user?.referralCount || 0;
+    const referralCount = userData?.referralCount || 0;
     const tier = getTier(referralCount);
 
     const handleLogout = async () => {
@@ -162,7 +158,7 @@ export default function Header() {
     };
 
     // Calculate cart items count
-    const itemsInCart = cartCount(); // Call the function
+    const itemsInCart = cartCount();
     console.log("Cart items count:", itemsInCart, "Cart:", cart);
 
     return (
@@ -188,11 +184,13 @@ export default function Header() {
                             {hasUser && (
                                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-lg">
                                     <div>
-                                        <span className="px-2 py-1 bg-cyan-500/20 rounded-full text-cyan-400 text-xs font-semibold">{user.tier || "Member"}</span>
+                                        <span className="px-2 py-1 bg-cyan-500/20 rounded-full text-cyan-400 text-xs font-semibold">{userData?.tier || "Member"}</span>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-cyan-400 text-xs font-semibold">{tier.discount}% Discount</div>
-                                        {tier.freeShipping ? <div className="text-green-400 text-xs">✓ Free Shipping</div> : <div className="text-yellow-400 text-xs">Free shipping $150+</div>}
+                                        <div className="text-cyan-400 text-xs font-semibold">
+                                            {tier.discount}% Discount {tier.commission > 0 && `& ${tier.commission}% Commission`}
+                                        </div>
+                                        {tier.freeShipping ? <div className="text-green-400 text-xs">Free Shipping</div> : <div className="text-yellow-400 text-xs">Free shipping $150+</div>}
                                     </div>
                                 </div>
                             )}

@@ -2,9 +2,6 @@
 
 import { Tier, User } from "../types";
 
-// import { User, Tier } from "@/types";
-// import { getTier } from "@/lib/products";
-
 interface DashboardStatsProps {
     user: User;
     tier: Tier;

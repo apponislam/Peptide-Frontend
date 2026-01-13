@@ -62,6 +62,7 @@ const authApi = baseApi.injectEndpoints({
                 method: "POST",
                 body: userInfo,
             }),
+            invalidatesTags: ["User"],
         }),
 
         // Register endpoint
@@ -71,6 +72,7 @@ const authApi = baseApi.injectEndpoints({
                 method: "POST",
                 body: userInfo,
             }),
+            invalidatesTags: ["User"],
         }),
 
         // Refresh token endpoint
@@ -79,6 +81,7 @@ const authApi = baseApi.injectEndpoints({
                 url: "/auth/refresh-token",
                 method: "POST",
             }),
+            invalidatesTags: ["User"],
         }),
 
         // Logout endpoint
@@ -87,6 +90,7 @@ const authApi = baseApi.injectEndpoints({
                 url: "/auth/logout",
                 method: "POST",
             }),
+            invalidatesTags: ["User"],
         }),
 
         // Get current user (me) endpoint
