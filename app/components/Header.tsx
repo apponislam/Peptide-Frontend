@@ -141,7 +141,7 @@ export default function Header() {
 
     const dispatch = useAppDispatch();
     const user = useAppSelector(currentUser);
-    console.log(user);
+    // console.log(user);
     const [logoutApi] = useLogoutMutation();
     const hasUser = user && user.id;
     const referralCount = userData?.referralCount || 0;
@@ -159,7 +159,7 @@ export default function Header() {
 
     // Calculate cart items count
     const itemsInCart = cartCount();
-    console.log("Cart items count:", itemsInCart, "Cart:", cart);
+    // console.log("Cart items count:", itemsInCart, "Cart:", cart);
 
     return (
         <>

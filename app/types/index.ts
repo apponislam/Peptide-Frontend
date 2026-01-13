@@ -32,6 +32,7 @@ export interface User {
     tier?: string;
     isAdmin?: boolean;
     referredBy?: string;
+    // orders: any[];
 }
 
 export interface Order {
@@ -42,6 +43,7 @@ export interface Order {
     shipping: number;
     creditUsed: number;
     total: number;
+    createdAt?: Date;
 }
 
 export interface OrderItem {

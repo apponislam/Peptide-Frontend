@@ -19,6 +19,7 @@ export type TUser = {
     referralCount: number;
     createdAt: string;
     profileImg?: string;
+    orders?: any[];
 };
 
 type TAuthState = {
