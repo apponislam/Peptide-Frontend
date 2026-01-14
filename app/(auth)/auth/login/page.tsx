@@ -242,8 +242,8 @@ export default function LoginPage() {
                 {/* Login Grid */}
                 <div className="grid md:grid-cols-2 gap-6 md:gap-8">
                     {/* New Member Section */}
-                    <div className="bg-slate-800 rounded-xl md:rounded-2xl p-6 md:p-8 border border-slate-700">
-                        <h2 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">New Member</h2>
+                    <div className="bg-slate-800 rounded-xl md:rounded-2xl p-6 md:p-8 border border-slate-700 flex justify-between flex-col">
+                        <h2 className="text-xl md:text-2xl font-bold text-white">New Member</h2>
                         <form onSubmit={handleReferralSubmit(onReferralSubmit)}>
                             <input
                                 type="text"
@@ -253,13 +253,16 @@ export default function LoginPage() {
                                     const target = e.target as HTMLInputElement;
                                     target.value = target.value.toUpperCase();
                                 }}
-                                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white mb-4 "
+                                className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white mb-2"
                             />
                             {referralErrors.referralCode && <p className="text-red-400 text-sm mb-2">{referralErrors.referralCode.message}</p>}
                             <button type="submit" disabled={referralSubmitting} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50">
                                 {referralSubmitting ? "Processing..." : "Unlock Access"}
                             </button>
                         </form>
+                        <Link href="/auth/register" className="text-right font-medium text-transparent bg-clip-text bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition">
+                            Create an account
+                        </Link>
                     </div>
 
                     {/* Member Access Section */}
