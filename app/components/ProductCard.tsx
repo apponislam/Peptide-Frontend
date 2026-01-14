@@ -73,6 +73,7 @@ import { Product } from "../types";
 import { useAuth } from "../contexts/AuthContext";
 import { getMemberPrice } from "../lib/products";
 import { useCart } from "../contexts/CartContext";
+import { useGetMeQuery } from "../redux/features/auth/authApi";
 
 interface ProductCardProps {
     product: Product;
@@ -80,7 +81,9 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
     const { cart, addToCart, removeFromCart } = useCart();
-    const { user } = useAuth();
+    const { data: userData } = useGetMeQuery();
+    const user = userData?.data;
+    // const { user } = useAuth();
 
     return (
         <div className="product-card bg-slate-800 rounded-xl border border-slate-700 overflow-hidden hover:border-cyan-500 transition flex flex-col">
@@ -109,7 +112,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                                 <div className="flex items-center gap-1 md:gap-2">
                                     <div className="flex flex-col items-end">
                                         <span className="text-white text-xs line-through">${size.price.toFixed(2)}</span>
-                                        <span className="text-cyan-400 font-bold text-sm md:text-base">${getMemberPrice(size.price, user)}</span>
+                                        <span className="text-cyan-400 font-bold text-sm md:text-base">${getMemberPrice(size.price, user ? user : null)}</span>
                                     </div>
                                     {show ? (
                                         <div className="flex items-center gap-1 bg-slate-700 rounded px-2 py-1">

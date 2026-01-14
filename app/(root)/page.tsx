@@ -82,9 +82,6 @@ export default function StorePage() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    // Generate page numbers for pagination
-    // Generate page numbers for pagination
-    // Generate page numbers for pagination
     const getPageNumbers = () => {
         if (!meta?.totalPages) return [];
 

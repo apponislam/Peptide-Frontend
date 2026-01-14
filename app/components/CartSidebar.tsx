@@ -1,12 +1,13 @@
 "use client";
 
 import { useCart } from "../contexts/CartContext";
-import { useAuth } from "../contexts/AuthContext";
 import { getTier } from "../lib/products";
+import { useGetMeQuery } from "../redux/features/auth/authApi";
 
 export default function CartSidebar() {
     const { cart, isOpen, setIsOpen, addToCart, removeFromCart, cartTotal, cartCount, clearCart } = useCart();
-    const { user } = useAuth();
+    const { data: userData } = useGetMeQuery();
+    const user = userData?.data;
 
     const tier = getTier(user?.referralCount || 0);
 
@@ -32,7 +33,6 @@ export default function CartSidebar() {
     };
 
     const checkout = () => {
-        // Add your checkout logic here
         alert("Checkout functionality coming soon!");
     };
 
