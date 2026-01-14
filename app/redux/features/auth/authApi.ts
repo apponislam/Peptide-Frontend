@@ -49,7 +49,7 @@ type RegisterRequest = {
     name: string;
     email: string;
     password: string;
-    referralCode?: string; // Optional referral code
+    referralCode?: string;
 };
 
 // NEW TYPES for referral code endpoints

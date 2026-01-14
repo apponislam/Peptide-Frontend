@@ -1,46 +1,294 @@
+// "use client";
+
+// import { useState, FormEvent } from "react";
+// import { useRouter } from "next/navigation";
+// import Image from "next/image";
+// import Link from "next/link";
+// import { ArrowLeft, Key, Mail, User } from "lucide-react";
+
+// export default function RegisterPage() {
+//     const router = useRouter();
+//     const [formData, setFormData] = useState({
+//         fullName: "",
+//         email: "",
+//         password: "",
+//         confirmPassword: "",
+//         invitationCode: "",
+//     });
+//     const [loading, setLoading] = useState(false);
+//     const [error, setError] = useState("");
+//     const [success, setSuccess] = useState("");
+
+//     const validateInvitationCode = (code: string): boolean => {
+//         if (!code.trim()) return true;
+//         const validCodes = ["JAKE", "WELCOME", "ACCESS2024", "PEPTIDE123"];
+//         return validCodes.includes(code.toUpperCase());
+//     };
+
+//     const handleRegistrationSubmit = async (e: FormEvent) => {
+//         e.preventDefault();
+//         setError("");
+//         setSuccess("");
+
+//         if (!formData.fullName.trim()) {
+//             setError("Full name is required");
+//             return;
+//         }
+
+//         if (!formData.email) {
+//             setError("Email is required");
+//             return;
+//         }
+
+//         if (formData.password !== formData.confirmPassword) {
+//             setError("Passwords do not match");
+//             return;
+//         }
+
+//         if (formData.password.length < 6) {
+//             setError("Password must be at least 6 characters");
+//             return;
+//         }
+
+//         if (formData.invitationCode && !validateInvitationCode(formData.invitationCode)) {
+//             setError("Invalid invitation code.");
+//             return;
+//         }
+
+//         setLoading(true);
+
+//         try {
+//             await new Promise((resolve) => setTimeout(resolve, 800));
+
+//             const existingUser = localStorage.getItem(`user_${formData.email}`);
+//             if (existingUser) {
+//                 setError("An account with this email already exists.");
+//                 setLoading(false);
+//                 return;
+//             }
+
+//             const referralCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+//             let storeCredit = 0;
+//             if (formData.invitationCode.trim()) {
+//                 storeCredit = 100;
+//             }
+
+//             const userData = {
+//                 id: `user_${Date.now()}`,
+//                 fullName: formData.fullName,
+//                 email: formData.email,
+//                 referralCode,
+//                 referralCount: 0,
+//                 storeCredit: storeCredit,
+//                 tier: "Member",
+//                 referredBy: formData.invitationCode.toUpperCase() || null,
+//                 createdAt: new Date().toISOString(),
+//             };
+
+//             localStorage.setItem(
+//                 `user_${formData.email}`,
+//                 JSON.stringify({
+//                     ...userData,
+//                     password: formData.password,
+//                 })
+//             );
+
+//             localStorage.setItem("peptide_user", JSON.stringify(userData));
+
+//             setSuccess("Account created successfully!");
+//             setLoading(false);
+
+//             setTimeout(() => {
+//                 router.push("/");
+//             }, 1200);
+//         } catch (err) {
+//             setError("Registration failed. Please try again.");
+//             setLoading(false);
+//         }
+//     };
+
+//     const updateFormData = (field: string, value: string) => {
+//         setFormData((prev) => ({ ...prev, [field]: value }));
+//     };
+
+//     return (
+//         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+//             <div className="w-full max-w-5xl flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+//                 {/* Left Side - Logo & Brand */}
+//                 <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start">
+//                     <div className="mb-6 lg:mb-8">
+//                         <Link href="/">
+//                             <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={500} height={120} className="h-20 lg:h-24 w-auto" priority />
+//                         </Link>
+//                     </div>
+
+//                     <div className="text-center lg:text-left">
+//                         <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">Join PEPTIDE.CLUB</h1>
+//                         <p className="text-gray-400">Research-grade peptides</p>
+//                     </div>
+//                 </div>
+
+//                 {/* Right Side - Form */}
+//                 <div className="w-full lg:w-1/2">
+//                     <div className="mb-4">
+//                         <Link href="/auth/login" className="inline-flex items-center text-cyan-400 hover:text-cyan-300">
+//                             <ArrowLeft className="w-5 h-5 mr-2" />
+//                             Back to Login
+//                         </Link>
+//                     </div>
+
+//                     {error && (
+//                         <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+//                             <p className="text-red-300 text-sm">{error}</p>
+//                         </div>
+//                     )}
+
+//                     {success && (
+//                         <div className="mb-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+//                             <p className="text-green-300 text-sm">{success}</p>
+//                         </div>
+//                     )}
+
+//                     <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-8 border border-slate-700/50">
+//                         <h2 className="text-xl font-bold text-white mb-6">Create Your Account</h2>
+
+//                         <form onSubmit={handleRegistrationSubmit}>
+//                             <div className="space-y-4">
+//                                 {/* Full Name */}
+//                                 <div>
+//                                     <label className="block text-gray-300 mb-2">
+//                                         <User className="inline w-4 h-4 mr-2 mb-1" />
+//                                         Full Name
+//                                     </label>
+//                                     <input type="text" value={formData.fullName} onChange={(e) => updateFormData("fullName", e.target.value)} placeholder="Enter your full name" required className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors" />
+//                                 </div>
+
+//                                 {/* Email */}
+//                                 <div>
+//                                     <label className="block text-gray-300 mb-2">
+//                                         <Mail className="inline w-4 h-4 mr-2 mb-1" />
+//                                         Email Address
+//                                     </label>
+//                                     <input type="email" value={formData.email} onChange={(e) => updateFormData("email", e.target.value)} placeholder="Enter your email" required className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors" />
+//                                 </div>
+
+//                                 {/* Password */}
+//                                 <div>
+//                                     <label className="block text-gray-300 mb-2">
+//                                         <Key className="inline w-4 h-4 mr-2 mb-1" />
+//                                         Password
+//                                     </label>
+//                                     <input
+//                                         type="password"
+//                                         value={formData.password}
+//                                         onChange={(e) => updateFormData("password", e.target.value)}
+//                                         placeholder="Create a password (min. 6 characters)"
+//                                         required
+//                                         minLength={6}
+//                                         className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+//                                     />
+//                                 </div>
+
+//                                 {/* Confirm Password */}
+//                                 <div>
+//                                     <label className="block text-gray-300 mb-2">Confirm Password</label>
+//                                     <input
+//                                         type="password"
+//                                         value={formData.confirmPassword}
+//                                         onChange={(e) => updateFormData("confirmPassword", e.target.value)}
+//                                         placeholder="Confirm your password"
+//                                         required
+//                                         className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+//                                     />
+//                                 </div>
+
+//                                 {/* Invitation Code */}
+//                                 <div>
+//                                     <label className="block text-gray-300 mb-2">
+//                                         Invitation Code
+//                                         <span className="text-gray-500 text-sm font-normal ml-2">(Optional)</span>
+//                                     </label>
+//                                     <input
+//                                         type="text"
+//                                         value={formData.invitationCode}
+//                                         onChange={(e) => updateFormData("invitationCode", e.target.value.toUpperCase())}
+//                                         placeholder="Enter invitation code if available"
+//                                         className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+//                                     />
+//                                 </div>
+
+//                                 {/* Submit Button */}
+//                                 <button type="submit" disabled={loading} className="w-full py-3 bg-linear-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold rounded-lg transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed mt-2">
+//                                     {loading ? (
+//                                         <span className="flex items-center justify-center">
+//                                             <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+//                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+//                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+//                                             </svg>
+//                                             Creating Account...
+//                                         </span>
+//                                     ) : (
+//                                         "Create Account"
+//                                     )}
+//                                 </button>
+//                             </div>
+//                         </form>
+//                     </div>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// }
+
 "use client";
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, UserPlus, Key, Mail, CheckCircle } from "lucide-react";
+import { ArrowLeft, Key, Mail, User } from "lucide-react";
+import { useAppDispatch } from "@/app/redux/hooks";
+import { useRegisterMutation } from "@/app/redux/features/auth/authApi";
+import { setUser } from "@/app/redux/features/auth/authSlice";
 
 export default function RegisterPage() {
     const router = useRouter();
-    const [step, setStep] = useState(1);
+    const dispatch = useAppDispatch();
+    const [register, { isLoading }] = useRegisterMutation();
+
     const [formData, setFormData] = useState({
-        invitationCode: "",
+        name: "",
         email: "",
         password: "",
         confirmPassword: "",
+        referralCode: "",
     });
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
     const validateInvitationCode = (code: string): boolean => {
+        if (!code.trim()) return true;
         const validCodes = ["JAKE", "WELCOME", "ACCESS2024", "PEPTIDE123"];
         return validCodes.includes(code.toUpperCase());
-    };
-
-    const handleInvitationSubmit = (e: FormEvent) => {
-        e.preventDefault();
-        setError("");
-
-        if (!validateInvitationCode(formData.invitationCode)) {
-            setError("Invalid invitation code. Please check and try again.");
-            return;
-        }
-
-        setStep(2);
     };
 
     const handleRegistrationSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setError("");
+        setSuccess("");
 
-        // Validation
+        // Basic validation
+        if (!formData.name.trim()) {
+            setError("Full name is required");
+            return;
+        }
+
+        if (!formData.email) {
+            setError("Email is required");
+            return;
+        }
+
         if (formData.password !== formData.confirmPassword) {
             setError("Passwords do not match");
             return;
@@ -51,57 +299,59 @@ export default function RegisterPage() {
             return;
         }
 
-        setLoading(true);
+        // Validate invitation code if provided
+        if (formData.referralCode && !validateInvitationCode(formData.referralCode)) {
+            setError("Invalid invitation code.");
+            return;
+        }
 
         try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Check if email already exists
-            const existingUser = localStorage.getItem(`user_${formData.email}`);
-            if (existingUser) {
-                setError("An account with this email already exists. Please sign in instead.");
-                setLoading(false);
-                return;
-            }
-
-            // Generate referral code
-            const referralCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
-
-            // Create user object
-            const userData = {
-                id: `user_${Date.now()}`,
+            // Prepare registration data
+            const registerData = {
+                name: formData.name,
                 email: formData.email,
-                referralCode,
-                referralCount: 0,
-                storeCredit: 0,
-                tier: "Member",
-                referredBy: formData.invitationCode.toUpperCase(),
-                createdAt: new Date().toISOString(),
+                password: formData.password,
+                referralCode: formData.referralCode || undefined,
             };
 
-            // Save to localStorage
-            localStorage.setItem(
-                `user_${formData.email}`,
-                JSON.stringify({
-                    ...userData,
-                    password: formData.password, // In real app, hash this!
-                })
-            );
+            // Call the register API
+            const response = await register(registerData).unwrap();
 
-            // Auto login
-            localStorage.setItem("peptide_user", JSON.stringify(userData));
+            if (response.success) {
+                // Dispatch user to Redux store
+                dispatch(
+                    setUser({
+                        user: response.data.user,
+                        token: response.data.accessToken,
+                    })
+                );
 
-            setSuccess("Account created successfully! Redirecting...");
-            setLoading(false);
+                // Also store in localStorage for persistence
+                localStorage.setItem("accessToken", response.data.accessToken);
+                localStorage.setItem("user", JSON.stringify(response.data.user));
 
-            // Redirect after success
-            setTimeout(() => {
-                router.push("/");
-            }, 1500);
-        } catch (err) {
-            setError("Registration failed. Please try again.");
-            setLoading(false);
+                setSuccess("Account created successfully!");
+
+                // Redirect after success
+                setTimeout(() => {
+                    router.push("/");
+                }, 1200);
+            } else {
+                setError(response.message || "Registration failed");
+            }
+        } catch (err: any) {
+            console.error("Registration error:", err);
+
+            // Handle different error formats
+            if (err.data?.message) {
+                setError(err.data.message);
+            } else if (err.message) {
+                setError(err.message);
+            } else if (err.status === 409) {
+                setError("An account with this email already exists.");
+            } else {
+                setError("Registration failed. Please try again.");
+            }
         }
     };
 
@@ -111,149 +361,128 @@ export default function RegisterPage() {
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
-            <div className="max-w-2xl w-full">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="flex justify-center mb-4">
-                        <Link href="/" className="inline-block">
-                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={350} height={80} className="h-16 md:h-20 w-auto" priority />
+            <div className="w-full max-w-5xl flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+                {/* Left Side - Logo & Brand */}
+                <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start">
+                    <div className="mb-6 lg:mb-8">
+                        <Link href="/">
+                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={500} height={120} className="h-20 lg:h-24 w-auto" priority />
                         </Link>
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Join PEPTIDE.CLUB</h1>
-                    <p className="text-gray-400">By invitation only • Research-grade peptides</p>
-                </div>
 
-                {/* Back Button */}
-                <div className="mb-6">
-                    <Link href="/auth/login" className="inline-flex items-center text-cyan-400 hover:text-cyan-300 text-sm">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Login
-                    </Link>
-                </div>
-
-                {/* Progress Steps */}
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? "bg-cyan-500" : "bg-slate-700"}`}>
-                            <Key className={`w-4 h-4 ${step >= 1 ? "text-white" : "text-gray-400"}`} />
-                        </div>
-                        <span className={`text-xs mt-2 ${step >= 1 ? "text-cyan-400" : "text-gray-500"}`}>Invitation Code</span>
-                    </div>
-                    <div className={`flex-1 h-0.5 ${step >= 2 ? "bg-cyan-500" : "bg-slate-700"}`} />
-                    <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? "bg-cyan-500" : "bg-slate-700"}`}>
-                            <UserPlus className={`w-4 h-4 ${step >= 2 ? "text-white" : "text-gray-400"}`} />
-                        </div>
-                        <span className={`text-xs mt-2 ${step >= 2 ? "text-cyan-400" : "text-gray-500"}`}>Create Account</span>
+                    <div className="text-center lg:text-left">
+                        <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">Join PEPTIDE.CLUB</h1>
+                        <p className="text-gray-400">Research-grade peptides</p>
                     </div>
                 </div>
 
-                {/* Error/Success Messages */}
-                {error && (
-                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
-                        <p className="text-red-300 text-sm">{error}</p>
+                {/* Right Side - Form */}
+                <div className="w-full lg:w-1/2">
+                    <div className="mb-4">
+                        <Link href="/auth/login" className="inline-flex items-center text-cyan-400 hover:text-cyan-300">
+                            <ArrowLeft className="w-5 h-5 mr-2" />
+                            Back to Login
+                        </Link>
                     </div>
-                )}
 
-                {success && (
-                    <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
-                        <p className="text-green-300 text-sm">{success}</p>
-                    </div>
-                )}
-
-                {/* Step 1: Invitation Code */}
-                {step === 1 && (
-                    <div className="bg-slate-800 rounded-xl p-6 md:p-8 border border-slate-700">
-                        <h2 className="text-xl font-bold text-white mb-2">Enter Invitation Code</h2>
-                        <p className="text-gray-400 text-sm mb-6">Access requires a valid invitation code. If you don't have one, please contact an existing member.</p>
-
-                        <form onSubmit={handleInvitationSubmit}>
-                            <div className="mb-4">
-                                <label className="block text-gray-300 text-sm mb-2">Invitation Code</label>
-                                <input type="text" value={formData.invitationCode} onChange={(e) => updateFormData("invitationCode", e.target.value.toUpperCase())} placeholder="Enter your code" required className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white text-center text-lg tracking-wider uppercase" />
-                                <p className="text-xs text-gray-400 mt-2">Example valid codes: JAKE, WELCOME, ACCESS2024</p>
-                            </div>
-
-                            <button type="submit" className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow">
-                                Verify Code & Continue
-                            </button>
-                        </form>
-
-                        <div className="mt-6 pt-6 border-t border-slate-700">
-                            <p className="text-sm text-gray-400">
-                                Already have an account?{" "}
-                                <Link href="/auth/login" className="text-cyan-400 hover:text-cyan-300">
-                                    Sign in here
-                                </Link>
-                            </p>
+                    {error && (
+                        <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                            <p className="text-red-300 text-sm">{error}</p>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Step 2: Registration Form */}
-                {step === 2 && (
-                    <div className="bg-slate-800 rounded-xl p-6 md:p-8 border border-slate-700">
-                        <h2 className="text-xl font-bold text-white mb-2">Create Your Account</h2>
-                        <p className="text-gray-400 text-sm mb-6">Code verified! Please create your account.</p>
+                    {success && (
+                        <div className="mb-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                            <p className="text-green-300 text-sm">{success}</p>
+                        </div>
+                    )}
+
+                    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-8 border border-slate-700/50">
+                        <h2 className="text-xl font-bold text-white mb-6">Create Your Account</h2>
 
                         <form onSubmit={handleRegistrationSubmit}>
                             <div className="space-y-4">
+                                {/* Full Name */}
+                                <div>
+                                    <label className="block text-gray-300 mb-2">
+                                        <User className="inline w-4 h-4 mr-2 mb-1" />
+                                        Full Name
+                                    </label>
+                                    <input type="text" value={formData.name} onChange={(e) => updateFormData("name", e.target.value)} placeholder="Enter your full name" required className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors" />
+                                </div>
+
                                 {/* Email */}
                                 <div>
-                                    <label className="block text-gray-300 text-sm mb-2">
-                                        <Mail className="inline w-4 h-4 mr-2" />
+                                    <label className="block text-gray-300 mb-2">
+                                        <Mail className="inline w-4 h-4 mr-2 mb-1" />
                                         Email Address
                                     </label>
-                                    <input type="email" value={formData.email} onChange={(e) => updateFormData("email", e.target.value)} placeholder="you@example.com" required className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white" />
+                                    <input type="email" value={formData.email} onChange={(e) => updateFormData("email", e.target.value)} placeholder="Enter your email" required className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors" />
                                 </div>
 
                                 {/* Password */}
                                 <div>
-                                    <label className="block text-gray-300 text-sm mb-2">
-                                        <Key className="inline w-4 h-4 mr-2" />
+                                    <label className="block text-gray-300 mb-2">
+                                        <Key className="inline w-4 h-4 mr-2 mb-1" />
                                         Password
                                     </label>
-                                    <input type="password" value={formData.password} onChange={(e) => updateFormData("password", e.target.value)} placeholder="At least 6 characters" required minLength={6} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white" />
+                                    <input
+                                        type="password"
+                                        value={formData.password}
+                                        onChange={(e) => updateFormData("password", e.target.value)}
+                                        placeholder="Create a password (min. 6 characters)"
+                                        required
+                                        minLength={6}
+                                        className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+                                    />
                                 </div>
 
                                 {/* Confirm Password */}
                                 <div>
-                                    <label className="block text-gray-300 text-sm mb-2">
-                                        <CheckCircle className="inline w-4 h-4 mr-2" />
-                                        Confirm Password
-                                    </label>
-                                    <input type="password" value={formData.confirmPassword} onChange={(e) => updateFormData("confirmPassword", e.target.value)} placeholder="Re-enter your password" required className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white" />
+                                    <label className="block text-gray-300 mb-2">Confirm Password</label>
+                                    <input
+                                        type="password"
+                                        value={formData.confirmPassword}
+                                        onChange={(e) => updateFormData("confirmPassword", e.target.value)}
+                                        placeholder="Confirm your password"
+                                        required
+                                        className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+                                    />
                                 </div>
 
-                                {/* Terms */}
-                                <div className="flex items-start mt-4">
-                                    <input type="checkbox" id="terms" required className="mt-1 mr-3" />
-                                    <label htmlFor="terms" className="text-sm text-gray-300">
-                                        I agree to the{" "}
-                                        <Link href="/terms" className="text-cyan-400 hover:underline">
-                                            Terms of Service
-                                        </Link>
+                                {/* Invitation Code */}
+                                <div>
+                                    <label className="block text-gray-300 mb-2">
+                                        Invitation Code
+                                        <span className="text-gray-500 text-sm font-normal ml-2">(Optional)</span>
                                     </label>
+                                    <input
+                                        type="text"
+                                        value={formData.referralCode}
+                                        onChange={(e) => updateFormData("referralCode", e.target.value.toUpperCase())}
+                                        placeholder="Enter invitation code if available"
+                                        className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+                                    />
                                 </div>
 
                                 {/* Submit Button */}
-                                <button type="submit" disabled={loading} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed mt-6">
-                                    {loading ? "Creating Account..." : "Create Account"}
+                                <button type="submit" disabled={isLoading} className="w-full py-3 bg-linear-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold rounded-lg transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed mt-2">
+                                    {isLoading ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Creating Account...
+                                        </span>
+                                    ) : (
+                                        "Create Account"
+                                    )}
                                 </button>
                             </div>
                         </form>
-
-                        <div className="mt-6 pt-6 border-t border-slate-700">
-                            <p className="text-sm text-gray-400">By registering, you'll get:</p>
-                            <ul className="text-sm text-gray-400 mt-2 space-y-1">
-                                <li>• 10% member discount on all products</li>
-                                <li>• Your own referral code to earn commissions</li>
-                                <li>• Access to research materials and COAs</li>
-                                <li>• Free shipping on orders over $150</li>
-                            </ul>
-                        </div>
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

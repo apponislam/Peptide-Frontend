@@ -185,6 +185,7 @@ export default function LoginPage() {
         register: registerReferral,
         handleSubmit: handleReferralSubmit,
         formState: { errors: referralErrors, isSubmitting: referralSubmitting },
+        setValue,
     } = useForm<ReferralFormData>({
         resolver: zodResolver(referralSchema),
     });
@@ -210,13 +211,47 @@ export default function LoginPage() {
 
     const onReferralSubmit = async (data: ReferralFormData) => {
         setError("");
-        if (data.referralCode.trim().toUpperCase() !== "JAKE") {
-            setError("Invalid invitation code.");
-            return;
-        }
+        const code = data.referralCode.trim().toUpperCase();
 
-        // Redirect to registration page with referral code
-        router.push(`/register?referral=${data.referralCode}`);
+        // Check for JAKE code - auto-login flow
+        if (code === "JAKE") {
+            // Auto-create user and login (original flow)
+            const userId = "user_" + Math.random().toString(36).substring(7);
+            const userReferralCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+            const mockUser = {
+                id: userId,
+                name: "New Member",
+                email: "new@member.com",
+                role: "USER" as const,
+                referralCode: userReferralCode,
+                tier: "Member",
+                storeCredit: 0,
+                referralCount: 0,
+                createdAt: new Date().toISOString(),
+            };
+
+            // Create mock access token
+            const mockToken = "mock_token_" + Math.random().toString(36).substring(2);
+
+            // Dispatch to Redux
+            dispatch(
+                setUser({
+                    user: mockUser,
+                    token: mockToken,
+                })
+            );
+
+            // Store in localStorage for persistence
+            localStorage.setItem("accessToken", mockToken);
+            localStorage.setItem("user", JSON.stringify(mockUser));
+
+            router.push("/");
+        } else {
+            // For other codes, redirect to registration page
+            // Or check if it's a valid referral code from existing user
+            router.push(`/auth/register?referral=${code}`);
+        }
     };
 
     return (
@@ -251,7 +286,9 @@ export default function LoginPage() {
                                 {...registerReferral("referralCode")}
                                 onInput={(e) => {
                                     const target = e.target as HTMLInputElement;
-                                    target.value = target.value.toUpperCase();
+                                    const upperValue = target.value.toUpperCase();
+                                    target.value = upperValue;
+                                    setValue("referralCode", upperValue, { shouldValidate: true });
                                 }}
                                 className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white mb-2"
                             />
