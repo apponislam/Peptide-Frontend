@@ -277,7 +277,7 @@ export default function LoginPage() {
                 {/* Login Grid */}
                 <div className="grid md:grid-cols-2 gap-6 md:gap-8">
                     {/* New Member Section */}
-                    <div className="bg-slate-800 rounded-xl md:rounded-2xl p-6 md:p-8 border border-slate-700 flex justify-between flex-col">
+                    <div className="bg-slate-800 rounded-xl md:rounded-2xl p-6 md:p-8 border border-slate-700 flex justify-between flex-col gap-4">
                         <h2 className="text-xl md:text-2xl font-bold text-white">New Member</h2>
                         <form onSubmit={handleReferralSubmit(onReferralSubmit)}>
                             <input
