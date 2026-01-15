@@ -24,6 +24,7 @@ export type TUser = {
 
 type TAuthState = {
     user: null | TUser;
+    demoUser: null | TUser;
     token: null | string;
     redirectPath: string | null;
     isAuthenticated: boolean;
@@ -31,6 +32,7 @@ type TAuthState = {
 
 const initialState: TAuthState = {
     user: null,
+    demoUser: null,
     token: null,
     redirectPath: null,
     isAuthenticated: false,
@@ -50,6 +52,9 @@ const authSlice = createSlice({
             state.token = null;
             state.isAuthenticated = false;
         },
+        demoLogOut: (state) => {
+            state.demoUser = null;
+        },
         setRedirectPath: (state, action: PayloadAction<string | null>) => {
             state.redirectPath = action.payload;
         },
@@ -62,3 +67,4 @@ export default authSlice.reducer;
 export const currentToken = (state: RootState) => state.auth.token;
 export const currentUser = (state: RootState) => state.auth.user;
 export const redirectPath = (state: RootState) => state.auth.redirectPath;
+export const demoUser = (state: RootState) => state.auth.demoUser;
