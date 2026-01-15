@@ -166,6 +166,8 @@ import OrdersTab from "./OrdersTab";
 import UsersTab from "./UsersTab";
 import ProductsTab from "./ProductsTab";
 import AnalyticsTab from "./AnalyticsTab";
+import Link from "next/link";
+import Image from "next/image";
 // import DashboardTab from "./tabs/DashboardTab";
 // import OrdersTab from "./tabs/OrdersTab";
 // import UsersTab from "./tabs/UsersTab";
@@ -196,11 +198,15 @@ export default function AdminDashboard() {
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
             <nav className="bg-slate-900/80 border-b border-cyan-500/20">
                 <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    <a href="/">
+                    {/* <Link href="/">
+
                         <div className="text-white text-2xl font-bold" style={{ fontFamily: "'GreaterTheory', sans-serif", letterSpacing: "-2px" }}>
                             PEPTIDE.CLUB
                         </div>
-                    </a>
+                    </Link> */}
+                    <Link href="/" className="cursor-pointer shrink-0">
+                        <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={350} height={40} className="h-10 w-auto" />
+                    </Link>
                     <div className="flex items-center gap-4">
                         <span className="text-gray-300 text-sm">{adminUser?.email}</span>
                         <button onClick={handleLogout} className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors">
