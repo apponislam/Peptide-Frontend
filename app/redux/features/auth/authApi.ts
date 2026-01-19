@@ -39,7 +39,6 @@ type GetMeResponse = {
     data: TUser;
 };
 
-// Request types
 type LoginRequest = {
     email: string;
     password: string;
@@ -52,7 +51,6 @@ type RegisterRequest = {
     referralCode?: string;
 };
 
-// NEW TYPES for referral code endpoints
 type UpdateReferralCodeResponse = {
     success: boolean;
     message: string;
@@ -78,6 +76,15 @@ const authApi = baseApi.injectEndpoints({
         login: builder.mutation<LoginResponse, LoginRequest>({
             query: (userInfo) => ({
                 url: "/auth/login",
+                method: "POST",
+                body: userInfo,
+            }),
+            invalidatesTags: ["User"],
+        }),
+
+        adminLogin: builder.mutation<LoginResponse, LoginRequest>({
+            query: (userInfo) => ({
+                url: "/auth/admin/login",
                 method: "POST",
                 body: userInfo,
             }),
@@ -141,4 +148,4 @@ const authApi = baseApi.injectEndpoints({
     }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useRefreshTokenMutation, useLogoutMutation, useGetMeQuery, useUpdateReferralCodeMutation, useCheckReferralCodeQuery } = authApi;
+export const { useLoginMutation, useAdminLoginMutation, useRegisterMutation, useRefreshTokenMutation, useLogoutMutation, useGetMeQuery, useUpdateReferralCodeMutation, useCheckReferralCodeQuery } = authApi;
