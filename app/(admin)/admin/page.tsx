@@ -88,11 +88,11 @@ import { useRouter } from "next/navigation";
 import { useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import DashboardTab from "./dashboard/DashboardTab";
-import OrdersTab from "./dashboard/OrdersTab";
-import UsersTab from "./dashboard/UsersTab";
-import ProductsTab from "./dashboard/ProductsTab";
-import AnalyticsTab from "./dashboard/AnalyticsTab";
+import DashboardTab from "../../components/adminDashboard/DashboardTab";
+import OrdersTab from "../../components/adminDashboard/OrdersTab";
+import UsersTab from "../../components/adminDashboard/UsersTab";
+import ProductsTab from "../../components/adminDashboard/ProductsTab";
+import AnalyticsTab from "../../components/adminDashboard/AnalyticsTab";
 
 type TabType = "dashboard" | "orders" | "users" | "products" | "analytics";
 

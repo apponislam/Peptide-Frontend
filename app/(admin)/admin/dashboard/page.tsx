@@ -161,11 +161,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import DashboardTab from "./DashboardTab";
-import OrdersTab from "./OrdersTab";
-import UsersTab from "./UsersTab";
-import ProductsTab from "./ProductsTab";
-import AnalyticsTab from "./AnalyticsTab";
+import DashboardTab from "../../../components/adminDashboard/DashboardTab";
+import OrdersTab from "../../../components/adminDashboard/OrdersTab";
+import UsersTab from "../../../components/adminDashboard/UsersTab";
+import ProductsTab from "../../../components/adminDashboard/ProductsTab";
+import AnalyticsTab from "../../../components/adminDashboard/AnalyticsTab";
 import Link from "next/link";
 import Image from "next/image";
 // import DashboardTab from "./tabs/DashboardTab";
