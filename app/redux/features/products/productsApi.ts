@@ -46,7 +46,34 @@ export const productsApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ["Products"],
         }),
+
+        // NEW: Get deleted products (admin only) - from your routes
+        getDeletedProducts: builder.query({
+            query: () => ({
+                url: "/products/admin/deleted",
+            }),
+            providesTags: ["DeletedProducts"],
+        }),
+
+        // NEW: Restore deleted product (admin only) - from your routes
+        restoreProduct: builder.mutation({
+            query: (id: number) => ({
+                url: `/products/admin/restore/${id}`,
+                method: "PATCH",
+            }),
+            invalidatesTags: ["Products", "DeletedProducts"],
+        }),
     }),
 });
 
-export const { useGetProductsQuery, useLazyGetProductsQuery, useGetSingleProductQuery, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation } = productsApi;
+export const {
+    useGetProductsQuery,
+    useLazyGetProductsQuery,
+    useGetSingleProductQuery,
+    useCreateProductMutation,
+    useUpdateProductMutation,
+    useDeleteProductMutation,
+    // New exports
+    useGetDeletedProductsQuery,
+    useRestoreProductMutation,
+} = productsApi;

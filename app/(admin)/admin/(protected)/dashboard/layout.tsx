@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import "../../../globals.css";
+// import "../../../globals.css";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
