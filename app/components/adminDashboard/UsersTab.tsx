@@ -1,3 +1,8 @@
+// "use client";
+
+// import { useGetAllUsersQuery } from "@/app/redux/features/admin/adminApi";
+// import { useState, useEffect } from "react";
+
 // interface User {
 //     id: string;
 //     email: string;
@@ -5,33 +10,69 @@
 //     referralCount: number;
 //     storeCredit: number;
 //     referralCode: string;
-//     createdAt?: string;
-//     lastActive?: string;
 // }
 
-// interface UsersTabProps {
-//     users: User[];
-//     loading: boolean;
-// }
+// export default function UsersTab() {
+//     const { data, error } = useGetAllUsersQuery({ page: 1, limit: 50 });
+//     console.log(error);
+//     console.log(data);
 
-// export default function UsersTab({ users, loading }: UsersTabProps) {
-//     const updateUser = async (userId: string, field: string, value: any) => {
-//         // TODO: Implement API call to update user
-//         console.log(`Updating user ${userId} ${field} to ${value}`);
-//         // Mock update - replace with actual API call
-//         alert(`User ${field} updated to ${value}`);
+//     const [users, setUsers] = useState<User[]>([]);
+//     const [loading, setLoading] = useState(true);
+
+//     useEffect(() => {
+//         loadUsers();
+//     }, []);
+
+//     const loadUsers = async () => {
+//         try {
+//             setLoading(true);
+//             // Mock API call
+//             await new Promise((resolve) => setTimeout(resolve, 500));
+
+//             const mockUsers: User[] = [
+//                 {
+//                     id: "1",
+//                     email: "user1@example.com",
+//                     tier: "VIP",
+//                     referralCount: 5,
+//                     storeCredit: 150.0,
+//                     referralCode: "VIPREF1",
+//                 },
+//                 {
+//                     id: "2",
+//                     email: "user2@example.com",
+//                     tier: "Founder",
+//                     referralCount: 12,
+//                     storeCredit: 320.5,
+//                     referralCode: "FOUNDER22",
+//                 },
+//                 {
+//                     id: "3",
+//                     email: "user3@example.com",
+//                     tier: "Member",
+//                     referralCount: 2,
+//                     storeCredit: 45.0,
+//                     referralCode: "MEMBER33",
+//                 },
+//             ];
+
+//             setUsers(mockUsers);
+//         } catch (error) {
+//             console.error("Failed to load users:", error);
+//         } finally {
+//             setLoading(false);
+//         }
 //     };
 
-//     const getTierColor = (tier: string) => {
-//         switch (tier) {
-//             case "Founder":
-//                 return "bg-purple-500/20 text-purple-400";
-//             case "VIP":
-//                 return "bg-cyan-500/20 text-cyan-400";
-//             case "Member":
-//                 return "bg-blue-500/20 text-blue-400";
-//             default:
-//                 return "bg-gray-500/20 text-gray-400";
+//     const updateUser = async (userId: string, data: any) => {
+//         try {
+//             // Mock API call - replace with actual
+//             await new Promise((resolve) => setTimeout(resolve, 300));
+
+//             setUsers((prev) => prev.map((user) => (user.id === userId ? { ...user, ...data } : user)));
+//         } catch (error) {
+//             alert("Failed to update user: " + (error as Error).message);
 //         }
 //     };
 
@@ -45,190 +86,358 @@
 
 //     return (
 //         <div>
-//             <div className="flex justify-between items-center mb-6">
-//                 <h2 className="text-3xl font-bold text-white">Users</h2>
-//                 <div className="flex gap-2">
-//                     <input type="text" placeholder="Search users..." className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white w-64" />
-//                     <select className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white">
-//                         <option value="all">All Tiers</option>
-//                         <option value="Member">Member</option>
-//                         <option value="VIP">VIP</option>
-//                         <option value="Founder">Founder</option>
-//                     </select>
-//                 </div>
-//             </div>
-
-//             <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-//                 <div className="overflow-x-auto">
-//                     <table className="w-full">
-//                         <thead className="bg-slate-900/50 border-b border-slate-700">
-//                             <tr>
-//                                 <th className="px-6 py-4 text-left text-gray-300 font-semibold">Email</th>
-//                                 <th className="px-6 py-4 text-left text-gray-300 font-semibold">Tier</th>
-//                                 <th className="px-6 py-4 text-left text-gray-300 font-semibold">Referrals</th>
-//                                 <th className="px-6 py-4 text-left text-gray-300 font-semibold">Store Credit</th>
-//                                 <th className="px-6 py-4 text-left text-gray-300 font-semibold">Referral Code</th>
-//                                 <th className="px-6 py-4 text-left text-gray-300 font-semibold">Actions</th>
+//             <h2 className="text-3xl font-bold text-white mb-6">Users</h2>
+//             <div className="overflow-x-auto">
+//                 <table className="w-full text-sm text-gray-300">
+//                     <thead className="border-b border-slate-700">
+//                         <tr>
+//                             <th className="px-4 py-3 text-left text-white">Email</th>
+//                             <th className="px-4 py-3 text-left text-white">Tier</th>
+//                             <th className="px-4 py-3 text-left text-white">Referrals</th>
+//                             <th className="px-4 py-3 text-left text-white">Store Credit</th>
+//                             <th className="px-4 py-3 text-left text-white">Referral Code</th>
+//                             <th className="px-4 py-3 text-left text-white">Actions</th>
+//                         </tr>
+//                     </thead>
+//                     <tbody className="space-y-2">
+//                         {users.map((user) => (
+//                             <tr key={user.id} className="bg-slate-800 border-b border-slate-700">
+//                                 <td className="px-4 py-3">{user.email}</td>
+//                                 <td className="px-4 py-3">
+//                                     <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded text-xs">{user.tier}</span>
+//                                 </td>
+//                                 <td className="px-4 py-3">{user.referralCount}</td>
+//                                 <td className="px-4 py-3 text-green-400">${user.storeCredit.toFixed(2)}</td>
+//                                 <td className="px-4 py-3 font-mono text-xs">{user.referralCode}</td>
+//                                 <td className="px-4 py-3">
+//                                     <button
+//                                         onClick={() => {
+//                                             const credit = prompt("Store Credit:", user.storeCredit.toString());
+//                                             if (credit) updateUser(user.id, { storeCredit: parseFloat(credit) });
+//                                         }}
+//                                         className="text-cyan-400 hover:text-cyan-300 text-xs mr-2"
+//                                     >
+//                                         Edit Credit
+//                                     </button>
+//                                     <button
+//                                         onClick={() => {
+//                                             const tier = prompt("Tier (Member/VIP/Founder):", user.tier);
+//                                             if (tier) updateUser(user.id, { tier });
+//                                         }}
+//                                         className="text-cyan-400 hover:text-cyan-300 text-xs"
+//                                     >
+//                                         Edit Tier
+//                                     </button>
+//                                 </td>
 //                             </tr>
-//                         </thead>
-//                         <tbody className="divide-y divide-slate-700">
-//                             {users.length > 0 ? (
-//                                 users.map((user) => (
-//                                     <tr key={user.id} className="hover:bg-slate-900/30 transition-colors">
-//                                         <td className="px-6 py-4">
-//                                             <div className="flex items-center gap-3">
-//                                                 <div className="h-10 w-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
-//                                                     <span className="text-cyan-400 font-bold">{user.email.charAt(0).toUpperCase()}</span>
-//                                                 </div>
-//                                                 <div>
-//                                                     <p className="text-white font-medium">{user.email}</p>
-//                                                     <p className="text-sm text-gray-400">Joined {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}</p>
-//                                                 </div>
-//                                             </div>
-//                                         </td>
-//                                         <td className="px-6 py-4">
-//                                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTierColor(user.tier)}`}>{user.tier}</span>
-//                                         </td>
-//                                         <td className="px-6 py-4">
-//                                             <div className="flex items-center gap-2">
-//                                                 <span className="text-white font-medium">{user.referralCount}</span>
-//                                                 <span className="text-gray-400 text-sm">referrals</span>
-//                                             </div>
-//                                         </td>
-//                                         <td className="px-6 py-4">
-//                                             <span className="text-green-400 font-bold">${user.storeCredit.toFixed(2)}</span>
-//                                         </td>
-//                                         <td className="px-6 py-4">
-//                                             <code className="px-3 py-1 bg-slate-900 rounded text-sm font-mono text-gray-300">{user.referralCode}</code>
-//                                         </td>
-//                                         <td className="px-6 py-4">
-//                                             <div className="flex gap-2">
-//                                                 <button
-//                                                     onClick={() => {
-//                                                         const credit = prompt("Store Credit:", user.storeCredit.toString());
-//                                                         if (credit) updateUser(user.id, "storeCredit", parseFloat(credit));
-//                                                     }}
-//                                                     className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded text-sm hover:bg-cyan-500/30 transition-colors"
-//                                                 >
-//                                                     Edit Credit
-//                                                 </button>
-//                                                 <button
-//                                                     onClick={() => {
-//                                                         const tier = prompt("Tier (Member/VIP/Founder):", user.tier);
-//                                                         if (tier) updateUser(user.id, "tier", tier);
-//                                                     }}
-//                                                     className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded text-sm hover:bg-blue-500/30 transition-colors"
-//                                                 >
-//                                                     Edit Tier
-//                                                 </button>
-//                                             </div>
-//                                         </td>
-//                                     </tr>
-//                                 ))
-//                             ) : (
-//                                 <tr>
-//                                     <td colSpan={6} className="px-6 py-12 text-center">
-//                                         <p className="text-gray-400 text-lg">No users found</p>
-//                                         <p className="text-gray-500 text-sm mt-2">User data will appear here</p>
-//                                     </td>
-//                                 </tr>
-//                             )}
-//                         </tbody>
-//                     </table>
-//                 </div>
-
-//                 {/* Pagination */}
-//                 <div className="px-6 py-4 border-t border-slate-700 flex justify-between items-center">
-//                     <div className="text-sm text-gray-400">
-//                         Showing 1 to {Math.min(users.length, 10)} of {users.length} users
-//                     </div>
-//                     <div className="flex gap-2">
-//                         <button className="px-4 py-2 bg-slate-900 text-gray-300 rounded-lg hover:bg-slate-800 transition-colors">Previous</button>
-//                         <button className="px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-colors">1</button>
-//                         <button className="px-4 py-2 bg-slate-900 text-gray-300 rounded-lg hover:bg-slate-800 transition-colors">2</button>
-//                         <button className="px-4 py-2 bg-slate-900 text-gray-300 rounded-lg hover:bg-slate-800 transition-colors">Next</button>
-//                     </div>
-//                 </div>
+//                         ))}
+//                     </tbody>
+//                 </table>
 //             </div>
 //         </div>
 //     );
 // }
 
-// components/admin/tabs/UsersTab.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useGetAllUsersQuery, useUpdateUserMutation } from "@/app/redux/features/admin/adminApi";
+import { useState } from "react";
+import { useModal } from "@/app/providers/ModalContext";
+import Pagination from "@/app/utils/Pagination";
 
 interface User {
     id: string;
+    name: string;
     email: string;
-    tier: "Member" | "VIP" | "Founder";
+    role: "ADMIN" | "USER";
+    tier: string;
+    referralCode: string;
     referralCount: number;
     storeCredit: number;
-    referralCode: string;
+    createdAt: string;
 }
 
 export default function UsersTab() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { openModal, closeModal } = useModal();
+    const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(12);
 
-    useEffect(() => {
-        loadUsers();
-    }, []);
+    const {
+        data: usersData,
+        isLoading,
+        refetch,
+    } = useGetAllUsersQuery({
+        page,
+        limit,
+        search,
+    });
 
-    const loadUsers = async () => {
-        try {
-            setLoading(true);
-            // Mock API call
-            await new Promise((resolve) => setTimeout(resolve, 500));
+    const [updateUserMutation, { isLoading: isUpdating }] = useUpdateUserMutation();
 
-            const mockUsers: User[] = [
-                {
-                    id: "1",
-                    email: "user1@example.com",
-                    tier: "VIP",
-                    referralCount: 5,
-                    storeCredit: 150.0,
-                    referralCode: "VIPREF1",
-                },
-                {
-                    id: "2",
-                    email: "user2@example.com",
-                    tier: "Founder",
-                    referralCount: 12,
-                    storeCredit: 320.5,
-                    referralCode: "FOUNDER22",
-                },
-                {
-                    id: "3",
-                    email: "user3@example.com",
-                    tier: "Member",
-                    referralCount: 2,
-                    storeCredit: 45.0,
-                    referralCode: "MEMBER33",
-                },
-            ];
+    const users = usersData?.data || [];
+    const meta = usersData?.meta || { page: 1, limit: 12, total: 0, totalPages: 1 };
 
-            setUsers(mockUsers);
-        } catch (error) {
-            console.error("Failed to load users:", error);
-        } finally {
-            setLoading(false);
-        }
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value);
+        setPage(1);
     };
 
-    const updateUser = async (userId: string, data: any) => {
-        try {
-            // Mock API call - replace with actual
-            await new Promise((resolve) => setTimeout(resolve, 300));
-
-            setUsers((prev) => prev.map((user) => (user.id === userId ? { ...user, ...data } : user)));
-        } catch (error) {
-            alert("Failed to update user: " + (error as Error).message);
-        }
+    const handlePageChange = (newPage: number) => {
+        setPage(newPage);
     };
 
-    if (loading) {
+    const handleLimitChange = (newLimit: number) => {
+        setLimit(newLimit);
+        setPage(1);
+    };
+
+    const handleEditCredit = (user: User) => {
+        openModal({
+            type: "confirm",
+            title: "Edit Store Credit",
+            message: `Update store credit for ${user.name || user.email}`,
+            children: (
+                <div className="mt-4">
+                    <input type="number" id="storeCreditInput" step="0.01" min="0" defaultValue={user.storeCredit} className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+                </div>
+            ),
+            confirmText: "Update",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+                const input = document.getElementById("storeCreditInput") as HTMLInputElement;
+                const storeCredit = parseFloat(input.value);
+
+                if (isNaN(storeCredit) || storeCredit < 0) {
+                    openModal({
+                        type: "error",
+                        title: "Invalid Input",
+                        message: "Please enter a valid number.",
+                    });
+                    return;
+                }
+
+                try {
+                    await updateUserMutation({
+                        id: user.id,
+                        data: { storeCredit },
+                    }).unwrap();
+
+                    openModal({
+                        type: "success",
+                        title: "Success",
+                        message: `Store credit updated to $${storeCredit.toFixed(2)}`,
+                        onConfirm: async () => {
+                            await refetch();
+                        },
+                    });
+                } catch (error: any) {
+                    openModal({
+                        type: "error",
+                        title: "Error",
+                        message: error?.data?.message || "Failed to update",
+                    });
+                }
+            },
+        });
+    };
+
+    // const handleEditTier = (user: User) => {
+    //     openModal({
+    //         type: "confirm",
+    //         title: "Edit User Tier",
+    //         message: `Update tier for ${user.name || user.email}`,
+    //         children: (
+    //             <div className="mt-4">
+    //                 <select id="tierInput" defaultValue={user.tier} className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
+    //                     <option value="Member">Member</option>
+    //                     <option value="VIp">VIP</option>
+    //                     <option value="Founder">Founder</option>
+    //                 </select>
+    //             </div>
+    //         ),
+    //         confirmText: "Update",
+    //         cancelText: "Cancel",
+    //         onConfirm: async () => {
+    //             const select = document.getElementById("tierInput") as HTMLSelectElement;
+    //             const tier = select.value;
+
+    //             try {
+    //                 await updateUserMutation({
+    //                     id: user.id,
+    //                     data: { tier },
+    //                 }).unwrap();
+
+    //                 closeModal();
+
+    //                 setTimeout(() => {
+    //                     openModal({
+    //                         type: "success",
+    //                         title: "Success",
+    //                         message: `Tier updated to ${tier}`,
+    //                         onConfirm: async () => {
+    //                             await refetch();
+    //                         },
+    //                     });
+    //                 }, 50);
+    //             } catch (error: any) {
+    //                 // console.log(error);
+
+    //                 // const errorMessage = error?.data?.message || error?.data?.err?.message || error?.message || "Failed to update tier";
+
+    //                 // openModal({
+    //                 //     type: "error",
+    //                 //     title: "Error",
+    //                 //     message: errorMessage,
+    //                 // });
+    //                 closeModal();
+    //                 setTimeout(() => {
+    //                     openModal({
+    //                         type: "error",
+    //                         title: "Error",
+    //                         message: error?.data?.message || error?.message || "Failed to update tier",
+    //                     });
+    //                 }, 300);
+    //             }
+    //         },
+    //     });
+    // };
+
+    // const handleEditTier = (user: User) => {
+    //     let currentModalOpen = true;
+
+    //     const showResultModal = (type: "success" | "error", title: string, message: string) => {
+    //         if (!currentModalOpen) return;
+
+    //         openModal({
+    //             type,
+    //             title,
+    //             message,
+    //             onConfirm:
+    //                 type === "success"
+    //                     ? async () => {
+    //                           await refetch();
+    //                           currentModalOpen = false;
+    //                       }
+    //                     : undefined,
+    //             onCancel: () => {
+    //                 currentModalOpen = false;
+    //             },
+    //         });
+    //     };
+
+    //     // Open the initial confirm modal
+    //     openModal({
+    //         type: "confirm",
+    //         title: "Edit User Tier",
+    //         message: `Update tier for ${user.name || user.email}`,
+    //         children: (
+    //             <div className="mt-4">
+    //                 <select id="tierInput" defaultValue={user.tier} className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
+    //                     <option value="Member">Member</option>
+    //                     <option value="VIP">VIP</option>
+    //                     <option value="Founder">Founder</option>
+    //                 </select>
+    //             </div>
+    //         ),
+    //         confirmText: "Update",
+    //         cancelText: "Cancel",
+    //         onConfirm: async () => {
+    //             const select = document.getElementById("tierInput") as HTMLSelectElement;
+    //             const tier = select.value;
+
+    //             try {
+    //                 // Close the confirm modal FIRST
+    //                 // Use a ref to track modal state
+    //                 await updateUserMutation({
+    //                     id: user.id,
+    //                     data: { tier },
+    //                 }).unwrap();
+
+    //                 // Show success in the SAME modal instance
+    //                 showResultModal("success", "Success", `Tier updated to ${tier}`);
+    //             } catch (error: any) {
+    //                 // Show error in the SAME modal instance
+    //                 showResultModal("error", "Error", error?.data?.message || error?.message || "Failed to update tier");
+    //             }
+
+    //             // Don't let the modal auto-close
+    //             throw new Error("Prevent auto-close");
+    //         },
+    //         onCancel: () => {
+    //             currentModalOpen = false;
+    //         },
+    //     });
+    // };
+
+    const handleEditTier = (user: User) => {
+        let currentModalOpen = true;
+
+        const showResultModal = (type: "success" | "error", title: string, message: string) => {
+            if (!currentModalOpen) return;
+
+            openModal({
+                type,
+                title,
+                message,
+                onConfirm:
+                    type === "success"
+                        ? async () => {
+                              await refetch();
+                              currentModalOpen = false;
+                          }
+                        : undefined,
+                onCancel: () => {
+                    currentModalOpen = false;
+                },
+            });
+        };
+
+        openModal({
+            type: "confirm",
+            title: "Edit User Tier",
+            message: `Update tier for ${user.name || user.email}`,
+            children: (
+                <div className="mt-4">
+                    <select id="tierInput" defaultValue={user.tier} className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        <option value="Member">Member</option>
+                        <option value="VIP">VIP</option>
+                        <option value="Founder">Founder</option>
+                    </select>
+                </div>
+            ),
+            confirmText: "Update",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+                const select = document.getElementById("tierInput") as HTMLSelectElement;
+                const tier = select.value;
+
+                try {
+                    await updateUserMutation({
+                        id: user.id,
+                        data: { tier },
+                    }).unwrap();
+
+                    showResultModal("success", "Success", `Tier updated to ${tier}`);
+
+                    // Return a rejected promise instead of throwing
+
+                    return Promise.reject(new Error("Prevent auto-close (silent)"));
+                } catch (error: any) {
+                    showResultModal("error", "Error", error?.data?.message || error?.message || "Failed to update tier");
+
+                    // Return a rejected promise instead of throwing
+
+                    return Promise.reject(new Error("Prevent auto-close (silent)"));
+                }
+            },
+            onCancel: () => {
+                currentModalOpen = false;
+            },
+        });
+    };
+
+    if (isLoading) {
         return (
             <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
@@ -237,55 +446,73 @@ export default function UsersTab() {
     }
 
     return (
-        <div>
-            <h2 className="text-3xl font-bold text-white mb-6">Users</h2>
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-gray-300">
-                    <thead className="border-b border-slate-700">
-                        <tr>
-                            <th className="px-4 py-3 text-left text-white">Email</th>
-                            <th className="px-4 py-3 text-left text-white">Tier</th>
-                            <th className="px-4 py-3 text-left text-white">Referrals</th>
-                            <th className="px-4 py-3 text-left text-white">Store Credit</th>
-                            <th className="px-4 py-3 text-left text-white">Referral Code</th>
-                            <th className="px-4 py-3 text-left text-white">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="space-y-2">
-                        {users.map((user) => (
-                            <tr key={user.id} className="bg-slate-800 border-b border-slate-700">
-                                <td className="px-4 py-3">{user.email}</td>
-                                <td className="px-4 py-3">
-                                    <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded text-xs">{user.tier}</span>
-                                </td>
-                                <td className="px-4 py-3">{user.referralCount}</td>
-                                <td className="px-4 py-3 text-green-400">${user.storeCredit.toFixed(2)}</td>
-                                <td className="px-4 py-3 font-mono text-xs">{user.referralCode}</td>
-                                <td className="px-4 py-3">
-                                    <button
-                                        onClick={() => {
-                                            const credit = prompt("Store Credit:", user.storeCredit.toString());
-                                            if (credit) updateUser(user.id, { storeCredit: parseFloat(credit) });
-                                        }}
-                                        className="text-cyan-400 hover:text-cyan-300 text-xs mr-2"
-                                    >
-                                        Edit Credit
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            const tier = prompt("Tier (Member/VIP/Founder):", user.tier);
-                                            if (tier) updateUser(user.id, { tier });
-                                        }}
-                                        className="text-cyan-400 hover:text-cyan-300 text-xs"
-                                    >
-                                        Edit Tier
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+        <div className="p-4 md:p-6">
+            <div className="mb-6">
+                <h2 className="text-3xl font-bold text-white">Users</h2>
             </div>
+
+            <input type="text" value={search} onChange={handleSearch} placeholder="Search users..." className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-6" />
+
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="border-b border-white/10">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-sm font-semibold text-white">User</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold text-white">Role/Tier</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold text-white">Credit/Refs</th>
+                                <th className="px-6 py-4 text-left text-sm font-semibold text-white">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map((user: any) => (
+                                <tr key={user.id} className="border-b border-white/10 hover:bg-white/5">
+                                    <td className="px-6 py-4">
+                                        <div>
+                                            <p className="text-white font-medium">{user.name || "No name"}</p>
+                                            <p className="text-gray-400 text-sm">{user.email}</p>
+                                            <p className="text-gray-500 text-xs mt-1">{new Date(user.createdAt).toLocaleDateString()}</p>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="space-y-2">
+                                            <span className={`px-2 py-1 text-xs rounded ${user.role === "ADMIN" ? "bg-cyan-500/20 text-cyan-400" : "bg-blue-500/20 text-blue-400"}`}>{user.role}</span>
+                                            <div>
+                                                <span className={`px-2 py-1 text-xs rounded ${user.tier === "Founder" ? "bg-purple-500/20 text-purple-400" : "bg-cyan-500/20 text-cyan-400"}`}>{user.tier}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div>
+                                            <p className="text-green-400 font-medium">${user.storeCredit.toFixed(2)}</p>
+                                            <p className="text-gray-400 text-sm">{user.referralCount} referrals</p>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex gap-2">
+                                            <button onClick={() => handleEditCredit(user)} className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm hover:bg-green-500/30 transition-colors" disabled={isUpdating}>
+                                                Edit Credit
+                                            </button>
+                                            <button onClick={() => handleEditTier(user)} className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm hover:bg-blue-500/30 transition-colors" disabled={isUpdating}>
+                                                Edit Tier
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {users.length === 0 && (
+                        <div className="text-center py-12">
+                            <p className="text-gray-400">No users found</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Only show pagination if there's more than 1 page */}
+            {meta.totalPages > 1 && <Pagination meta={meta} onPageChange={handlePageChange} onLimitChange={handleLimitChange} showLimitSelector={true} />}
         </div>
     );
 }
