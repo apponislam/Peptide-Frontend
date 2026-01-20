@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import DashboardTab from "../../../components/adminDashboard/DashboardTab";
-import OrdersTab from "../../../components/adminDashboard/OrdersTab";
-import UsersTab from "../../../components/adminDashboard/UsersTab";
-import ProductsTab from "../../../components/adminDashboard/ProductsTab";
-import AnalyticsTab from "../../../components/adminDashboard/AnalyticsTab";
+import DashboardTab from "../../../../components/adminDashboard/DashboardTab";
+import OrdersTab from "../../../../components/adminDashboard/OrdersTab";
+import UsersTab from "../../../../components/adminDashboard/UsersTab";
+import ProductsTab from "../../../../components/adminDashboard/ProductsTab";
+import AnalyticsTab from "../../../../components/adminDashboard/AnalyticsTab";
 import Link from "next/link";
 import Image from "next/image";
 
