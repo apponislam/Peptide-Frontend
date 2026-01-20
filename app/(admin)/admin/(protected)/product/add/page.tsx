@@ -5,8 +5,8 @@ import { useCreateProductMutation } from "@/app/redux/features/products/products
 import { useForm, useFieldArray, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useModal } from "@/app/providers/ModalContext";
 
-// Define Zod schema without optional types in the main object
 const productSchema = z.object({
     name: z.string().min(1, "Product name is required").max(100),
     desc: z.string().min(1, "Description is required").max(500),
@@ -61,6 +61,8 @@ type ProductFormData = {
 };
 
 const CreateProductPage = () => {
+    const { openModal } = useModal();
+
     const router = useRouter();
     const [createProduct, { isLoading }] = useCreateProductMutation();
 
@@ -108,13 +110,9 @@ const CreateProductPage = () => {
 
     const onSubmit: SubmitHandler<ProductFormData> = async (data) => {
         try {
-            // Clean up empty references
             const cleanReferences = data.references.filter((ref) => ref.url.trim() && ref.title.trim());
-
-            // Clean up COA - remove if all fields are empty
             const coaData = data.coa;
             const isCoaEmpty = coaData ? Object.values(coaData).every((value) => !value.trim()) : true;
-
             const cleanData = {
                 ...data,
                 references: cleanReferences,
@@ -122,11 +120,23 @@ const CreateProductPage = () => {
             };
 
             await createProduct(cleanData).unwrap();
-            alert("Product created successfully!");
+            openModal({
+                type: "success",
+                title: "Success!",
+                message: "Product created successfully!",
+                onConfirm: () => {
+                    router.push("/admin?tab=products");
+                },
+                confirmText: "Go to Products",
+            });
             router.push("/admin?tab=products");
             reset();
         } catch (error: any) {
-            alert(error?.data?.message || "Failed to create product");
+            openModal({
+                type: "error",
+                title: "Error",
+                message: error?.data?.message || "Failed to create product",
+            });
         }
     };
 
