@@ -67,13 +67,16 @@
 "use client";
 import React, { ReactNode, useEffect, useState } from "react";
 import { useAppSelector } from "../redux/hooks";
+import { useRouter } from "next/navigation";
 
 interface AdminProviderProps {
     children: ReactNode;
+    allowNonAdmin?: boolean;
 }
 
-const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
+const AdminProvider: React.FC<AdminProviderProps> = ({ children, allowNonAdmin = false }) => {
     const user = useAppSelector((state) => state.auth.user);
+    const router = useRouter();
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -82,10 +85,11 @@ const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
             if (!user) {
                 setIsAdmin(false);
                 setIsLoading(false);
+                if (!location.pathname.includes("/admin/login")) {
+                    router.push("/admin/login");
+                }
                 return;
             }
-
-            // Check if user has ADMIN role from your roles enum
             const userIsAdmin = user.role === "ADMIN";
             setIsAdmin(userIsAdmin);
             setIsLoading(false);
@@ -103,6 +107,10 @@ const AdminProvider: React.FC<AdminProviderProps> = ({ children }) => {
                 </div>
             </div>
         );
+    }
+
+    if (allowNonAdmin) {
+        return <>{children}</>;
     }
 
     if (!isAdmin) {
