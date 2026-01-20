@@ -36,11 +36,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "./contexts/AuthContext";
-import { CartProvider } from "./contexts/CartContext";
-import Header from "./components/Header";
-import CartSidebar from "./components/CartSidebar";
 import { ReduxProvider } from "./providers/ReduxProvider";
+import { ModalProvider } from "./providers/ModalContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -65,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </head>
             <body className={`${inter.className}`} style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
                 <ReduxProvider>
-                    {children}
+                    <ModalProvider>{children}</ModalProvider>
                     {/* <AuthProvider>
                         <CartProvider>
                             <Header />
