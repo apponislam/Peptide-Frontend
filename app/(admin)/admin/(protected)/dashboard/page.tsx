@@ -13,7 +13,6 @@ import Image from "next/image";
 export default function AdminDashboard() {
     const router = useRouter();
     const [selectedTab, setSelectedTab] = useState<"dashboard" | "orders" | "users" | "products" | "analytics">("dashboard");
-    const [loading, setLoading] = useState(false);
     const [adminUser, setAdminUser] = useState<any>(null);
 
     // Load initial data

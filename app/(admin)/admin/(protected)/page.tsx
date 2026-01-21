@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams, usePathname } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
 import DashboardTab from "@/app/components/adminDashboard/DashboardTab";
 import OrdersTab from "@/app/components/adminDashboard/OrdersTab";
 import UsersTab from "@/app/components/adminDashboard/UsersTab";
 import ProductsTab from "@/app/components/adminDashboard/ProductsTab";
 import AnalyticsTab from "@/app/components/adminDashboard/AnalyticsTab";
+import AdminDashHeader from "@/app/components/adminDashboard/AdminDashHeader";
 
 type TabType = "dashboard" | "orders" | "users" | "products" | "analytics";
 
@@ -24,7 +23,6 @@ export default function AdminDashboard() {
     const initialTab = validTabs.includes(tabParam) ? tabParam : "dashboard";
 
     const [selectedTab, setSelectedTab] = useState<TabType>(initialTab);
-    const [adminUser, setAdminUser] = useState<any>(null);
 
     // Update URL when tab changes
     const handleTabChange = (tab: TabType) => {
@@ -41,34 +39,9 @@ export default function AdminDashboard() {
         }
     }, [tabParam, selectedTab]);
 
-    useEffect(() => {
-        const user = localStorage.getItem("admin_user");
-        if (user) {
-            setAdminUser(JSON.parse(user));
-        }
-    }, []);
-
-    const handleLogout = () => {
-        localStorage.removeItem("admin_token");
-        localStorage.removeItem("admin_user");
-        router.push("/admin/login");
-    };
-
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
-            <nav className="bg-slate-900/80 border-b border-cyan-500/20">
-                <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    <Link href="/" className="cursor-pointer shrink-0">
-                        <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={350} height={40} className="h-10 w-auto" />
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <span className="text-gray-300 text-sm">{adminUser?.email}</span>
-                        <button onClick={handleLogout} className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors">
-                            Log Out
-                        </button>
-                    </div>
-                </div>
-            </nav>
+            <AdminDashHeader></AdminDashHeader>
 
             <div className="container mx-auto px-6 py-12">
                 {/* Tab Navigation - Fixed responsive design */}
