@@ -3,15 +3,6 @@ import { baseApi } from "../../api/baseApi";
 
 export const adminApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        // Admin login
-        adminLogin: builder.mutation({
-            query: (credentials: { email: string; password: string }) => ({
-                url: "/admin/login",
-                method: "POST",
-                body: credentials,
-            }),
-        }),
-
         // Get dashboard stats
         getDashboardStats: builder.query({
             query: () => ({
@@ -84,4 +75,4 @@ export const adminApi = baseApi.injectEndpoints({
     }),
 });
 
-export const { useAdminLoginMutation, useGetDashboardStatsQuery, useLazyGetDashboardStatsQuery, useGetAllOrdersQuery, useLazyGetAllOrdersQuery, useGetAllUsersQuery, useLazyGetAllUsersQuery, useUpdateOrderStatusMutation, useUpdateUserMutation, useGetUserByIdQuery, useGetOrderByIdQuery, useGetUserOrdersQuery } = adminApi;
+export const { useGetDashboardStatsQuery, useLazyGetDashboardStatsQuery, useGetAllOrdersQuery, useLazyGetAllOrdersQuery, useGetAllUsersQuery, useLazyGetAllUsersQuery, useUpdateOrderStatusMutation, useUpdateUserMutation, useGetUserByIdQuery, useGetOrderByIdQuery, useGetUserOrdersQuery } = adminApi;
