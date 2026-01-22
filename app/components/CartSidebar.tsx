@@ -119,35 +119,33 @@ export default function CartSidebar() {
     const { data: userData } = useGetMeQuery();
     const user = userData?.data;
 
-    // Updated: Use tier from user.tier instead of referralCount
+    // Everyone gets at least Member tier
     const tier = getTier(user?.tier || "Member");
 
-    // Updated: getMemberPrice now takes tierString parameter
+    // Apply discount to EVERYONE (including guests)
     const getMemberPrice = (price: number) => {
-        if (!user) return price.toFixed(2);
+        // Apply discount to everyone - guests get Member discount too
         return (price * (1 - tier.discount / 100)).toFixed(2);
     };
 
-    // Same function as before
     const calculateSubtotal = () => {
         return cart.reduce((sum, item) => {
             return sum + parseFloat(getMemberPrice(item.size.price)) * item.quantity;
         }, 0);
     };
 
-    // Same function as before
     const calculateShipping = () => {
         if (tier.freeShipping) return 0;
         const subtotal = calculateSubtotal();
         return subtotal >= 150 ? 0 : 6.95;
     };
 
-    // Same function as before
     const calculateTotal = () => {
         return calculateSubtotal() + calculateShipping();
     };
 
     const checkout = () => {
+        console.log(cart);
         alert("Checkout functionality coming soon!");
     };
 
@@ -173,26 +171,36 @@ export default function CartSidebar() {
                     {cart.length === 0 ? (
                         <p className="text-gray-400 text-center py-8">Cart is empty</p>
                     ) : (
-                        cart.map((item) => (
-                            <div key={`${item.product.id}-${item.size.mg}`} className="bg-slate-800 rounded-lg p-3 mb-3">
-                                <div className="flex justify-between mb-2">
-                                    <div>
-                                        <h4 className="font-bold text-white text-sm">{item.product.name}</h4>
-                                        <p className="text-xs text-gray-400">{item.size.mg}mg</p>
+                        cart.map((item) => {
+                            const originalPrice = item.size.price;
+                            const discountedPrice = getMemberPrice(originalPrice);
+
+                            return (
+                                <div key={`${item.product.id}-${item.size.mg}`} className="bg-slate-800 rounded-lg p-3 mb-3">
+                                    <div className="flex justify-between mb-2">
+                                        <div>
+                                            <h4 className="font-bold text-white text-sm">{item.product.name}</h4>
+                                            <p className="text-xs text-gray-400">{item.size.mg}mg</p>
+                                        </div>
+                                        <div className="text-right">
+                                            {/* Show original price crossed out */}
+                                            <div className="text-xs text-gray-500 line-through mb-1">${originalPrice.toFixed(2)}</div>
+                                            {/* Show discounted price */}
+                                            <div className="text-cyan-400 font-bold">${discountedPrice}</div>
+                                        </div>
                                     </div>
-                                    <div className="text-cyan-400 font-bold">${getMemberPrice(item.size.price)}</div>
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => removeFromCart(item.product.id, item.size.mg)} className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white">
+                                            -
+                                        </button>
+                                        <span className="text-white font-bold">{item.quantity}</span>
+                                        <button onClick={() => addToCart(item.product, item.size)} className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white">
+                                            +
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button onClick={() => removeFromCart(item.product.id, item.size.mg)} className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white">
-                                        -
-                                    </button>
-                                    <span className="text-white font-bold">{item.quantity}</span>
-                                    <button onClick={() => addToCart(item.product, item.size)} className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white">
-                                        +
-                                    </button>
-                                </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
 
