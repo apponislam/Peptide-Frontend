@@ -3,6 +3,7 @@ import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, R
 import authReducer from "./features/auth/authSlice";
 import storage from "redux-persist/lib/storage";
 import { baseApi } from "./api/baseApi";
+import cartReducer from "./features/cart/cartSlice";
 
 const persistConfigure = {
     key: "auth",
@@ -10,12 +11,20 @@ const persistConfigure = {
     whitelist: ["user", "token", "isAuthenticated", "redirectPath"],
 };
 
+const cartPersistConfig = {
+    key: "cart",
+    storage,
+    whitelist: ["items"],
+};
+
 const persistAuthReducer = persistReducer(persistConfigure, authReducer);
+const persistCartReducer = persistReducer(cartPersistConfig, cartReducer);
 
 const store = configureStore({
     reducer: {
         [baseApi.reducerPath]: baseApi.reducer,
         auth: persistAuthReducer,
+        cart: persistCartReducer,
     },
     middleware: (getDefaultMiddlewares) =>
         getDefaultMiddlewares({

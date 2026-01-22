@@ -4,7 +4,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "@/app/contexts/CartContext";
-import { useAuth } from "@/app/contexts/AuthContext";
 import { getMemberPrice, getTier } from "@/app/lib/products";
 import { useGetSingleProductQuery } from "@/app/redux/features/products/productsApi";
 import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
