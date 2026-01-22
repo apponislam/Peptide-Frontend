@@ -19,34 +19,6 @@ const baseQuery = fetchBaseQuery({
     },
 });
 
-// export const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (args, api, extraOptions) => {
-//     let result = await baseQuery(args, api, extraOptions);
-//     console.log(result);
-
-//     if (result?.error?.status === 401 || result?.error?.status === 403) {
-//         const refreshResult = await baseQuery({ url: "/auth/refresh-token", method: "POST", credentials: "include" }, api, extraOptions);
-
-//         if (refreshResult.data && typeof refreshResult.data === "object" && "data" in refreshResult.data) {
-//             const backendData = (refreshResult.data as RefreshTokenResponse).data;
-//             const user = backendData.user;
-//             const accessToken = backendData.accessToken;
-//             if (user && accessToken) {
-//                 api.dispatch(setUser({ user, token: accessToken }));
-
-//                 result = await baseQuery(args, api, extraOptions);
-//             } else {
-//                 api.dispatch(logOut());
-//                 return { error: { status: 401, data: "Session expired" } };
-//             }
-//         } else {
-//             api.dispatch(logOut());
-//             return { error: { status: 401, data: "Session expired" } };
-//         }
-//     }
-
-//     return result;
-// };
-
 export const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (args, api, extraOptions) => {
     const url = typeof args === "string" ? args : args.url;
     const isAuthEndpoint = url === "/auth/login" || url === "/auth/admin/login" || url === "/auth/refresh-token";
