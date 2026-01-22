@@ -352,12 +352,10 @@ export default function StorePage() {
             {/* Error State */}
             {isError && !isLoading && <div className="text-center py-12 text-red-400">Failed to load products. Please try again.</div>}
 
-            {/* Products Grid */}
             {!isLoading && !isError && (
                 <>
                     <div className="product-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">{products.length === 0 ? <div className="col-span-full text-center text-gray-400 py-12">No products found {searchQuery && `for "${searchQuery}"`}</div> : products.map((product: any) => <ProductCard key={product.id} product={product} />)}</div>
 
-                    {/* Pagination - Using reusable component */}
                     {meta && meta.totalPages > 1 && <Pagination meta={meta} onPageChange={handlePageChange} onLimitChange={handleLimitChange} showLimitSelector={true} />}
                 </>
             )}
