@@ -33,14 +33,8 @@ export default function AdminDashboard() {
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
             <nav className="bg-slate-900/80 border-b border-cyan-500/20">
                 <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                    {/* <Link href="/">
-
-                        <div className="text-white text-2xl font-bold" style={{ fontFamily: "'GreaterTheory', sans-serif", letterSpacing: "-2px" }}>
-                            PEPTIDE.CLUB
-                        </div>
-                    </Link> */}
                     <Link href="/" className="cursor-pointer shrink-0">
-                        <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={350} height={40} className="h-10 w-auto" />
+                        <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-10 w-auto" priority />
                     </Link>
                     <div className="flex items-center gap-4">
                         <span className="text-gray-300 text-sm">{adminUser?.email}</span>

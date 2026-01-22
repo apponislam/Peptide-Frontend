@@ -148,7 +148,7 @@ export default function LoginPage() {
                 <div className="text-center mb-8 md:mb-12">
                     <div className="flex justify-center mb-4">
                         <Link href="/">
-                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={350} height={80} className="h-16 md:h-20 w-auto" />
+                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
                         </Link>
                     </div>
                     <p className="text-gray-400 text-base md:text-lg">By invitation only</p>

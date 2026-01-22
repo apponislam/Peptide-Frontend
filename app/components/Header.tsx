@@ -198,7 +198,7 @@ export default function Header() {
                     <div className="flex items-center justify-between gap-4">
                         {/* Logo */}
                         <Link href="/" className="cursor-pointer shrink-0">
-                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={350} height={40} className="h-10 w-auto" />
+                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-10 w-auto" priority />
                         </Link>
 
                         {/* Right Side Actions */}

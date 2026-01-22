@@ -405,7 +405,7 @@ export default function RegisterPage() {
                 <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start">
                     <div className="mb-6 lg:mb-8">
                         <Link href="/">
-                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={500} height={120} className="h-20 lg:h-24 w-auto" priority />
+                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
                         </Link>
                     </div>
 
