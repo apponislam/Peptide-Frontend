@@ -1,0 +1,586 @@
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import { useSelector } from "react-redux";
+// import { selectCartItems } from "@/app/redux/features/cart/cartSlice";
+// import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
+// import { getTier } from "@/app/utils/pricing";
+
+// export default function CheckoutPage() {
+//     const router = useRouter();
+//     const cart = useSelector(selectCartItems);
+//     const { data: userData } = useGetMeQuery();
+//     const user = userData?.data;
+
+//     const tier = getTier(user?.tier || "Member");
+
+//     // Form state
+//     const [formData, setFormData] = useState({
+//         firstName: "",
+//         lastName: "",
+//         email: "",
+//         phone: "",
+//         address: "",
+//         city: "",
+//         state: "",
+//         zipCode: "",
+//         country: "US",
+//     });
+
+//     // Redirect if cart is empty
+//     useEffect(() => {
+//         if (cart.length === 0) {
+//             router.push("/");
+//         }
+//     }, [cart, router]);
+
+//     const getMemberPrice = (price: number) => {
+//         return (price * (1 - tier.discount / 100)).toFixed(2);
+//     };
+
+//     const calculateSubtotal = () => {
+//         return cart.reduce((sum, item) => {
+//             return sum + parseFloat(getMemberPrice(item.size.price)) * item.quantity;
+//         }, 0);
+//     };
+
+//     const calculateShipping = () => {
+//         if (tier.freeShipping) return 0;
+//         const subtotal = calculateSubtotal();
+//         return subtotal >= 150 ? 0 : 6.95;
+//     };
+
+//     const calculateTotal = () => {
+//         return calculateSubtotal() + calculateShipping();
+//     };
+
+//     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+//         const { name, value } = e.target;
+//         setFormData((prev) => ({ ...prev, [name]: value }));
+//     };
+
+//     const handleSubmit = async (e: React.FormEvent) => {
+//         e.preventDefault();
+
+//         // Prepare order data for backend/Stripe
+//         const orderData = {
+//             // Customer Information
+//             customer: {
+//                 firstName: formData.firstName,
+//                 lastName: formData.lastName,
+//                 email: formData.email,
+//                 phone: formData.phone,
+//             },
+
+//             // Shipping Address
+//             shippingAddress: {
+//                 street: formData.address,
+//                 city: formData.city,
+//                 state: formData.state,
+//                 zipCode: formData.zipCode,
+//                 country: formData.country,
+//             },
+
+//             items: cart.map((item) => ({
+//                 productId: item.product.id,
+//                 productName: item.product.name,
+//                 sizeMg: item.size.mg,
+//                 quantity: item.quantity,
+//                 unitPrice: parseFloat(item.size.price.toFixed(2)),
+//             })),
+
+//             // Pricing Summary
+//             pricing: {
+//                 subtotal: parseFloat(calculateSubtotal().toFixed(2)),
+//                 shipping: parseFloat(calculateShipping().toFixed(2)),
+//                 total: parseFloat(calculateTotal().toFixed(2)),
+//                 discountPercentage: tier.discount,
+//                 discountAmount: parseFloat(cart.reduce((sum, item) => sum + item.size.price * (tier.discount / 100) * item.quantity, 0).toFixed(2)),
+//             },
+
+//             // Shipping Info
+//             shipping: {
+//                 cost: parseFloat(calculateShipping().toFixed(2)),
+//                 freeShipping: tier.freeShipping,
+//             },
+
+//             // User/Tier Info
+//             metadata: {
+//                 userId: user?.id || "guest",
+//                 userTier: tier.name,
+//                 userEmail: user?.email || formData.email,
+//             },
+
+//             // Order Details
+//             orderNumber: `PC-${Date.now()}`,
+//             orderDate: new Date().toISOString(),
+//             paymentMethod: "stripe",
+//         };
+
+//         console.log("Order data for Stripe:", orderData);
+
+//         alert("This would redirect to Stripe Checkout in production");
+//     };
+
+//     if (cart.length === 0) {
+//         return (
+//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+//                 <div className="text-center">
+//                     <h1 className="text-2xl text-white mb-4">Your cart is empty</h1>
+//                     <button onClick={() => router.push("/")} className="px-6 py-3 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600">
+//                         Continue Shopping
+//                     </button>
+//                 </div>
+//             </div>
+//         );
+//     }
+
+//     return (
+//         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//             <div className="container mx-auto max-w-6xl">
+//                 <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+
+//                 <div className="grid md:grid-cols-2 gap-8">
+//                     {/* Left Column - Order Summary */}
+//                     <div>
+//                         <div className="bg-slate-800 rounded-lg p-6 mb-6">
+//                             <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+
+//                             {cart.map((item) => {
+//                                 const discountedPrice = getMemberPrice(item.size.price);
+//                                 return (
+//                                     <div key={`${item.product.id}-${item.size.mg}`} className="flex justify-between items-center py-3 border-b border-slate-700">
+//                                         <div>
+//                                             <h3 className="font-semibold">{item.product.name}</h3>
+//                                             <p className="text-sm text-gray-400">
+//                                                 {item.size.mg}mg × {item.quantity}
+//                                             </p>
+//                                         </div>
+//                                         <div className="text-right">
+//                                             <p className="text-sm text-gray-400 line-through">${item.size.price.toFixed(2)}</p>
+//                                             <p className="text-cyan-400">${discountedPrice}</p>
+//                                         </div>
+//                                     </div>
+//                                 );
+//                             })}
+
+//                             <div className="mt-6 space-y-3">
+//                                 <div className="flex justify-between">
+//                                     <span>Subtotal</span>
+//                                     <span>${calculateSubtotal().toFixed(2)}</span>
+//                                 </div>
+//                                 <div className="flex justify-between">
+//                                     <span>Shipping</span>
+//                                     <span>{calculateShipping() === 0 ? <span className="text-green-400">Free</span> : `$${calculateShipping().toFixed(2)}`}</span>
+//                                 </div>
+//                                 <div className="flex justify-between text-lg font-bold pt-3 border-t border-slate-700">
+//                                     <span>Total</span>
+//                                     <span className="text-cyan-400">${calculateTotal().toFixed(2)}</span>
+//                                 </div>
+//                             </div>
+//                         </div>
+
+//                         {/* Tier Info */}
+//                         <div className="bg-slate-800 rounded-lg p-6">
+//                             <h2 className="text-xl font-bold mb-4">Your Benefits</h2>
+//                             <div className="space-y-2">
+//                                 <div className="flex justify-between">
+//                                     <span className="text-gray-400">Tier:</span>
+//                                     <span className="text-cyan-400">{tier.name}</span>
+//                                 </div>
+//                                 <div className="flex justify-between">
+//                                     <span className="text-gray-400">Discount:</span>
+//                                     <span className="text-green-400">{tier.discount}% OFF</span>
+//                                 </div>
+//                                 <div className="flex justify-between">
+//                                     <span className="text-gray-400">Shipping:</span>
+//                                     <span className={tier.freeShipping ? "text-green-400" : "text-yellow-400"}>{tier.freeShipping ? "Free Shipping" : "Free over $150"}</span>
+//                                 </div>
+//                             </div>
+//                         </div>
+//                     </div>
+
+//                     {/* Right Column - Checkout Form */}
+//                     <div>
+//                         <form onSubmit={handleSubmit} className="bg-slate-800 rounded-lg p-6">
+//                             <h2 className="text-xl font-bold mb-6">Shipping Information</h2>
+
+//                             <div className="grid md:grid-cols-2 gap-4 mb-4">
+//                                 <div>
+//                                     <label className="block text-sm text-gray-400 mb-2">First Name</label>
+//                                     <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} required className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+//                                 </div>
+//                                 <div>
+//                                     <label className="block text-sm text-gray-400 mb-2">Last Name</label>
+//                                     <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} required className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+//                                 </div>
+//                             </div>
+
+//                             <div className="mb-4">
+//                                 <label className="block text-sm text-gray-400 mb-2">Email</label>
+//                                 <input type="email" name="email" value={formData.email} onChange={handleInputChange} required className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+//                             </div>
+
+//                             <div className="mb-4">
+//                                 <label className="block text-sm text-gray-400 mb-2">Phone</label>
+//                                 <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+//                             </div>
+
+//                             <div className="mb-4">
+//                                 <label className="block text-sm text-gray-400 mb-2">Address</label>
+//                                 <input type="text" name="address" value={formData.address} onChange={handleInputChange} required className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+//                             </div>
+
+//                             <div className="grid md:grid-cols-2 gap-4 mb-4">
+//                                 <div>
+//                                     <label className="block text-sm text-gray-400 mb-2">City</label>
+//                                     <input type="text" name="city" value={formData.city} onChange={handleInputChange} required className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+//                                 </div>
+//                                 <div>
+//                                     <label className="block text-sm text-gray-400 mb-2">State</label>
+//                                     <input type="text" name="state" value={formData.state} onChange={handleInputChange} required className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+//                                 </div>
+//                             </div>
+
+//                             <div className="grid md:grid-cols-2 gap-4 mb-8">
+//                                 <div>
+//                                     <label className="block text-sm text-gray-400 mb-2">ZIP Code</label>
+//                                     <input type="text" name="zipCode" value={formData.zipCode} onChange={handleInputChange} required className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+//                                 </div>
+//                                 <div>
+//                                     <label className="block text-sm text-gray-400 mb-2">Country</label>
+//                                     <select name="country" value={formData.country} onChange={handleInputChange} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none">
+//                                         <option value="US">United States</option>
+//                                         <option value="CA">Canada</option>
+//                                     </select>
+//                                 </div>
+//                             </div>
+
+//                             {/* Submit Button */}
+//                             <button type="submit" className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20">
+//                                 Pay with Stripe - ${calculateTotal().toFixed(2)}
+//                             </button>
+
+//                             <p className="text-xs text-gray-500 text-center mt-4">By completing your order, you agree to our Terms of Service</p>
+//                         </form>
+//                     </div>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// }
+
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { selectCartItems } from "@/app/redux/features/cart/cartSlice";
+import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
+import { getTier } from "@/app/utils/pricing";
+
+// Zod schema for form validation
+const checkoutSchema = z.object({
+    firstName: z.string().min(2, "First name must be at least 2 characters"),
+    lastName: z.string().min(2, "Last name must be at least 2 characters"),
+    email: z.string().email("Please enter a valid email address"),
+    phone: z.string().min(10, "Please enter a valid phone number"),
+    address: z.string().min(5, "Please enter a valid address"),
+    city: z.string().min(2, "Please enter a valid city"),
+    state: z.string().min(2, "Please enter a valid state"),
+    zipCode: z.string().min(5, "Please enter a valid ZIP code"),
+    country: z.enum(["US", "CA"]),
+});
+
+type CheckoutFormData = z.infer<typeof checkoutSchema>;
+
+export default function CheckoutPage() {
+    const router = useRouter();
+    const cart = useSelector(selectCartItems);
+    const { data: userData } = useGetMeQuery();
+    const user = userData?.data;
+
+    const tier = getTier(user?.tier || "Member");
+
+    // Initialize React Hook Form with Zod validation
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+        setValue,
+    } = useForm<CheckoutFormData>({
+        resolver: zodResolver(checkoutSchema),
+        defaultValues: {
+            firstName: "",
+            lastName: "",
+            email: user?.email || "",
+            phone: "",
+            address: "",
+            city: "",
+            state: "",
+            zipCode: "",
+            country: "US",
+        },
+    });
+
+    // Pre-fill user email if available
+    useEffect(() => {
+        if (user?.email) {
+            setValue("email", user.email);
+        }
+    }, [user?.email, setValue]);
+
+    // Redirect if cart is empty
+    useEffect(() => {
+        if (cart.length === 0) {
+            router.push("/");
+        }
+    }, [cart, router]);
+
+    const getMemberPrice = (price: number) => {
+        return (price * (1 - tier.discount / 100)).toFixed(2);
+    };
+
+    const calculateSubtotal = () => {
+        return cart.reduce((sum, item) => {
+            return sum + parseFloat(getMemberPrice(item.size.price)) * item.quantity;
+        }, 0);
+    };
+
+    const calculateShipping = () => {
+        if (tier.freeShipping) return 0;
+        const subtotal = calculateSubtotal();
+        return subtotal >= 150 ? 0 : 6.95;
+    };
+
+    const calculateTotal = () => {
+        return calculateSubtotal() + calculateShipping();
+    };
+
+    const onSubmit = async (data: CheckoutFormData) => {
+        // Prepare order data for backend/Stripe
+        const orderData = {
+            // Customer Information from validated form
+            customer: {
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                phone: data.phone,
+            },
+
+            // Shipping Address from validated form
+            shippingAddress: {
+                street: data.address,
+                city: data.city,
+                state: data.state,
+                zipCode: data.zipCode,
+                country: data.country,
+            },
+
+            items: cart.map((item) => ({
+                productId: item.product.id,
+                productName: item.product.name,
+                sizeMg: item.size.mg,
+                quantity: item.quantity,
+                unitPrice: parseFloat(item.size.price.toFixed(2)),
+            })),
+
+            // Pricing Summary
+            pricing: {
+                subtotal: parseFloat(calculateSubtotal().toFixed(2)),
+                shipping: parseFloat(calculateShipping().toFixed(2)),
+                total: parseFloat(calculateTotal().toFixed(2)),
+                discountPercentage: tier.discount,
+                discountAmount: parseFloat(cart.reduce((sum, item) => sum + item.size.price * (tier.discount / 100) * item.quantity, 0).toFixed(2)),
+            },
+
+            // Shipping Info
+            shipping: {
+                cost: parseFloat(calculateShipping().toFixed(2)),
+                freeShipping: tier.freeShipping,
+            },
+
+            // User/Tier Info
+            metadata: {
+                userId: user?.id || "guest",
+                userTier: tier.name,
+                userEmail: user?.email || data.email,
+            },
+
+            // Order Details
+            orderNumber: `PC-${Date.now()}`,
+            orderDate: new Date().toISOString(),
+            paymentMethod: "stripe",
+        };
+
+        console.log("Validated order data for Stripe:", orderData);
+
+        // Here you would typically:
+        // 1. Send orderData to your backend
+        // 2. Backend creates Stripe Checkout session
+        // 3. Redirect to Stripe Checkout
+
+        // For now, show success message
+        alert(`Order submitted successfully!\nThis would redirect to Stripe Checkout in production.\n\nTotal: $${calculateTotal().toFixed(2)}`);
+    };
+
+    if (cart.length === 0) {
+        return (
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+                <div className="text-center">
+                    <h1 className="text-2xl text-white mb-4">Your cart is empty</h1>
+                    <button onClick={() => router.push("/")} className="px-6 py-3 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600">
+                        Continue Shopping
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+            <div className="container mx-auto max-w-6xl">
+                <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                    {/* Left Column - Order Summary */}
+                    <div>
+                        <div className="bg-slate-800 rounded-lg p-6 mb-6">
+                            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+
+                            {cart.map((item) => {
+                                const discountedPrice = getMemberPrice(item.size.price);
+                                return (
+                                    <div key={`${item.product.id}-${item.size.mg}`} className="flex justify-between items-center py-3 border-b border-slate-700">
+                                        <div>
+                                            <h3 className="font-semibold">{item.product.name}</h3>
+                                            <p className="text-sm text-gray-400">
+                                                {item.size.mg}mg × {item.quantity}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm text-gray-400 line-through">${item.size.price.toFixed(2)}</p>
+                                            <p className="text-cyan-400">${discountedPrice}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            <div className="mt-6 space-y-3">
+                                <div className="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>${calculateSubtotal().toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Shipping</span>
+                                    <span>{calculateShipping() === 0 ? <span className="text-green-400">Free</span> : `$${calculateShipping().toFixed(2)}`}</span>
+                                </div>
+                                <div className="flex justify-between text-lg font-bold pt-3 border-t border-slate-700">
+                                    <span>Total</span>
+                                    <span className="text-cyan-400">${calculateTotal().toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Tier Info */}
+                        <div className="bg-slate-800 rounded-lg p-6">
+                            <h2 className="text-xl font-bold mb-4">Your Benefits</h2>
+                            <div className="space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-400">Tier:</span>
+                                    <span className="text-cyan-400">{tier.name}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-400">Discount:</span>
+                                    <span className="text-green-400">{tier.discount}% OFF</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-400">Shipping:</span>
+                                    <span className={tier.freeShipping ? "text-green-400" : "text-yellow-400"}>{tier.freeShipping ? "Free Shipping" : "Free over $150"}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Checkout Form with React Hook Form */}
+                    <div>
+                        <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-800 rounded-lg p-6">
+                            <h2 className="text-xl font-bold mb-6">Shipping Information</h2>
+
+                            <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">First Name</label>
+                                    <input type="text" {...register("firstName")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+                                    {errors.firstName && <p className="mt-1 text-sm text-red-400">{errors.firstName.message}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Last Name</label>
+                                    <input type="text" {...register("lastName")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+                                    {errors.lastName && <p className="mt-1 text-sm text-red-400">{errors.lastName.message}</p>}
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm text-gray-400 mb-2">Email</label>
+                                <input type="email" {...register("email")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+                                {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>}
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm text-gray-400 mb-2">Phone</label>
+                                <input type="tel" {...register("phone")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+                                {errors.phone && <p className="mt-1 text-sm text-red-400">{errors.phone.message}</p>}
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm text-gray-400 mb-2">Address</label>
+                                <input type="text" {...register("address")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+                                {errors.address && <p className="mt-1 text-sm text-red-400">{errors.address.message}</p>}
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">City</label>
+                                    <input type="text" {...register("city")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+                                    {errors.city && <p className="mt-1 text-sm text-red-400">{errors.city.message}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">State</label>
+                                    <input type="text" {...register("state")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+                                    {errors.state && <p className="mt-1 text-sm text-red-400">{errors.state.message}</p>}
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4 mb-8">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">ZIP Code</label>
+                                    <input type="text" {...register("zipCode")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+                                    {errors.zipCode && <p className="mt-1 text-sm text-red-400">{errors.zipCode.message}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Country</label>
+                                    <select {...register("country")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none">
+                                        <option value="US">United States</option>
+                                        <option value="CA">Canada</option>
+                                    </select>
+                                    {errors.country && <p className="mt-1 text-sm text-red-400">{errors.country.message}</p>}
+                                </div>
+                            </div>
+
+                            {/* Submit Button */}
+                            <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                                {isSubmitting ? "Processing..." : `Pay with Stripe - $${calculateTotal().toFixed(2)}`}
+                            </button>
+
+                            <p className="text-xs text-gray-500 text-center mt-4">By completing your order, you agree to our Terms of Service</p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

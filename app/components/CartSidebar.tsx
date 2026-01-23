@@ -5,9 +5,11 @@ import { getTier } from "../utils/pricing";
 import { useSelector, useDispatch } from "react-redux";
 import { closeCart, addToCart, removeFromCart } from "../redux/features/cart/cartSlice";
 import { selectCartItems, selectCartOpen } from "../redux/features/cart/cartSlice";
+import { useRouter } from "next/navigation";
 
 export default function CartSidebar() {
     const dispatch = useDispatch();
+    const router = useRouter();
     const { data: userData } = useGetMeQuery();
     const user = userData?.data;
 
@@ -37,9 +39,13 @@ export default function CartSidebar() {
         return calculateSubtotal() + calculateShipping();
     };
 
+    // const checkout = () => {
+    //     console.log(cart);
+    //     alert("Checkout functionality coming soon!");
+    // };
+
     const checkout = () => {
-        console.log(cart);
-        alert("Checkout functionality coming soon!");
+        router.push("/checkout");
     };
 
     if (!isOpen) return null;
