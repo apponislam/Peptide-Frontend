@@ -572,7 +572,7 @@ export default function CheckoutPage() {
                             </div>
 
                             {/* Submit Button */}
-                            <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                                 {isSubmitting ? "Processing..." : `Pay with Stripe - $${calculateTotal().toFixed(2)}`}
                             </button>
 
