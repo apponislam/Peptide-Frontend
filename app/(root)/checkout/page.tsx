@@ -293,7 +293,7 @@ const checkoutSchema = z.object({
     city: z.string().min(2, "Please enter a valid city"),
     state: z.string().min(2, "Please enter a valid state"),
     zipCode: z.string().min(5, "Please enter a valid ZIP code"),
-    country: z.enum(["US", "CA"]),
+    country: z.string().min(2, "Please enter a valid country"),
 });
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
@@ -323,7 +323,7 @@ export default function CheckoutPage() {
             city: "",
             state: "",
             zipCode: "",
-            country: "US",
+            country: "",
         },
     });
 
@@ -561,12 +561,17 @@ export default function CheckoutPage() {
                                     <input type="text" {...register("zipCode")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
                                     {errors.zipCode && <p className="mt-1 text-sm text-red-400">{errors.zipCode.message}</p>}
                                 </div>
-                                <div>
+                                {/* <div>
                                     <label className="block text-sm text-gray-400 mb-2">Country</label>
                                     <select {...register("country")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none">
                                         <option value="US">United States</option>
                                         <option value="CA">Canada</option>
                                     </select>
+                                    {errors.country && <p className="mt-1 text-sm text-red-400">{errors.country.message}</p>}
+                                </div> */}
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Country</label>
+                                    <input type="text" {...register("country")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
                                     {errors.country && <p className="mt-1 text-sm text-red-400">{errors.country.message}</p>}
                                 </div>
                             </div>
