@@ -362,9 +362,7 @@ export default function CheckoutPage() {
     };
 
     const onSubmit = async (data: CheckoutFormData) => {
-        // Prepare order data for backend/Stripe
         const orderData = {
-            // Customer Information from validated form
             customer: {
                 firstName: data.firstName,
                 lastName: data.lastName,
@@ -419,12 +417,6 @@ export default function CheckoutPage() {
 
         console.log("Validated order data for Stripe:", orderData);
 
-        // Here you would typically:
-        // 1. Send orderData to your backend
-        // 2. Backend creates Stripe Checkout session
-        // 3. Redirect to Stripe Checkout
-
-        // For now, show success message
         alert(`Order submitted successfully!\nThis would redirect to Stripe Checkout in production.\n\nTotal: $${calculateTotal().toFixed(2)}`);
     };
 
@@ -561,14 +553,7 @@ export default function CheckoutPage() {
                                     <input type="text" {...register("zipCode")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
                                     {errors.zipCode && <p className="mt-1 text-sm text-red-400">{errors.zipCode.message}</p>}
                                 </div>
-                                {/* <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Country</label>
-                                    <select {...register("country")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none">
-                                        <option value="US">United States</option>
-                                        <option value="CA">Canada</option>
-                                    </select>
-                                    {errors.country && <p className="mt-1 text-sm text-red-400">{errors.country.message}</p>}
-                                </div> */}
+
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-2">Country</label>
                                     <input type="text" {...register("country")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />

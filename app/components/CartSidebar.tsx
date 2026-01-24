@@ -39,11 +39,6 @@ export default function CartSidebar() {
         return calculateSubtotal() + calculateShipping();
     };
 
-    // const checkout = () => {
-    //     console.log(cart);
-    //     alert("Checkout functionality coming soon!");
-    // };
-
     const checkout = () => {
         router.push("/checkout");
         dispatch(closeCart());
@@ -120,7 +115,7 @@ export default function CartSidebar() {
                             <span className="text-cyan-400">${calculateTotal().toFixed(2)}</span>
                         </div>
                         <button onClick={checkout} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                            Checkout via REVEL
+                            Checkout via Stripe
                         </button>
                         <p className="text-xs text-gray-500 text-center mt-2">Payments will appear on statement as REVEL</p>
                     </div>
