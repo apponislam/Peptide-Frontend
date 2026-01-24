@@ -40,7 +40,8 @@ export default function InvitationCode({ user }: InvitationCodeProps) {
 
     const handleCopyLink = () => {
         if (currentUser?.referralCode) {
-            navigator.clipboard.writeText(`https://peptide.club/auth/register?ref=${currentUser.referralCode}`);
+            const referralLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/register?ref=${currentUser.referralCode}`;
+            navigator.clipboard.writeText(referralLink);
             setLinkCopied(true);
             setTimeout(() => setLinkCopied(false), 2000);
         }
