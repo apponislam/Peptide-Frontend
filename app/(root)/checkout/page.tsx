@@ -6,11 +6,13 @@
 // import { useForm } from "react-hook-form";
 // import { zodResolver } from "@hookform/resolvers/zod";
 // import { z } from "zod";
-// import { selectCartItems } from "@/app/redux/features/cart/cartSlice";
+// import { selectCartItems, clearCart } from "@/app/redux/features/cart/cartSlice";
 // import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 // import { getTier } from "@/app/utils/pricing";
+// import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
+// import { useAppDispatch } from "@/app/redux/hooks";
 
-// // Zod schema for form validation
+// // Zod schema - KEEP YOUR EXACT SCHEMA
 // const checkoutSchema = z.object({
 //     firstName: z.string().min(2, "First name must be at least 2 characters"),
 //     lastName: z.string().min(2, "Last name must be at least 2 characters"),
@@ -27,17 +29,21 @@
 
 // export default function CheckoutPage() {
 //     const router = useRouter();
+//     const dispatch = useAppDispatch();
 //     const cart = useSelector(selectCartItems);
 //     const { data: userData } = useGetMeQuery();
 //     const user = userData?.data;
 
+//     // Stripe checkout mutation
+//     const [createCheckout, { isLoading: isCheckoutLoading }] = useCreateCheckoutSessionMutation();
+
 //     const tier = getTier(user?.tier || "Member");
 
-//     // Initialize React Hook Form with Zod validation
+//     // KEEP YOUR EXACT FORM SETUP
 //     const {
 //         register,
 //         handleSubmit,
-//         formState: { errors, isSubmitting },
+//         formState: { errors },
 //         setValue,
 //     } = useForm<CheckoutFormData>({
 //         resolver: zodResolver(checkoutSchema),
@@ -54,20 +60,20 @@
 //         },
 //     });
 
-//     // Pre-fill user email if available
+//     // KEEP YOUR EXACT USE EFFECTS
 //     useEffect(() => {
 //         if (user?.email) {
 //             setValue("email", user.email);
 //         }
 //     }, [user?.email, setValue]);
 
-//     // Redirect if cart is empty
 //     useEffect(() => {
 //         if (cart.length === 0) {
 //             router.push("/");
 //         }
 //     }, [cart, router]);
 
+//     // KEEP YOUR EXACT PRICING FUNCTIONS
 //     const getMemberPrice = (price: number) => {
 //         return (price * (1 - tier.discount / 100)).toFixed(2);
 //     };
@@ -88,85 +94,61 @@
 //         return calculateSubtotal() + calculateShipping();
 //     };
 
+//     // ONLY CHANGE THE onSubmit HANDLER:
 //     const onSubmit = async (data: CheckoutFormData) => {
-//         const orderData = {
-//             customer: {
-//                 firstName: data.firstName,
-//                 lastName: data.lastName,
+//         try {
+//             // Prepare items for Stripe
+//             const items = cart.map((item) => ({
+//                 productId: item.product.id,
+//                 name: item.product.name,
+//                 description: `${item.size.mg}mg ${item.product.name}`,
+//                 price: parseFloat(getMemberPrice(item.size.price)), // Use your discounted price
+//                 quantity: item.quantity,
+//                 size: `${item.size.mg}mg`,
+//             }));
+
+//             // Prepare shipping info
+//             const shippingInfo = {
+//                 name: `${data.firstName} ${data.lastName}`,
 //                 email: data.email,
 //                 phone: data.phone,
-//             },
-
-//             // Shipping Address from validated form
-//             shippingAddress: {
-//                 street: data.address,
+//                 address: data.address,
 //                 city: data.city,
 //                 state: data.state,
-//                 zipCode: data.zipCode,
+//                 zip: data.zipCode,
 //                 country: data.country,
-//             },
+//             };
 
-//             items: cart.map((item) => ({
-//                 productId: item.product.id,
-//                 productName: item.product.name,
-//                 sizeMg: item.size.mg,
-//                 quantity: item.quantity,
-//                 unitPrice: parseFloat(item.size.price.toFixed(2)),
-//             })),
-
-//             // Pricing Summary
-//             pricing: {
-//                 subtotal: parseFloat(calculateSubtotal().toFixed(2)),
-//                 shipping: parseFloat(calculateShipping().toFixed(2)),
-//                 total: parseFloat(calculateTotal().toFixed(2)),
-//                 discountPercentage: tier.discount,
-//                 discountAmount: parseFloat(cart.reduce((sum, item) => sum + item.size.price * (tier.discount / 100) * item.quantity, 0).toFixed(2)),
-//             },
-
-//             // Shipping Info
-//             shipping: {
-//                 cost: parseFloat(calculateShipping().toFixed(2)),
-//                 freeShipping: tier.freeShipping,
-//             },
-
-//             // User/Tier Info
-//             metadata: {
+//             // Call Stripe API
+//             const result = await createCheckout({
 //                 userId: user?.id || "guest",
-//                 userTier: tier.name,
-//                 userEmail: user?.email || data.email,
-//             },
+//                 items,
+//                 shippingInfo,
+//                 metadata: {
+//                     userId: user?.id || "guest",
+//                     userTier: tier.name,
+//                 },
+//             }).unwrap();
 
-//             // Order Details
-//             orderNumber: `PC-${Date.now()}`,
-//             orderDate: new Date().toISOString(),
-//             paymentMethod: "stripe",
-//         };
-
-//         console.log("Validated order data for Stripe:", orderData);
-
-//         alert(`Order submitted successfully!\nThis would redirect to Stripe Checkout in production.\n\nTotal: $${calculateTotal().toFixed(2)}`);
+//             // Redirect to Stripe
+//             if (result.url) {
+//                 dispatch(clearCart()); // Clear cart
+//                 window.location.href = result.url;
+//             }
+//         } catch (error: any) {
+//             console.error("Checkout failed:", error);
+//             alert(`Checkout failed: ${error?.data?.error || error.message}`);
+//         }
 //     };
 
-//     if (cart.length === 0) {
-//         return (
-//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
-//                 <div className="text-center">
-//                     <h1 className="text-2xl text-white mb-4">Your cart is empty</h1>
-//                     <button onClick={() => router.push("/")} className="px-6 py-3 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600">
-//                         Continue Shopping
-//                     </button>
-//                 </div>
-//             </div>
-//         );
-//     }
-
+//     // KEEP YOUR EXACT JSX DESIGN - ONLY CHANGE BUTTON TEXT:
 //     return (
 //         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
 //             <div className="container mx-auto max-w-6xl">
 //                 <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
 //                 <div className="grid md:grid-cols-2 gap-8">
-//                     {/* Left Column - Order Summary */}
+//                     {/* LEFT COLUMN - KEEP EXACTLY */}
 //                     <div>
 //                         <div className="bg-slate-800 rounded-lg p-6 mb-6">
 //                             <h2 className="text-xl font-bold mb-4">Order Summary</h2>
@@ -205,7 +187,7 @@
 //                             </div>
 //                         </div>
 
-//                         {/* Tier Info */}
+//                         {/* Tier Info - KEEP EXACT */}
 //                         <div className="bg-slate-800 rounded-lg p-6">
 //                             <h2 className="text-xl font-bold mb-4">Your Benefits</h2>
 //                             <div className="space-y-2">
@@ -225,7 +207,7 @@
 //                         </div>
 //                     </div>
 
-//                     {/* Right Column - Checkout Form with React Hook Form */}
+//                     {/* RIGHT COLUMN - KEEP EXACT FORM */}
 //                     <div>
 //                         <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-800 rounded-lg p-6">
 //                             <h2 className="text-xl font-bold mb-6">Shipping Information</h2>
@@ -288,9 +270,9 @@
 //                                 </div>
 //                             </div>
 
-//                             {/* Submit Button */}
-//                             <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-//                                 {isSubmitting ? "Processing..." : `Pay with Stripe - $${calculateTotal().toFixed(2)}`}
+//                             {/* ONLY CHANGE BUTTON TEXT */}
+//                             <button type="submit" disabled={isCheckoutLoading} className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+//                                 {isCheckoutLoading ? "Processing..." : `Pay with Stripe - $${calculateTotal().toFixed(2)}`}
 //                             </button>
 
 //                             <p className="text-xs text-gray-500 text-center mt-4">By completing your order, you agree to our Terms of Service</p>
@@ -316,7 +298,7 @@ import { getTier } from "@/app/utils/pricing";
 import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
 import { useAppDispatch } from "@/app/redux/hooks";
 
-// Zod schema - KEEP YOUR EXACT SCHEMA
+// Zod schema - UPDATE country validation
 const checkoutSchema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
     lastName: z.string().min(2, "Last name must be at least 2 characters"),
@@ -326,7 +308,7 @@ const checkoutSchema = z.object({
     city: z.string().min(2, "Please enter a valid city"),
     state: z.string().min(2, "Please enter a valid state"),
     zipCode: z.string().min(5, "Please enter a valid ZIP code"),
-    country: z.string().min(2, "Please enter a valid country"),
+    country: z.string().min(2, "Please enter a valid country"), // Keep as min(2) for dropdown
 });
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
@@ -343,7 +325,7 @@ export default function CheckoutPage() {
 
     const tier = getTier(user?.tier || "Member");
 
-    // KEEP YOUR EXACT FORM SETUP
+    // KEEP YOUR EXACT FORM SETUP - UPDATE default country
     const {
         register,
         handleSubmit,
@@ -360,7 +342,7 @@ export default function CheckoutPage() {
             city: "",
             state: "",
             zipCode: "",
-            country: "",
+            country: "US", // Set default to US
         },
     });
 
@@ -445,7 +427,7 @@ export default function CheckoutPage() {
         }
     };
 
-    // KEEP YOUR EXACT JSX DESIGN - ONLY CHANGE BUTTON TEXT:
+    // KEEP YOUR EXACT JSX DESIGN - ONLY CHANGE COUNTRY INPUT TO SELECT
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
             <div className="container mx-auto max-w-6xl">
@@ -511,7 +493,7 @@ export default function CheckoutPage() {
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN - KEEP EXACT FORM */}
+                    {/* RIGHT COLUMN - KEEP EXACT FORM - ONLY CHANGE COUNTRY INPUT */}
                     <div>
                         <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-800 rounded-lg p-6">
                             <h2 className="text-xl font-bold mb-6">Shipping Information</h2>
@@ -569,7 +551,25 @@ export default function CheckoutPage() {
 
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-2">Country</label>
-                                    <input type="text" {...register("country")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none" />
+                                    {/* ONLY CHANGE THIS INPUT TO SELECT */}
+                                    <select {...register("country")} className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:border-cyan-500 focus:outline-none">
+                                        <option value="US">United States</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="GB">United Kingdom</option>
+                                        <option value="AU">Australia</option>
+                                        <option value="DE">Germany</option>
+                                        <option value="FR">France</option>
+                                        <option value="IT">Italy</option>
+                                        <option value="ES">Spain</option>
+                                        <option value="JP">Japan</option>
+                                        <option value="CN">China</option>
+                                        <option value="IN">India</option>
+                                        <option value="BR">Brazil</option>
+                                        <option value="MX">Mexico</option>
+                                        <option value="KR">South Korea</option>
+                                        <option value="RU">Russia</option>
+                                        <option value="ZA">South Africa</option>
+                                    </select>
                                     {errors.country && <p className="mt-1 text-sm text-red-400">{errors.country.message}</p>}
                                 </div>
                             </div>
