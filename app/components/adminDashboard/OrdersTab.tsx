@@ -135,7 +135,7 @@
 import { useState, useEffect } from "react";
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from "@/app/redux/features/admin/adminApi";
 import Link from "next/link";
-import { useCreateShipStationLabelMutation, useCreateShipStationOrderMutation, useMarkAsShippedMutation } from "@/app/redux/features/shipment/shipmentApi";
+import { useCreateShipStationLabelMutation, useCreateShipStationOrderMutation, useGetCarriersQuery, useMarkAsShippedMutation } from "@/app/redux/features/shipment/shipmentApi";
 
 interface OrderItem {
     id: string;
@@ -179,6 +179,8 @@ export default function OrdersTab() {
     const [createShipStationOrder] = useCreateShipStationOrderMutation();
     const [createShippingLabel] = useCreateShipStationLabelMutation();
     const [markAsShipped] = useMarkAsShippedMutation();
+    // const { data: carriersData } = useGetCarriersQuery({});
+    // console.log(carriersData);
 
     const orders: Order[] = ordersData?.data || [];
 
@@ -214,6 +216,7 @@ export default function OrdersTab() {
             alert("✅ Shipping label created!");
             refetch();
         } catch (error: any) {
+            console.log(error);
             alert("❌ Failed: " + error.data?.error || error.message);
         }
     };

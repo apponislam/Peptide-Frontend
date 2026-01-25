@@ -162,6 +162,13 @@ export const shipmentApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, orderId) => [{ type: "ShipStationOrders", id: orderId }, "ShipStationOrders"],
         }),
+        // 7. Get carriers list (NEW - Added because you added the route)
+        getCarriers: builder.query({
+            query: () => ({
+                url: "/shipment/carriers",
+            }),
+            providesTags: ["Carriers"],
+        }),
         // ========== THAT'S IT, NO MORE ==========
     }),
 });
@@ -174,4 +181,5 @@ export const {
     useListShipStationOrdersQuery,
     useUpdateShipStationTrackingMutation,
     useMarkAsShippedMutation,
+    useGetCarriersQuery,
 } = shipmentApi;
