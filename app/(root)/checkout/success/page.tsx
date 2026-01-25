@@ -193,49 +193,11 @@ export default function CheckoutSuccessPage() {
                     )}
                 </div>
 
-                {/* Next Steps */}
-                <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6 mb-8">
-                    <h2 className="text-xl font-bold mb-4 text-cyan-400">What Happens Next?</h2>
-                    <div className="grid md:grid-cols-3 gap-6">
-                        <div className="text-center p-4 bg-slate-900/50 rounded-lg">
-                            <div className="text-cyan-400 text-3xl mb-3">📧</div>
-                            <h3 className="font-bold mb-2">Order Confirmation</h3>
-                            <p className="text-gray-400 text-sm">You will receive an email confirmation shortly with your order details.</p>
-                        </div>
-                        <div className="text-center p-4 bg-slate-900/50 rounded-lg">
-                            <div className="text-cyan-400 text-3xl mb-3">🚚</div>
-                            <h3 className="font-bold mb-2">Shipping</h3>
-                            <p className="text-gray-400 text-sm">Your order will be processed within 24 hours and you'll receive tracking information.</p>
-                        </div>
-                        <div className="text-center p-4 bg-slate-900/50 rounded-lg">
-                            <div className="text-cyan-400 text-3xl mb-3">📱</div>
-                            <h3 className="font-bold mb-2">Need Help?</h3>
-                            <p className="text-gray-400 text-sm">Contact our support team if you have any questions about your order.</p>
-                        </div>
-                    </div>
-                </div>
-
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <Link href="/" className="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition text-center w-full sm:w-auto">
-                        Continue Shopping
+                    <Link href="/" className="px-8 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-semibold transition text-center w-full sm:w-auto">
+                        Go Home
                     </Link>
-                    <Link href="/orders" className="px-8 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-semibold transition text-center w-full sm:w-auto">
-                        View My Orders
-                    </Link>
-                    <button onClick={() => window.print()} className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition text-center w-full sm:w-auto border border-slate-700">
-                        Print Receipt
-                    </button>
-                </div>
-
-                {/* Support Info */}
-                <div className="text-center mt-10 pt-6 border-t border-slate-800">
-                    <p className="text-gray-400 mb-2">Need assistance? Contact our support team</p>
-                    <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-400">
-                        <span>📧 support@yourdomain.com</span>
-                        <span>📞 (555) 123-4567</span>
-                        <span>🕒 Mon-Fri 9AM-5PM EST</span>
-                    </div>
                 </div>
             </div>
         </div>
