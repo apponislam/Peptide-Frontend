@@ -1,4 +1,3 @@
-// app/checkout/success/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -46,6 +45,8 @@ export default function CheckoutSuccessPage() {
             try {
                 setLoading(true);
                 const result = await getSessionStatus(sessionId).unwrap();
+
+                console.log(result);
 
                 if (result.success) {
                     setSessionData(result.session);
@@ -140,29 +141,29 @@ export default function CheckoutSuccessPage() {
                         {/* Shipping Info */}
                         <div>
                             <h3 className="font-bold text-lg mb-4 text-cyan-400">Shipping Information</h3>
-                            {sessionData.shipping ? (
+                            {sessionData.customerDetails?.address ? ( // ← Check customerDetails.address
                                 <div className="space-y-3">
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Name:</span>
-                                        <span className="text-gray-300">{sessionData.shipping.name || "N/A"}</span>
+                                        <span className="text-gray-300">{sessionData.customerDetails.name || "N/A"}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Address:</span>
                                         <span className="text-gray-300 text-right">
-                                            {sessionData.shipping.address?.line1 || "N/A"}
-                                            {sessionData.shipping.address?.line2 && <br />}
-                                            {sessionData.shipping.address?.line2}
+                                            {sessionData.customerDetails.address.line1 || "N/A"}
+                                            {sessionData.customerDetails.address.line2 && <br />}
+                                            {sessionData.customerDetails.address.line2}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">City/State/Zip:</span>
                                         <span className="text-gray-300">
-                                            {sessionData.shipping.address?.city || ""} {sessionData.shipping.address?.state || ""} {sessionData.shipping.address?.postal_code || ""}
+                                            {sessionData.customerDetails.address.city || ""} {sessionData.customerDetails.address.state || ""} {sessionData.customerDetails.address.postal_code || ""}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Country:</span>
-                                        <span className="text-gray-300">{sessionData.shipping.address?.country || "N/A"}</span>
+                                        <span className="text-gray-300">{sessionData.customerDetails.address.country || "N/A"}</span>
                                     </div>
                                 </div>
                             ) : (

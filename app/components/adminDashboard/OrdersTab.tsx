@@ -135,7 +135,7 @@
 import { useState, useEffect } from "react";
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from "@/app/redux/features/admin/adminApi";
 import Link from "next/link";
-import { useCreateShipStationLabelMutation, useCreateShipStationOrderMutation, useGetCarriersQuery, useMarkAsShippedMutation } from "@/app/redux/features/shipment/shipmentApi";
+import { useCreateShipStationLabelMutation, useCreateShipStationOrderMutation, useGetCarriersQuery, useGetWarehousesQuery, useMarkAsShippedMutation } from "@/app/redux/features/shipment/shipmentApi";
 
 interface OrderItem {
     id: string;
@@ -181,6 +181,8 @@ export default function OrdersTab() {
     const [markAsShipped] = useMarkAsShippedMutation();
     // const { data: carriersData } = useGetCarriersQuery({});
     // console.log(carriersData);
+    const { data: wareHousesData } = useGetWarehousesQuery({});
+    console.log(wareHousesData);
 
     const orders: Order[] = ordersData?.data || [];
 

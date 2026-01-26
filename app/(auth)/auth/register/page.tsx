@@ -296,11 +296,11 @@ export default function RegisterPage() {
         }
     }, [referralFromUrl]);
 
-    const validateInvitationCode = (code: string): boolean => {
-        if (!code.trim()) return true;
-        const validCodes = ["JAKE", "WELCOME", "ACCESS2024", "PEPTIDE123"];
-        return validCodes.includes(code.toUpperCase());
-    };
+    // const validateInvitationCode = (code: string): boolean => {
+    //     if (!code.trim()) return true;
+    //     const validCodes = ["JAKE", "WELCOME", "ACCESS2024", "PEPTIDE123"];
+    //     return validCodes.includes(code.toUpperCase());
+    // };
 
     const handleRegistrationSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -329,10 +329,10 @@ export default function RegisterPage() {
         }
 
         // Validate invitation code if provided
-        if (formData.referralCode && !validateInvitationCode(formData.referralCode)) {
-            setError("Invalid invitation code.");
-            return;
-        }
+        // if (formData.referralCode && !validateInvitationCode(formData.referralCode)) {
+        //     setError("Invalid invitation code.");
+        //     return;
+        // }
 
         try {
             // Prepare registration data
@@ -342,9 +342,11 @@ export default function RegisterPage() {
                 password: formData.password,
                 referralCode: formData.referralCode || undefined,
             };
+            console.log(registerData);
 
             // Call the register API
             const response = await register(registerData).unwrap();
+            console.log(response);
 
             if (response.success) {
                 // Dispatch user to Redux store

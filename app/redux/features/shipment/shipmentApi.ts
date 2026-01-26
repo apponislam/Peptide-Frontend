@@ -169,7 +169,12 @@ export const shipmentApi = baseApi.injectEndpoints({
             }),
             providesTags: ["Carriers"],
         }),
-        // ========== THAT'S IT, NO MORE ==========
+        getWarehouses: builder.query({
+            query: () => ({
+                url: "/shipment/warehouses",
+            }),
+            providesTags: ["Warehouses"],
+        }),
     }),
 });
 
@@ -182,4 +187,5 @@ export const {
     useUpdateShipStationTrackingMutation,
     useMarkAsShippedMutation,
     useGetCarriersQuery,
+    useGetWarehousesQuery,
 } = shipmentApi;

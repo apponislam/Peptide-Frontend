@@ -72,7 +72,23 @@ export const adminApi = baseApi.injectEndpoints({
             }),
             providesTags: (result, error, userId) => [{ type: "Orders", userId }],
         }),
+
+        getTopSellingProducts: builder.query({
+            query: (limit: number = 5) => ({
+                url: "/admin/top-products",
+                params: { limit },
+            }),
+            providesTags: ["TopProducts"],
+        }),
+
+        // Get referral performance
+        getReferralPerformance: builder.query({
+            query: () => ({
+                url: "/admin/referral-performance",
+            }),
+            providesTags: ["ReferralPerformance"],
+        }),
     }),
 });
 
-export const { useGetDashboardStatsQuery, useLazyGetDashboardStatsQuery, useGetAllOrdersQuery, useLazyGetAllOrdersQuery, useGetAllUsersQuery, useLazyGetAllUsersQuery, useUpdateOrderStatusMutation, useUpdateUserMutation, useGetUserByIdQuery, useGetOrderByIdQuery, useGetUserOrdersQuery } = adminApi;
+export const { useGetDashboardStatsQuery, useLazyGetDashboardStatsQuery, useGetAllOrdersQuery, useLazyGetAllOrdersQuery, useGetAllUsersQuery, useLazyGetAllUsersQuery, useUpdateOrderStatusMutation, useUpdateUserMutation, useGetUserByIdQuery, useGetOrderByIdQuery, useGetUserOrdersQuery, useGetTopSellingProductsQuery, useGetReferralPerformanceQuery } = adminApi;
