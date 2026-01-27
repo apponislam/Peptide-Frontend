@@ -75,8 +75,8 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
             <div className="p-4 md:p-6 container mx-auto ">
                 {/* Back Button and Header */}
                 <div className="mb-6 flex items-center justify-between">
-                    <button onClick={() => router.push("/admin?tab=users")} className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
-                        <ArrowLeft size={20} /> Back to Users
+                    <button onClick={() => router.back()} className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
+                        <ArrowLeft size={20} /> Go Back
                     </button>
                     <button onClick={() => refetch()} className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-sm">
                         Refresh

@@ -465,9 +465,9 @@ export default function UsersTab() {
                         <thead className="border-b border-white/10">
                             <tr>
                                 <th className="px-6 py-4 text-left text-sm font-semibold text-white">User</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold text-white">Role/Tier</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold text-white">Credit/Refs</th>
-                                <th className="px-6 py-4 text-left text-sm font-semibold text-white">Actions</th>
+                                <th className="px-6 py-4 text-center text-sm font-semibold text-white">Role/Tier</th>
+                                <th className="px-6 py-4 text-center text-sm font-semibold text-white">Credit/Refs</th>
+                                <th className="px-6 py-4 text-right text-sm font-semibold text-white">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -480,7 +480,7 @@ export default function UsersTab() {
                                             <p className="text-gray-500 text-xs mt-1">{new Date(user.createdAt).toLocaleDateString()}</p>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 text-center">
                                         <div className="space-y-2">
                                             <span className={`px-2 py-1 text-xs rounded ${user.role === "ADMIN" ? "bg-cyan-500/20 text-cyan-400" : "bg-blue-500/20 text-blue-400"}`}>{user.role}</span>
                                             <div>
@@ -488,14 +488,14 @@ export default function UsersTab() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 text-center">
                                         <div>
                                             <p className="text-green-400 font-medium">${user.storeCredit.toFixed(2)}</p>
                                             <p className="text-gray-400 text-sm">{user.referralCount} referrals</p>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 justify-end">
                                             <button onClick={() => handleEditCredit(user)} className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm hover:bg-green-500/30 transition-colors" disabled={isUpdating}>
                                                 Edit Credit
                                             </button>
