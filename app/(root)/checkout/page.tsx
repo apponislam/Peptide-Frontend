@@ -290,7 +290,7 @@ export default function CheckoutPage() {
 
                             {/* ONLY CHANGE BUTTON TEXT */}
                             <button type="submit" disabled={isCheckoutLoading} className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                                {isCheckoutLoading ? "Processing..." : `Pay with Stripe - $${calculateTotal().toFixed(2)}`}
+                                {isCheckoutLoading ? "Processing..." : `Pay with REVEL - $${calculateTotal().toFixed(2)}`}
                             </button>
 
                             <p className="text-xs text-gray-500 text-center mt-4">By completing your order, you agree to our Terms of Service</p>

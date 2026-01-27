@@ -144,6 +144,7 @@ import { useGetAllUsersQuery, useUpdateUserMutation } from "@/app/redux/features
 import { useState } from "react";
 import { useModal } from "@/app/providers/ModalContext";
 import Pagination from "@/app/utils/Pagination";
+import { useRouter } from "next/navigation";
 
 interface User {
     id: string;
@@ -158,7 +159,8 @@ interface User {
 }
 
 export default function UsersTab() {
-    const { openModal, closeModal } = useModal();
+    const router = useRouter();
+    const { openModal } = useModal();
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(12);
@@ -437,6 +439,10 @@ export default function UsersTab() {
         });
     };
 
+    const handleViewDetails = (user: any) => {
+        router.push(`/admin/users/${user.id}`);
+    };
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -495,6 +501,9 @@ export default function UsersTab() {
                                             </button>
                                             <button onClick={() => handleEditTier(user)} className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm hover:bg-blue-500/30 transition-colors" disabled={isUpdating}>
                                                 Edit Tier
+                                            </button>
+                                            <button onClick={() => handleViewDetails(user)} className="px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg text-sm hover:bg-gray-500/30 transition-colors" disabled={isUpdating}>
+                                                View Details
                                             </button>
                                         </div>
                                     </td>

@@ -540,7 +540,7 @@ export default function OrdersTab() {
                             {/* Order Header */}
                             <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <h3 className="text-xl font-bold text-white">Order #{order.orderNumber || order.id.slice(0, 8)}</h3>
+                                    <h3 className="text-xl font-bold text-white">Order #{order.orderNumber || order.id}</h3>
                                     <p className="text-sm text-gray-400">
                                         {order.user?.email || order.email} • {order.user?.name || order.name}
                                     </p>

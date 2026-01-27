@@ -29,6 +29,13 @@ export const adminApi = baseApi.injectEndpoints({
             providesTags: ["Users"],
         }),
 
+        getUserById: builder.query({
+            query: (id: string) => ({
+                url: `/admin/users/${id}`,
+            }),
+            providesTags: (result, error, id) => [{ type: "UserDetails", id }],
+        }),
+
         // Update order status
         updateOrderStatus: builder.mutation({
             query: ({ id, status }: { id: string; status: string }) => ({
@@ -46,16 +53,16 @@ export const adminApi = baseApi.injectEndpoints({
                 method: "PATCH",
                 body: data,
             }),
-            invalidatesTags: ["Users", "DashboardStats"],
+            invalidatesTags: ["Users", "DashboardStats", "UserDetails"],
         }),
 
         // Optional: Get user by ID
-        getUserById: builder.query({
-            query: (id: string) => ({
-                url: `/admin/users/${id}`,
-            }),
-            providesTags: (result, error, id) => [{ type: "Users", id }],
-        }),
+        // getUserById: builder.query({
+        //     query: (id: string) => ({
+        //         url: `/admin/users/${id}`,
+        //     }),
+        //     providesTags: (result, error, id) => [{ type: "Users", id }],
+        // }),
 
         // Optional: Get order by ID
         getOrderById: builder.query({
