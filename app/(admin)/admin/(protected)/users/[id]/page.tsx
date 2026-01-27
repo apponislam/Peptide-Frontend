@@ -2,7 +2,7 @@
 
 import { useGetUserByIdQuery } from "@/app/redux/features/admin/adminApi";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
 export default function UserDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -11,8 +11,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
     const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
     const [isResolving, setIsResolving] = useState(true);
 
-    // Resolve the params promise
-    useState(() => {
+    useEffect(() => {
         params
             .then((resolved) => {
                 setResolvedParams(resolved);
@@ -21,7 +20,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
             .catch(() => {
                 setIsResolving(false);
             });
-    });
+    }, [params]);
     const { data: userData, isLoading, isError, refetch } = useGetUserByIdQuery(resolvedParams?.id || "", { skip: !resolvedParams?.id });
 
     if (isResolving || isLoading) {
@@ -164,10 +163,10 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                                         <p className="text-gray-400 text-sm">Referral Count</p>
                                         <p className="text-white">{referralCount}</p>
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <p className="text-gray-400 text-sm">Referral Status</p>
                                         <span className={`px-2 py-1 text-xs rounded ${isReferralValid ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>{isReferralValid ? "Valid" : "Pending"}</span>
-                                    </div>
+                                    </div> */}
                                     {referrer && (
                                         <div>
                                             <p className="text-gray-400 text-sm">Referred By</p>
