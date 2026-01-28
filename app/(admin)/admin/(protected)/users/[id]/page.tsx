@@ -68,7 +68,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
     }
     const userId = resolvedParams.id;
     const { user, stats } = userData.data;
-    const { name, email, role, tier, referralCode, storeCredit, referralCount, isReferralValid, createdAt, updatedAt, orders = [], referrals = [], commissionsEarned = [], referrer } = user;
+    const { name, email, role, tier, referralCode, storeCredit, referralCount, isReferralValid, createdAt, updatedAt, orders = [], referrals = [], commissionsEarned = [], referrer, shippingCredit } = user;
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -163,6 +163,22 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                                         <p className="text-gray-400 text-sm">Referral Count</p>
                                         <p className="text-white">{referralCount}</p>
                                     </div>
+                                    {/* Show shipping credit for Members only */}
+                                    {tier === "Member" && (
+                                        <div>
+                                            <p className="text-gray-400 text-sm">Free Shipping Credit</p>
+                                            <p className="text-white">${shippingCredit?.toFixed(2) || "0.00"}</p>
+                                            <p className="text-gray-400 text-xs">{shippingCredit > 0 ? `${(shippingCredit / 6.75).toFixed(0)} free shipments left` : "Credit used up"}</p>
+                                        </div>
+                                    )}
+
+                                    {/* For Founder/VIP - show free shipping status */}
+                                    {(tier === "Founder" || tier === "VIP") && (
+                                        <div>
+                                            <p className="text-gray-400 text-sm">Shipping Status</p>
+                                            <span className="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">Free Shipping</span>
+                                        </div>
+                                    )}
                                     {/* <div>
                                         <p className="text-gray-400 text-sm">Referral Status</p>
                                         <span className={`px-2 py-1 text-xs rounded ${isReferralValid ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>{isReferralValid ? "Valid" : "Pending"}</span>
