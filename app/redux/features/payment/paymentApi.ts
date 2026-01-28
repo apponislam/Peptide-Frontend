@@ -155,6 +155,9 @@ export const paymentApi = baseApi.injectEndpoints({
                     zip: string;
                     country: string;
                 };
+                shippingAmount: number; // Add this
+                subtotal: number; // Add this
+                total: number; // Add this
                 metadata?: Record<string, any>;
             }) => ({
                 url: "/payment/checkout",
