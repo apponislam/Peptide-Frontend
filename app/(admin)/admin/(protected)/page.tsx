@@ -46,23 +46,23 @@ export default function AdminDashboard() {
             <div className="container mx-auto px-6 py-12">
                 {/* Tab Navigation - Fixed responsive design */}
                 <div className="flex gap-2 mb-8 overflow-x-auto pb-2 -mx-6 px-6 md:overflow-visible md:mx-0 md:px-0 md:flex-wrap scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-                    <button onClick={() => handleTabChange("dashboard")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "dashboard" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300"}`}>
+                    <button onClick={() => handleTabChange("dashboard")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "dashboard" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300 cursor-pointer"}`}>
                         Dashboard
                     </button>
 
-                    <button onClick={() => handleTabChange("orders")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "orders" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300"}`}>
+                    <button onClick={() => handleTabChange("orders")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "orders" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300 cursor-pointer"}`}>
                         Orders
                     </button>
 
-                    <button onClick={() => handleTabChange("users")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "users" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300"}`}>
+                    <button onClick={() => handleTabChange("users")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "users" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300 cursor-pointer"}`}>
                         Users
                     </button>
 
-                    <button onClick={() => handleTabChange("products")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "products" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300"}`}>
+                    <button onClick={() => handleTabChange("products")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "products" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300 cursor-pointer"}`}>
                         Products
                     </button>
 
-                    <button onClick={() => handleTabChange("analytics")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "analytics" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300"}`}>
+                    <button onClick={() => handleTabChange("analytics")} className={`px-4 py-2 md:px-6 md:py-2 font-semibold whitespace-nowrap shrink-0 ${selectedTab === "analytics" ? "text-cyan-400 border-b-2 border-cyan-500" : "text-gray-400 hover:text-gray-300 cursor-pointer"}`}>
                         Analytics
                     </button>
                 </div>
