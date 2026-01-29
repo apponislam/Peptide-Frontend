@@ -9,7 +9,6 @@ import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 import { getTier } from "@/app/utils/pricing";
 import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
 import { useGetOrderQuery } from "@/app/redux/features/order/orderApi";
-import { useAppDispatch } from "@/app/redux/hooks";
 
 const checkoutSchema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
