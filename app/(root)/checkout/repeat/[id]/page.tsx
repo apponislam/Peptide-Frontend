@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { selectCartItems, clearCart } from "@/app/redux/features/cart/cartSlice";
 import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 import { getTier } from "@/app/utils/pricing";
 import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
+import { useGetOrderQuery } from "@/app/redux/features/order/orderApi";
 import { useAppDispatch } from "@/app/redux/hooks";
 
 const checkoutSchema = z.object({
@@ -26,10 +25,14 @@ const checkoutSchema = z.object({
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
-export default function CheckoutPage() {
+export default function RepeatOrderPage() {
     const router = useRouter();
-    const dispatch = useAppDispatch();
-    const cart = useSelector(selectCartItems);
+    const params = useParams();
+
+    const orderId = params.id as string;
+    const { data: orderData, isLoading: isOrderLoading } = useGetOrderQuery(orderId);
+    const order = orderData?.data;
+
     const { data: userData } = useGetMeQuery();
     console.log(userData);
     const user = userData?.data;
@@ -43,6 +46,7 @@ export default function CheckoutPage() {
         handleSubmit,
         formState: { errors },
         setValue,
+        reset,
     } = useForm<CheckoutFormData>({
         resolver: zodResolver(checkoutSchema),
         defaultValues: {
@@ -58,27 +62,39 @@ export default function CheckoutPage() {
         },
     });
 
-    // KEEP YOUR EXACT USE EFFECTS
+    // Pre-fill form with order shipping info
+    useEffect(() => {
+        if (order) {
+            reset({
+                firstName: order.name?.split(" ")[0] || "",
+                lastName: order.name?.split(" ").slice(1).join(" ") || "",
+                email: order.email || user?.email || "",
+                phone: order.phone || "",
+                address: order.address || "",
+                city: order.city || "",
+                state: order.state || "",
+                zipCode: order.zip || "",
+                country: order.country || "US",
+            });
+        }
+    }, [order, user?.email, reset]);
+
     useEffect(() => {
         if (user?.email) {
             setValue("email", user.email);
         }
     }, [user?.email, setValue]);
 
-    useEffect(() => {
-        if (cart.length === 0) {
-            router.push("/");
-        }
-    }, [cart, router]);
-
-    // KEEP YOUR EXACT PRICING FUNCTIONS
     const getMemberPrice = (price: number) => {
         return (price * (1 - tier.discount / 100)).toFixed(2);
     };
 
     const calculateSubtotal = () => {
-        return cart.reduce((sum, item) => {
-            return sum + parseFloat(getMemberPrice(item.size.price)) * item.quantity;
+        if (!order?.items) return 0;
+
+        return order.items.reduce((sum: number, item: any) => {
+            const itemPrice = item.discountedPrice || item.unitPrice || 0;
+            return sum + parseFloat(getMemberPrice(itemPrice)) * (item.quantity || 1);
         }, 0);
     };
 
@@ -92,25 +108,18 @@ export default function CheckoutPage() {
 
         // Member: Check shipping credit first
         if (user?.tier === "Member") {
-            // If user has shipping credit
             if (user?.shippingCredit && user.shippingCredit > 0) {
-                // Check if shipping credit can cover $6.95
                 if (user.shippingCredit >= 6.95) {
-                    return 0; // Free from credit
+                    return 0;
                 } else {
-                    // Partially covered by credit, pay remaining
                     return 6.95 - user.shippingCredit;
                 }
             }
 
-            // No shipping credit: Check if subtotal >= $150
             if (subtotal >= 150) return 0;
-
-            // Otherwise pay full shipping
             return 6.95;
         }
 
-        // Other tiers (not Member, not Founder/VIP): Check subtotal
         return subtotal >= 150 ? 0 : 6.95;
     };
 
@@ -118,62 +127,6 @@ export default function CheckoutPage() {
         return calculateSubtotal() + calculateShipping();
     };
 
-    // ONLY CHANGE THE onSubmit HANDLER:
-    const onSubmit = async (data: CheckoutFormData) => {
-        try {
-            // Prepare items for Stripe
-            const items = cart.map((item) => ({
-                productId: item.product.id,
-                name: item.product.name,
-                description: `${item.size.mg}mg ${item.product.name}`,
-                price: parseFloat(getMemberPrice(item.size.price)), // Use your discounted price
-                quantity: item.quantity,
-                size: `${item.size.mg}mg`,
-            }));
-
-            const shippingAmount = calculateShipping();
-            const subtotal = calculateSubtotal();
-            const total = subtotal + shippingAmount;
-
-            // Prepare shipping info
-            const shippingInfo = {
-                name: `${data.firstName} ${data.lastName}`,
-                email: data.email,
-                phone: data.phone,
-                address: data.address,
-                city: data.city,
-                state: data.state,
-                zip: data.zipCode,
-                country: data.country,
-            };
-
-            // Call Stripe API
-            const result = await createCheckout({
-                userId: user?.id || "guest",
-                items,
-                shippingInfo,
-                shippingAmount, // Pass shipping amount
-                subtotal, // Pass subtotal
-                total, // Pass total
-                metadata: {
-                    userId: user?.id || "guest",
-                    userTier: tier.name,
-                    userShippingCredit: user?.shippingCredit || 0,
-                },
-            }).unwrap();
-
-            // Redirect to Stripe
-            if (result.url) {
-                dispatch(clearCart()); // Clear cart
-                window.location.href = result.url;
-            }
-        } catch (error: any) {
-            console.error("Checkout failed:", error);
-            alert(`Checkout failed: ${error?.data?.error || error.message}`);
-        }
-    };
-
-    // Get shipping message
     const getShippingMessage = () => {
         const shippingCost = calculateShipping();
         const subtotal = calculateSubtotal();
@@ -191,7 +144,6 @@ export default function CheckoutPage() {
             return { text: "Free", className: "text-green-400" };
         }
 
-        // Check if partially paid by credit
         if (user?.tier === "Member" && user?.shippingCredit && user.shippingCredit > 0 && user.shippingCredit < 6.95) {
             return {
                 text: `$${shippingCost.toFixed(2)} ($${user.shippingCredit.toFixed(2)} credit applied)`,
@@ -202,37 +154,116 @@ export default function CheckoutPage() {
         return { text: `$${shippingCost.toFixed(2)}`, className: "text-yellow-400" };
     };
 
+    const onSubmit = async (data: CheckoutFormData) => {
+        try {
+            if (!order?.items) {
+                alert("No items to order");
+                return;
+            }
+
+            const items = order.items.map((item: any) => ({
+                productId: item.product?.id || 0,
+                name: item.product?.name || "Product",
+                description: `${item.product?.name || "Product"}`,
+                price: parseFloat(getMemberPrice(item.discountedPrice || item.unitPrice || 0)),
+                quantity: item.quantity || 1,
+                size: "0mg", // You need to determine how to get this
+            }));
+
+            const shippingAmount = calculateShipping();
+            const subtotal = calculateSubtotal();
+            const total = subtotal + shippingAmount;
+
+            const shippingInfo = {
+                name: `${data.firstName} ${data.lastName}`,
+                email: data.email,
+                phone: data.phone,
+                address: data.address,
+                city: data.city,
+                state: data.state,
+                zip: data.zipCode,
+                country: data.country,
+            };
+
+            const result = await createCheckout({
+                userId: user?.id || "guest",
+                items,
+                shippingInfo,
+                shippingAmount,
+                subtotal,
+                total,
+                metadata: {
+                    userId: user?.id || "guest",
+                    userTier: tier.name,
+                    userShippingCredit: user?.shippingCredit || 0,
+                    repeatOrderId: orderId,
+                },
+            }).unwrap();
+
+            if (result.url) {
+                window.location.href = result.url;
+            }
+        } catch (error: any) {
+            console.error("Checkout failed:", error);
+            alert(`Checkout failed: ${error?.data?.error || error.message}`);
+        }
+    };
+
     const shippingMessage = getShippingMessage();
 
-    // KEEP YOUR EXACT JSX DESIGN - ONLY CHANGE COUNTRY INPUT TO SELECT
+    if (isOrderLoading) {
+        return (
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+                <div className="container mx-auto max-w-6xl">
+                    <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
+                    <div className="text-center py-20">Loading order details...</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!order) {
+        return (
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+                <div className="container mx-auto max-w-6xl">
+                    <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
+                    <div className="text-center py-20 text-red-400">Order not found or you don't have permission to view it.</div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
             <div className="container mx-auto max-w-6xl">
-                <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold">Repeat Order</h1>
+                    <p className="text-gray-400">
+                        Reordering: #{order.id?.slice(-8)} from {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
+                </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
-                    {/* LEFT COLUMN - KEEP EXACTLY */}
                     <div>
                         <div className="bg-slate-800 rounded-lg p-6 mb-6">
-                            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+                            <h2 className="text-xl font-bold mb-4">Repeat Order Summary</h2>
 
-                            {cart.map((item) => {
-                                const discountedPrice = getMemberPrice(item.size.price);
-                                return (
-                                    <div key={`${item.product.id}-${item.size.mg}`} className="flex justify-between items-center py-3 border-b border-slate-700">
-                                        <div>
-                                            <h3 className="font-semibold">{item.product.name}</h3>
-                                            <p className="text-sm text-gray-400">
-                                                {item.size.mg}mg × {item.quantity}
-                                            </p>
+                            {order.items &&
+                                order.items.map((item: any, index: number) => {
+                                    const discountedPrice = getMemberPrice(item.discountedPrice || item.unitPrice || 0);
+                                    return (
+                                        <div key={index} className="flex justify-between items-center py-3 border-b border-slate-700">
+                                            <div>
+                                                <h3 className="font-semibold">{item.product?.name || "Product"}</h3>
+                                                <p className="text-sm text-gray-400">Quantity: {item.quantity || 1}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm text-gray-400 line-through">${(item.unitPrice || 0).toFixed(2)}</p>
+                                                <p className="text-cyan-400">${discountedPrice}</p>
+                                            </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-sm text-gray-400 line-through">${item.size.price.toFixed(2)}</p>
-                                            <p className="text-cyan-400">${discountedPrice}</p>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
 
                             <div className="mt-6 space-y-3">
                                 <div className="flex justify-between">
@@ -250,7 +281,6 @@ export default function CheckoutPage() {
                             </div>
                         </div>
 
-                        {/* Tier Info - KEEP EXACT */}
                         <div className="bg-slate-800 rounded-lg p-6">
                             <h2 className="text-xl font-bold mb-4">Your Benefits</h2>
                             <div className="space-y-2">
@@ -276,7 +306,6 @@ export default function CheckoutPage() {
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN - KEEP EXACT FORM - ONLY CHANGE COUNTRY INPUT */}
                     <div>
                         <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-800 rounded-lg p-6">
                             <h2 className="text-xl font-bold mb-6">Shipping Information</h2>
@@ -356,9 +385,8 @@ export default function CheckoutPage() {
                                 </div>
                             </div>
 
-                            {/* ONLY CHANGE BUTTON TEXT */}
                             <button type="submit" disabled={isCheckoutLoading} className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                                {isCheckoutLoading ? "Processing..." : `Pay $${calculateTotal().toFixed(2)}`}
+                                {isCheckoutLoading ? "Processing..." : `Repeat Order - Pay $${calculateTotal().toFixed(2)}`}
                             </button>
 
                             <p className="text-xs text-gray-500 text-center mt-4">By completing your order, you agree to our Terms of Service</p>
