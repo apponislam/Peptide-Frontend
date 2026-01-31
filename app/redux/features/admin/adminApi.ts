@@ -20,6 +20,14 @@ export const adminApi = baseApi.injectEndpoints({
             providesTags: ["Orders"],
         }),
 
+        getOrderById2: builder.query({
+            query: (id: string) => ({
+                // Change from number to string
+                url: `/admin/orders/${id}`,
+            }),
+            providesTags: (result, error, id) => [{ type: "Orders", id }],
+        }),
+
         // Get all users with pagination and filters
         getAllUsers: builder.query({
             query: (params?: { page?: number; limit?: number; search?: string; role?: string; tier?: string; sortBy?: string; sortOrder?: "asc" | "desc" }) => ({
@@ -64,14 +72,6 @@ export const adminApi = baseApi.injectEndpoints({
         //     providesTags: (result, error, id) => [{ type: "Users", id }],
         // }),
 
-        // Optional: Get order by ID
-        getOrderById: builder.query({
-            query: (id: number) => ({
-                url: `/admin/orders/${id}`,
-            }),
-            providesTags: (result, error, id) => [{ type: "Orders", id }],
-        }),
-
         // Optional: Get user orders
         getUserOrders: builder.query({
             query: (userId: string) => ({
@@ -98,4 +98,4 @@ export const adminApi = baseApi.injectEndpoints({
     }),
 });
 
-export const { useGetDashboardStatsQuery, useLazyGetDashboardStatsQuery, useGetAllOrdersQuery, useLazyGetAllOrdersQuery, useGetAllUsersQuery, useLazyGetAllUsersQuery, useUpdateOrderStatusMutation, useUpdateUserMutation, useGetUserByIdQuery, useGetOrderByIdQuery, useGetUserOrdersQuery, useGetTopSellingProductsQuery, useGetReferralPerformanceQuery } = adminApi;
+export const { useGetDashboardStatsQuery, useLazyGetDashboardStatsQuery, useGetAllOrdersQuery, useLazyGetAllOrdersQuery, useGetOrderById2Query, useGetAllUsersQuery, useLazyGetAllUsersQuery, useUpdateOrderStatusMutation, useUpdateUserMutation, useGetUserByIdQuery, useGetUserOrdersQuery, useGetTopSellingProductsQuery, useGetReferralPerformanceQuery } = adminApi;
