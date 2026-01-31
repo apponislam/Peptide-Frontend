@@ -29,6 +29,7 @@ export default function OrderDetailsPage() {
 
     const { data, isLoading, error } = useGetOrderQuery(orderId);
     const order = data?.data;
+    console.log(order);
 
     if (isLoading) {
         return (
@@ -89,6 +90,10 @@ export default function OrderDetailsPage() {
         router.push(`/checkout/repeat/${order.id}`);
     };
 
+    const goBack = () => {
+        router.back();
+    };
+
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
             <div className="container mx-auto max-w-7xl">
@@ -99,14 +104,14 @@ export default function OrderDetailsPage() {
                             <h1 className="text-3xl font-bold">Order Details</h1>
                             <p className="text-gray-400">Order #{order.id?.slice(-8)}</p>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2 justify-between">
+                            <button onClick={goBack} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition">
+                                ← Go Back
+                            </button>
                             <button onClick={onRepeatOrder} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold transition">
                                 <span>🔄</span>
                                 Repeat Order
                             </button>
-                            <Link href="/dashboard/orders" className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition">
-                                ← All Orders
-                            </Link>
                         </div>
                     </div>
                 </div>
@@ -118,8 +123,10 @@ export default function OrderDetailsPage() {
                         <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                                 <div>
-                                    <div className="flex items-center gap-4 mb-2">
-                                        <h2 className="text-xl font-bold">Order #{order.id?.slice(-8)}</h2>
+                                    <div className="flex items-center gap-4 mb-2 flex-wrap">
+                                        <h2 className="text-xl font-bold">
+                                            Order <span className="wrap-break-word">#{order.id}</span>
+                                        </h2>
                                         <span className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusColor(order.status)}`}>{order.status}</span>
                                     </div>
                                     <p className="text-gray-400">Placed on {formatDate(order.createdAt)}</p>
