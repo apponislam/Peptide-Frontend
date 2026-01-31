@@ -23,7 +23,8 @@ export const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, Fetch
     const url = typeof args === "string" ? args : args.url;
     const isAuthEndpoint = url === "/auth/login" || url === "/auth/admin/login" || url === "/auth/refresh-token";
     let result = await baseQuery(args, api, extraOptions);
-    console.log(result);
+    // console.log(result);
+
     if (!isAuthEndpoint && (result?.error?.status === 401 || result?.error?.status === 403)) {
         console.log("Attempting to refresh token for non-auth endpoint...");
 
