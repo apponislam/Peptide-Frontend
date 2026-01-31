@@ -102,7 +102,7 @@ export default function OrderDetailsPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h1 className="text-3xl font-bold">Order Details</h1>
-                            <p className="text-gray-400">Order #{order.id?.slice(-8)}</p>
+                            <p className="text-gray-400">Order #{order.id}</p>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2 justify-between">
                             <button onClick={goBack} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold transition">
