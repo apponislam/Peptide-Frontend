@@ -83,7 +83,7 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                                 <button onClick={() => onRepeatOrder && onRepeatOrder(order.id)} className="flex-1 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold transition">
                                     🔄 Repeat Order
                                 </button>
-                                <Link href={`/orders/${order.id}`} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-center transition">
+                                <Link href={`/dashboard/orders/${order.id}`} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-center transition">
                                     View Details
                                 </Link>
                             </div>
