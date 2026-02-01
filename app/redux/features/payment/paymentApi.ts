@@ -185,23 +185,14 @@ export const paymentApi = baseApi.injectEndpoints({
 
         // Create refund
         createRefund: builder.mutation({
-            query: (data: { paymentIntentId: string; amount?: number }) => ({
+            query: (data: { orderId: string; amount?: number }) => ({
                 url: "/payment/refund",
                 method: "POST",
                 body: data,
             }),
+            invalidatesTags: (result, error, { orderId }) => [{ type: "Orders", id: orderId }, { type: "DashboardStats" }],
         }),
-
-        // REMOVE ALL SHIPSTATION ENDPOINTS FROM HERE
-        // They belong in shipmentApi.ts
     }),
 });
 
-export const {
-    useCreateCheckoutSessionMutation,
-    useGetSessionStatusQuery,
-    useLazyGetSessionStatusQuery,
-    useCreatePaymentIntentMutation,
-    useCreateRefundMutation,
-    // REMOVE ShipStation exports
-} = paymentApi;
+export const { useCreateCheckoutSessionMutation, useGetSessionStatusQuery, useLazyGetSessionStatusQuery, useCreatePaymentIntentMutation, useCreateRefundMutation } = paymentApi;
