@@ -94,10 +94,7 @@ export default function LoginPage() {
         setError("");
         const code = data.referralCode.trim().toUpperCase();
 
-        // Check if referral code is valid (exists in database)
-        // available: false = code exists and is valid
         if (referralCheck?.data?.available === false) {
-            // ALL VALID REFERRAL CODES - auto-login as demo user
             const userId = "user_" + Math.random().toString(36).substring(7);
             const userReferralCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
@@ -128,17 +125,12 @@ export default function LoginPage() {
             localStorage.setItem("accessToken", mockToken);
             localStorage.setItem("user", JSON.stringify(mockUser));
 
-            // Redirect to homepage as demo user
             router.push("/");
         } else {
-            // Invalid code - show error
             setError("Invalid invitation code. Please check and try again.");
         }
     };
 
-    // Check if referral code is valid
-    // false = valid (exists in database)
-    // true = invalid (doesn't exist in database)
     const isReferralValid = referralCheck?.data?.available === false;
 
     return (
