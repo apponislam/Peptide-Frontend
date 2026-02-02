@@ -9,6 +9,8 @@ import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 import { getTier } from "@/app/utils/pricing";
 import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
 import { useGetOrderQuery } from "@/app/redux/features/order/orderApi";
+import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
+import { currentUser, setRedirectPath } from "@/app/redux/features/auth/authSlice";
 
 const checkoutSchema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -27,8 +29,19 @@ type CheckoutFormData = z.infer<typeof checkoutSchema>;
 export default function RepeatOrderPage() {
     const router = useRouter();
     const params = useParams();
+    const dispatch = useAppDispatch();
+
+    const authUser = useAppSelector(currentUser);
 
     const orderId = params.id as string;
+
+    useEffect(() => {
+        if (!authUser) {
+            dispatch(setRedirectPath(`/checkout/repeat/${orderId}`));
+            router.push("/auth/login");
+        }
+    }, [authUser, dispatch, router]);
+
     const { data: orderData, isLoading: isOrderLoading } = useGetOrderQuery(orderId);
     const order = orderData?.data;
 
