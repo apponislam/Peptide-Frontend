@@ -37,7 +37,7 @@ export default function CheckoutPage() {
     useEffect(() => {
         if (!authUser) {
             dispatch(setRedirectPath("/checkout"));
-            router.push("/login");
+            router.push("/auth/login");
         }
     }, [authUser, dispatch, router]);
 

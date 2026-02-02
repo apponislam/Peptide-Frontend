@@ -7,9 +7,9 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAppDispatch } from "@/app/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
 import { useLoginMutation, useCheckReferralCodeQuery } from "@/app/redux/features/auth/authApi";
-import { setUser } from "@/app/redux/features/auth/authSlice";
+import { redirectPath, setRedirectPath, setUser } from "@/app/redux/features/auth/authSlice";
 
 // Validation schemas
 const loginSchema = z.object({
@@ -30,6 +30,7 @@ export default function LoginPage() {
     const [login] = useLoginMutation();
     const [error, setError] = useState("");
     const [referralCodeValue, setReferralCodeValue] = useState("");
+    const redirectTo = useAppSelector(redirectPath);
 
     // Check referral code query
     const { data: referralCheck, isFetching: isCheckingReferral } = useCheckReferralCodeQuery(referralCodeValue, {
@@ -84,7 +85,11 @@ export default function LoginPage() {
                 }),
             );
 
-            router.push("/");
+            // router.push("/");
+
+            const target = redirectTo || "/";
+            router.push(target);
+            dispatch(setRedirectPath(null));
         } catch (err: any) {
             setError(err?.data?.message || "Login failed");
         }
