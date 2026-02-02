@@ -11,6 +11,7 @@ import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 import { getTier } from "@/app/utils/pricing";
 import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
 import { useAppDispatch } from "@/app/redux/hooks";
+import { currentUser, setRedirectPath } from "@/app/redux/features/auth/authSlice";
 
 const checkoutSchema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -30,6 +31,16 @@ export default function CheckoutPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const cart = useSelector(selectCartItems);
+
+    const authUser = useSelector(currentUser);
+
+    useEffect(() => {
+        if (!authUser) {
+            dispatch(setRedirectPath("/checkout"));
+            router.push("/login");
+        }
+    }, [authUser, dispatch, router]);
+
     const { data: userData } = useGetMeQuery();
     const user = userData?.data;
 
