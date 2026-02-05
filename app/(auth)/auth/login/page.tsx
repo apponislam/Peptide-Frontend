@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
 import { useLoginMutation, useCheckReferralCodeQuery } from "@/app/redux/features/auth/authApi";
-import { redirectPath, setDemoUser, setRedirectPath, setUser } from "@/app/redux/features/auth/authSlice";
+import { demoLogOut, redirectPath, setDemoUser, setRedirectPath, setUser } from "@/app/redux/features/auth/authSlice";
 
 // Validation schemas
 const loginSchema = z.object({
@@ -77,7 +77,7 @@ export default function LoginPage() {
         try {
             const response = await login(data).unwrap();
 
-            // Dispatch user to Redux store
+            dispatch(demoLogOut());
             dispatch(
                 setUser({
                     user: response.data.user,
@@ -136,6 +136,28 @@ export default function LoginPage() {
     //     }
     // };
 
+    const handleLogoClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+
+        const randomCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const userId = "user_" + Math.random().toString(36).substring(7);
+
+        const mockUser = {
+            id: userId,
+            name: "Demo User",
+            email: "demo@user.com",
+            role: "USER" as const,
+            referralCode: randomCode,
+            tier: "Member",
+            storeCredit: 100,
+            referralCount: 0,
+            createdAt: new Date().toISOString(),
+        };
+
+        dispatch(setDemoUser(mockUser));
+        router.push("/"); // Manually navigate after setting user
+    };
+
     const onReferralSubmit = async (data: ReferralFormData) => {
         setError("");
         const enteredCode = data.referralCode.trim().toUpperCase(); // The code user actually typed
@@ -149,7 +171,7 @@ export default function LoginPage() {
                 name: "New Member",
                 email: "new@member.com",
                 role: "USER" as const,
-                referralCode: enteredCode, // ✅ Use the actual code user entered
+                referralCode: enteredCode,
                 tier: "Member",
                 storeCredit: 0,
                 referralCount: 0,
@@ -173,9 +195,12 @@ export default function LoginPage() {
                 {/* Logo */}
                 <div className="text-center mb-8 md:mb-12">
                     <div className="flex justify-center mb-4">
-                        <Link href="/">
+                        {/* <Link href="/">
                             <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
-                        </Link>
+                        </Link> */}
+                        <button onClick={handleLogoClick} className="focus:outline-none">
+                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
+                        </button>
                     </div>
                     <p className="text-gray-400 text-base md:text-lg">By invitation only</p>
                 </div>
