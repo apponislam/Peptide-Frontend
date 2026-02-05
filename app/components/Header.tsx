@@ -7,12 +7,11 @@ import { currentUser, demoLogOut, logOut } from "@/app/redux/features/auth/authS
 import { useGetMeQuery, useLogoutMutation } from "@/app/redux/features/auth/authApi";
 import { baseApi } from "../redux/api/baseApi";
 import { getTier } from "../utils/pricing";
-import { selectCartCount, openCart } from "../redux/features/cart/cartSlice"; // Import from cartSlice
+import { selectCartCount, openCart } from "../redux/features/cart/cartSlice";
 
 export default function Header() {
-    // Replace useCart() with Redux selectors
     const dispatch = useAppDispatch();
-    const cartCount = useAppSelector(selectCartCount); // Get cart count from Redux
+    const cartCount = useAppSelector(selectCartCount);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const { data } = useGetMeQuery();
 
