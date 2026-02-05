@@ -62,7 +62,7 @@ type ProductFormData = {
 };
 
 const EditProductPage = () => {
-    const { openModal } = useModal();
+    const { showModal } = useModal();
     const router = useRouter();
     const params = useParams();
     const productId = parseInt(params.id as string);
@@ -138,46 +138,54 @@ const EditProductPage = () => {
 
     const onSubmit: SubmitHandler<ProductFormData> = async (data) => {
         try {
+            // Clean references
             const cleanReferences = data.references.filter((ref) => ref.url.trim() && ref.title.trim());
+
+            // Handle COA data
             const coaData = data.coa;
             const isCoaEmpty = coaData ? Object.values(coaData).every((value) => !value.trim()) : true;
+
             const cleanData = {
                 ...data,
                 references: cleanReferences,
                 coa: isCoaEmpty ? undefined : coaData,
             };
 
+            // Update product
             await updateProduct({ id: productId, data: cleanData }).unwrap();
 
-            openModal({
+            // Show success modal and wait for user confirmation
+            await showModal({
                 type: "success",
                 title: "Success!",
                 message: "Product updated successfully!",
-                onConfirm: () => {
-                    router.push("/admin?tab=products");
-                },
                 confirmText: "Go to Products",
             });
+
+            // Navigate after confirmation
+            router.push("/admin?tab=products");
         } catch (error: any) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "Error",
                 message: error?.data?.message || "Failed to update product",
+                confirmText: "OK",
             });
         }
     };
 
-    const handleCancel = () => {
-        openModal({
+    const handleCancel = async () => {
+        const confirmed = await showModal({
             type: "confirm",
             title: "Discard Changes?",
             message: "Are you sure you want to leave? All unsaved changes will be lost.",
             confirmText: "Yes, Discard",
             cancelText: "Cancel",
-            onConfirm: () => {
-                router.push("/admin?tab=products");
-            },
         });
+
+        if (confirmed) {
+            router.push("/admin?tab=products");
+        }
     };
 
     if (isProductLoading) {

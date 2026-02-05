@@ -38,7 +38,7 @@ interface Order {
 }
 
 export default function OrdersTab() {
-    const { openModal } = useModal();
+    const { showModal } = useModal();
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [carrier, setCarrier] = useState("fedex");
     const [service, setService] = useState("fedex_ground");
@@ -88,134 +88,159 @@ export default function OrdersTab() {
 
     const handleUpdateStatus = async (orderId: string, status: string) => {
         try {
+            // Call API to update order status
             await updateOrderStatus({ id: orderId, status }).unwrap();
 
-            openModal({
+            // Show success modal and wait for user to click "OK"
+            await showModal({
                 type: "success",
                 title: "Status Updated",
                 message: `✅ Order status updated to ${status}`,
-                onConfirm: () => {
-                    refetch();
-                },
+                confirmText: "OK",
             });
+
+            // Refetch orders after user closes modal
+            refetch();
         } catch (error: any) {
-            openModal({
+            // Show error modal if API call failed
+            await showModal({
                 type: "error",
                 title: "Update Failed",
                 message: `❌ Failed to update order: ${error.data?.message || error.message}`,
+                confirmText: "OK",
             });
         }
     };
 
     const handleCreateShipStation = async (orderId: string) => {
-        openModal({
+        // Step 1: Ask for confirmation
+        const confirmed = await showModal({
             type: "confirm",
             title: "Create ShipStation Order",
             message: "Create ShipStation order for this order?",
             confirmText: "Create",
             cancelText: "Cancel",
-            onConfirm: async () => {
-                try {
-                    await createShipStationOrder(orderId).unwrap();
-
-                    openModal({
-                        type: "success",
-                        title: "Order Created",
-                        message: "✅ ShipStation order created successfully!",
-                        onConfirm: () => {
-                            refetch();
-                        },
-                    });
-                } catch (error: any) {
-                    openModal({
-                        type: "error",
-                        title: "Creation Failed",
-                        message: `❌ Failed to create ShipStation order: ${error.data?.error || error.message}`,
-                    });
-                }
-            },
         });
+
+        if (!confirmed) return; // user cancelled
+
+        try {
+            // Step 2: API call
+            await createShipStationOrder(orderId).unwrap();
+
+            // Step 3: Show success modal
+            await showModal({
+                type: "success",
+                title: "Order Created",
+                message: "✅ ShipStation order created successfully!",
+                confirmText: "OK",
+            });
+
+            refetch();
+        } catch (error: any) {
+            // Step 4: Show error modal
+            await showModal({
+                type: "error",
+                title: "Creation Failed",
+                message: `❌ Failed: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
     };
 
     const handleCreateLabel = async (order: Order) => {
         if (!order.shipstationOrderId) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "ShipStation Order Required",
                 message: "Please create ShipStation order first",
+                confirmText: "OK",
             });
             return;
         }
 
-        openModal({
+        // Step 1: Confirm creation
+        const confirmed = await showModal({
             type: "confirm",
             title: "Create Shipping Label",
             message: "Create shipping label for this order?",
             confirmText: "Create",
             cancelText: "Cancel",
-            onConfirm: async () => {
-                try {
-                    await createShippingLabel(order.id).unwrap();
-
-                    openModal({
-                        type: "success",
-                        title: "Label Created",
-                        message: "✅ Shipping label created successfully!",
-                        onConfirm: () => {
-                            refetch();
-                        },
-                    });
-                } catch (error: any) {
-                    console.log(error);
-                    openModal({
-                        type: "error",
-                        title: "Creation Failed",
-                        message: `❌ Failed to create shipping label: ${error.data?.error || error.message}`,
-                    });
-                }
-            },
         });
+
+        if (!confirmed) return;
+
+        try {
+            // Step 2: API call
+            await createShippingLabel(order.id).unwrap();
+
+            // Step 3: Success modal
+            await showModal({
+                type: "success",
+                title: "Label Created",
+                message: "✅ Shipping label created successfully!",
+                confirmText: "OK",
+            });
+
+            refetch();
+        } catch (error: any) {
+            // Step 4: Error modal
+            await showModal({
+                type: "error",
+                title: "Creation Failed",
+                message: `❌ Failed to create shipping label: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
     };
 
     const handleAddTracking = async (orderId: string) => {
         if (!trackingInput.trim()) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "Tracking Required",
                 message: "Please enter tracking number",
+                confirmText: "OK",
             });
             return;
         }
 
-        openModal({
+        // Step 1: Confirm adding tracking
+        const confirmed = await showModal({
             type: "confirm",
             title: "Add Tracking Number",
             message: `Add tracking number "${trackingInput}" and mark order as shipped?`,
             confirmText: "Add Tracking",
             cancelText: "Cancel",
-            onConfirm: async () => {
-                try {
-                    await markAsShipped(orderId).unwrap();
-
-                    openModal({
-                        type: "success",
-                        title: "Tracking Added",
-                        message: "✅ Tracking added and marked as shipped successfully!",
-                        onConfirm: () => {
-                            setTrackingInput("");
-                            setSelectedOrder(null);
-                            refetch();
-                        },
-                    });
-                } catch (error: any) {
-                    openModal({
-                        type: "error",
-                        title: "Failed to Add Tracking",
-                        message: `❌ Failed to add tracking: ${error.data?.error || error.message}`,
-                    });
-                }
-            },
         });
+
+        if (!confirmed) return;
+
+        try {
+            // Step 2: API call
+            await markAsShipped(orderId).unwrap();
+
+            // Step 3: Success modal
+            await showModal({
+                type: "success",
+                title: "Tracking Added",
+                message: "✅ Tracking added and marked as shipped successfully!",
+                confirmText: "OK",
+            });
+
+            // Step 4: Reset inputs
+            setTrackingInput("");
+            setSelectedOrder(null);
+            refetch();
+        } catch (error: any) {
+            // Step 5: Error modal
+            await showModal({
+                type: "error",
+                title: "Failed to Add Tracking",
+                message: `❌ Failed to add tracking: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
     };
 
     const getStatusColor = (status: string) => {

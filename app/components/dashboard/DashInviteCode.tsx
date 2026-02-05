@@ -10,7 +10,7 @@ interface InvitationCodeProps {
 }
 
 export default function InvitationCode({ user }: InvitationCodeProps) {
-    const { openModal } = useModal();
+    const { showModal } = useModal();
     const [showEditModal, setShowEditModal] = useState(false);
     const [newCode, setNewCode] = useState("");
     const [currentUser, setCurrentUser] = useState(user);
@@ -34,19 +34,21 @@ export default function InvitationCode({ user }: InvitationCodeProps) {
             if (result.success) {
                 setCurrentUser(result.data);
 
-                openModal({
+                await showModal({
                     type: "success",
                     title: "Success",
                     message: `Referral code updated to ${newCodeValue}`,
+                    confirmText: "OK",
                 });
             }
         } catch (error: any) {
             console.error("Error updating code:", error);
 
-            openModal({
+            await showModal({
                 type: "error",
                 title: "Error",
                 message: error?.data?.message || "Failed to update referral code",
+                confirmText: "OK",
             });
         }
     };
@@ -64,33 +66,48 @@ export default function InvitationCode({ user }: InvitationCodeProps) {
         e.preventDefault();
 
         if (!newCode.trim()) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "Error",
                 message: "Please enter a referral code",
+                confirmText: "OK",
             });
             return;
         }
 
         if (cleanedCode.length < 4) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "Error",
                 message: "Referral code must be at least 4 characters",
+                confirmText: "OK",
             });
             return;
         }
 
         if (!isCodeAvailable) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "Error",
                 message: "This code is already taken. Please choose a different one.",
+                confirmText: "OK",
             });
             return;
         }
 
+        // Confirm before updating
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Confirm Update",
+            message: `Are you sure you want to update your referral code to "${newCode.trim().toUpperCase()}"?`,
+            confirmText: "Update",
+            cancelText: "Cancel",
+        });
+
+        if (!confirmed) return;
+
         await handleUpdateCode(newCode.trim().toUpperCase());
+
         setShowEditModal(false);
         setNewCode("");
     };

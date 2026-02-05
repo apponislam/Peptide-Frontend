@@ -38,7 +38,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ReduxProvider } from "./providers/ReduxProvider";
 import { ModalProvider } from "./providers/ModalContext";
-import Modal from "./components/Modal";
+// import Modal from "./components/Modal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ReduxProvider>
                     <ModalProvider>
                         {children}
-                        <Modal />
+                        {/* <Modal /> */}
                     </ModalProvider>
                 </ReduxProvider>
             </body>

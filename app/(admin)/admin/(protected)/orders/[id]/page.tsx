@@ -60,7 +60,7 @@ interface Order {
 }
 
 export default function OrderDetailsPage() {
-    const { openModal } = useModal();
+    const { showModal } = useModal();
     const { id } = useParams();
     const router = useRouter();
     const [trackingInput, setTrackingInput] = useState("");
@@ -102,142 +102,167 @@ export default function OrderDetailsPage() {
 
     const handleUpdateStatus = async (status: string) => {
         try {
+            // Step 1: API call
             await updateOrderStatus({ id: id as string, status }).unwrap();
 
-            openModal({
+            // Step 2: Show success modal
+            await showModal({
                 type: "success",
                 title: "Status Updated",
-                message: "✅ Order status updated successfully!",
-                onConfirm: () => {
-                    refetch();
-                },
+                message: `✅ Order status updated successfully!`,
+                confirmText: "OK",
             });
+
+            // Step 3: Refetch data
+            refetch();
         } catch (error: any) {
-            openModal({
+            // Step 4: Show error modal
+            await showModal({
                 type: "error",
                 title: "Update Failed",
                 message: `❌ Failed to update status: ${error.data?.message || error.message}`,
+                confirmText: "OK",
             });
         }
     };
 
     const handleCreateShipStationOrder = async () => {
-        openModal({
+        // Step 1: Ask for confirmation
+        const confirmed = await showModal({
             type: "confirm",
             title: "Create ShipStation Order",
             message: "Create a new ShipStation order for this order?",
             confirmText: "Create",
             cancelText: "Cancel",
-            onConfirm: async () => {
-                try {
-                    await createShipStationOrder(id as string).unwrap();
-
-                    openModal({
-                        type: "success",
-                        title: "Order Created",
-                        message: "✅ ShipStation order created successfully!",
-                        onConfirm: () => {
-                            refetch();
-                        },
-                    });
-                } catch (error: any) {
-                    openModal({
-                        type: "error",
-                        title: "Creation Failed",
-                        message: `❌ Failed to create ShipStation order: ${error.data?.error || error.message}`,
-                    });
-                }
-            },
         });
+
+        if (!confirmed) return; // user cancelled
+
+        try {
+            // Step 2: Call API
+            await createShipStationOrder(id as string).unwrap();
+
+            // Step 3: Show success modal
+            await showModal({
+                type: "success",
+                title: "Order Created",
+                message: "✅ ShipStation order created successfully!",
+                confirmText: "OK",
+            });
+
+            // Step 4: Refetch data after modal closes
+            refetch();
+        } catch (error: any) {
+            // Step 5: Show error modal
+            await showModal({
+                type: "error",
+                title: "Creation Failed",
+                message: `❌ Failed to create ShipStation order: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
     };
 
     const handleCreateLabel = async () => {
+        // Step 1: Check if ShipStation order exists
         if (!hasShipStationOrder) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "ShipStation Order Required",
                 message: "Please create ShipStation order first",
+                confirmText: "OK",
             });
             return;
         }
 
-        openModal({
+        // Step 2: Ask for confirmation
+        const confirmed = await showModal({
             type: "confirm",
             title: "Create Shipping Label",
             message: "Create a shipping label for this order?",
             confirmText: "Create",
             cancelText: "Cancel",
-            onConfirm: async () => {
-                try {
-                    await createShippingLabel(id as string).unwrap();
-
-                    openModal({
-                        type: "success",
-                        title: "Label Created",
-                        message: "✅ Shipping label created successfully!",
-                        onConfirm: () => {
-                            refetch();
-                        },
-                    });
-                } catch (error: any) {
-                    openModal({
-                        type: "error",
-                        title: "Creation Failed",
-                        message: `❌ Failed to create shipping label: ${error.data?.error || error.message}`,
-                    });
-                }
-            },
         });
+
+        if (!confirmed) return; // user cancelled
+
+        try {
+            // Step 3: Call API
+            await createShippingLabel(id as string).unwrap();
+
+            // Step 4: Show success modal
+            await showModal({
+                type: "success",
+                title: "Label Created",
+                message: "✅ Shipping label created successfully!",
+                confirmText: "OK",
+            });
+
+            // Step 5: Refetch data after modal closes
+            refetch();
+        } catch (error: any) {
+            // Step 6: Show error modal
+            await showModal({
+                type: "error",
+                title: "Creation Failed",
+                message: `❌ Failed to create shipping label: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
     };
 
     const handleAddTracking = async () => {
         if (!trackingInput.trim()) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "Tracking Required",
                 message: "Please enter tracking number",
+                confirmText: "OK",
             });
             return;
         }
 
-        openModal({
+        const confirmed = await showModal({
             type: "confirm",
             title: "Add Tracking Number",
             message: `Add tracking number "${trackingInput}" and mark order as shipped?`,
             confirmText: "Add Tracking",
             cancelText: "Cancel",
-            onConfirm: async () => {
-                try {
-                    await markAsShipped(id as string).unwrap();
-
-                    openModal({
-                        type: "success",
-                        title: "Tracking Added",
-                        message: "✅ Tracking number added successfully!",
-                        onConfirm: () => {
-                            setTrackingInput("");
-                            refetch();
-                        },
-                    });
-                } catch (error: any) {
-                    openModal({
-                        type: "error",
-                        title: "Failed to Add Tracking",
-                        message: `❌ Failed to add tracking: ${error.data?.error || error.message}`,
-                    });
-                }
-            },
         });
+
+        if (!confirmed) return;
+
+        try {
+            await markAsShipped(id as string).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Tracking Added",
+                message: "✅ Tracking number added successfully!",
+                confirmText: "OK",
+            });
+
+            setTrackingInput("");
+            refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Failed to Add Tracking",
+                message: `❌ Failed to add tracking: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
     };
 
-    const handleOpenLabel = () => {
+    const handleOpenLabel = async () => {
         if (order?.labelUrl) {
             window.open(order.labelUrl, "_blank");
         } else {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "No Label Available",
                 message: "Shipping label has not been created yet. Please create a label first.",
+                confirmText: "OK",
             });
         }
     };
@@ -248,47 +273,47 @@ export default function OrderDetailsPage() {
         const amount = refundAmount ? parseFloat(refundAmount) : undefined;
 
         if (amount && (amount <= 0 || amount > order.total)) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "Invalid Amount",
                 message: `Invalid refund amount. Must be between $0.01 and $${order.total.toFixed(2)}`,
+                confirmText: "OK",
             });
             return;
         }
 
         const confirmMessage = amount ? `Refund $${amount.toFixed(2)} from order ${order.id}?` : `Full refund of $${order.total.toFixed(2)} from order ${order.id}?`;
 
-        openModal({
+        const confirmed = await showModal({
             type: "confirm",
             title: "Confirm Refund",
             message: confirmMessage + "\n\nThis will cancel the order and restore store credit.",
             confirmText: "Refund",
             cancelText: "Cancel",
-            onConfirm: async () => {
-                try {
-                    const result = await createRefund({
-                        orderId: order.id,
-                        amount,
-                    }).unwrap();
-
-                    openModal({
-                        type: "success",
-                        title: "Refund Successful",
-                        message: "✅ Refund processed successfully!",
-                        onConfirm: () => {
-                            setRefundAmount("");
-                            refetch();
-                        },
-                    });
-                } catch (error: any) {
-                    openModal({
-                        type: "error",
-                        title: "Refund Failed",
-                        message: `❌ Refund failed: ${error.data?.error || error.message}`,
-                    });
-                }
-            },
         });
+
+        if (!confirmed) return;
+
+        try {
+            await createRefund({ orderId: order.id, amount }).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Refund Successful",
+                message: "✅ Refund processed successfully!",
+                confirmText: "OK",
+            });
+
+            setRefundAmount("");
+            refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Refund Failed",
+                message: `❌ Refund failed: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
     };
 
     // Format date safely

@@ -61,7 +61,7 @@ type ProductFormData = {
 };
 
 const CreateProductPage = () => {
-    const { openModal } = useModal();
+    const { showModal } = useModal();
 
     const router = useRouter();
     const [createProduct, { isLoading }] = useCreateProductMutation();
@@ -110,32 +110,38 @@ const CreateProductPage = () => {
 
     const onSubmit: SubmitHandler<ProductFormData> = async (data) => {
         try {
+            // Clean references
             const cleanReferences = data.references.filter((ref) => ref.url.trim() && ref.title.trim());
+
             const coaData = data.coa;
             const isCoaEmpty = coaData ? Object.values(coaData).every((value) => !value.trim()) : true;
+
             const cleanData = {
                 ...data,
                 references: cleanReferences,
                 coa: isCoaEmpty ? undefined : coaData,
             };
 
+            // Create product
             await createProduct(cleanData).unwrap();
-            openModal({
+
+            // Show success modal and wait for user confirmation
+            await showModal({
                 type: "success",
                 title: "Success!",
                 message: "Product created successfully!",
-                onConfirm: () => {
-                    router.push("/admin?tab=products");
-                },
                 confirmText: "Go to Products",
             });
+
+            // Navigate after confirmation
             router.push("/admin?tab=products");
             reset();
         } catch (error: any) {
-            openModal({
+            await showModal({
                 type: "error",
                 title: "Error",
                 message: error?.data?.message || "Failed to create product",
+                confirmText: "OK",
             });
         }
     };

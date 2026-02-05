@@ -160,7 +160,7 @@ interface User {
 
 export default function UsersTab() {
     const router = useRouter();
-    const { openModal } = useModal();
+    const { showModal } = useModal();
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(12);
@@ -194,83 +194,66 @@ export default function UsersTab() {
         setPage(1);
     };
 
-    const handleEditCredit = (user: User) => {
-        openModal({
+    const handleEditCredit = async (user: User) => {
+        // Show modal with input field
+        const storeCredit = await showModal({
             type: "confirm",
             title: "Edit Store Credit",
             message: `Update store credit for ${user.name || user.email}`,
+            confirmText: "Update",
+            cancelText: "Cancel",
             children: (
                 <div className="mt-4">
                     <input type="number" id="storeCreditInput" step="0.01" min="0" defaultValue={user.storeCredit} className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500" />
                 </div>
             ),
-            confirmText: "Update",
-            cancelText: "Cancel",
-            onConfirm: async () => {
-                const input = document.getElementById("storeCreditInput") as HTMLInputElement;
-                const storeCredit = parseFloat(input.value);
-
-                if (isNaN(storeCredit) || storeCredit < 0) {
-                    openModal({
-                        type: "error",
-                        title: "Invalid Input",
-                        message: "Please enter a valid number.",
-                    });
-                    return;
-                }
-
-                try {
-                    await updateUserMutation({
-                        id: user.id,
-                        data: { storeCredit },
-                    }).unwrap();
-
-                    openModal({
-                        type: "success",
-                        title: "Success",
-                        message: `Store credit updated to $${storeCredit.toFixed(2)}`,
-                        onConfirm: async () => {
-                            await refetch();
-                        },
-                    });
-                } catch (error: any) {
-                    openModal({
-                        type: "error",
-                        title: "Error",
-                        message: error?.data?.message || "Failed to update",
-                    });
-                }
-            },
+            // Return value from modal: we will extract input in code
         });
+
+        if (!storeCredit) return; // user canceled
+
+        const input = document.getElementById("storeCreditInput") as HTMLInputElement;
+        const newCredit = parseFloat(input.value);
+
+        if (isNaN(newCredit) || newCredit < 0) {
+            await showModal({
+                type: "error",
+                title: "Invalid Input",
+                message: "Please enter a valid number.",
+            });
+            return;
+        }
+
+        try {
+            await updateUserMutation({
+                id: user.id,
+                data: { storeCredit: newCredit },
+            }).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Success",
+                message: `Store credit updated to $${newCredit.toFixed(2)}`,
+                confirmText: "OK",
+            });
+
+            await refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Error",
+                message: error?.data?.message || "Failed to update",
+            });
+        }
     };
 
-    const handleEditTier = (user: User) => {
-        let currentModalOpen = true;
-
-        const showResultModal = (type: "success" | "error", title: string, message: string) => {
-            if (!currentModalOpen) return;
-
-            openModal({
-                type,
-                title,
-                message,
-                onConfirm:
-                    type === "success"
-                        ? async () => {
-                              await refetch();
-                              currentModalOpen = false;
-                          }
-                        : undefined,
-                onCancel: () => {
-                    currentModalOpen = false;
-                },
-            });
-        };
-
-        openModal({
+    const handleEditTier = async (user: User) => {
+        const selectedTier = await showModal({
             type: "confirm",
             title: "Edit User Tier",
             message: `Update tier for ${user.name || user.email}`,
+            confirmText: "Update",
+            cancelText: "Cancel",
             children: (
                 <div className="mt-4">
                     <select id="tierInput" defaultValue={user.tier} className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
@@ -280,35 +263,34 @@ export default function UsersTab() {
                     </select>
                 </div>
             ),
-            confirmText: "Update",
-            cancelText: "Cancel",
-            onConfirm: async () => {
-                const select = document.getElementById("tierInput") as HTMLSelectElement;
-                const tier = select.value;
-
-                try {
-                    await updateUserMutation({
-                        id: user.id,
-                        data: { tier },
-                    }).unwrap();
-
-                    showResultModal("success", "Success", `Tier updated to ${tier}`);
-
-                    // Return a rejected promise instead of throwing
-
-                    return Promise.reject(new Error("Prevent auto-close (silent)"));
-                } catch (error: any) {
-                    showResultModal("error", "Error", error?.data?.message || error?.message || "Failed to update tier");
-
-                    // Return a rejected promise instead of throwing
-
-                    return Promise.reject(new Error("Prevent auto-close (silent)"));
-                }
-            },
-            onCancel: () => {
-                currentModalOpen = false;
-            },
         });
+
+        if (!selectedTier) return; // canceled
+
+        const select = document.getElementById("tierInput") as HTMLSelectElement;
+        const tier = select.value;
+
+        try {
+            await updateUserMutation({
+                id: user.id,
+                data: { tier },
+            }).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Success",
+                message: `Tier updated to ${tier}`,
+                confirmText: "OK",
+            });
+
+            await refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Error",
+                message: error?.data?.message || error?.message || "Failed to update tier",
+            });
+        }
     };
 
     const handleViewDetails = (user: any) => {

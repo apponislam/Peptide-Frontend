@@ -165,7 +165,7 @@ interface Product {
 }
 
 export default function ProductsTab() {
-    const { openModal } = useModal();
+    const { showModal } = useModal();
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(12);
 
@@ -193,35 +193,37 @@ export default function ProductsTab() {
         setPage(1);
     };
 
-    const handleDelete = (product: Product) => {
-        openModal({
+    const handleDelete = async (product: Product) => {
+        const confirmed = await showModal({
             type: "confirm",
             title: "Delete Product",
             message: `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
             confirmText: "Delete",
             cancelText: "Cancel",
             isDestructive: true,
-            onConfirm: async () => {
-                try {
-                    // You'll need to implement deleteProduct mutation
-                    await deleteProduct(product.id).unwrap();
-                    openModal({
-                        type: "success",
-                        title: "Success",
-                        message: `Product "${product.name}" has been deleted.`,
-                        onConfirm: () => {
-                            refetch();
-                        },
-                    });
-                } catch (error: any) {
-                    openModal({
-                        type: "error",
-                        title: "Error",
-                        message: error?.data?.message || "Failed to delete product",
-                    });
-                }
-            },
         });
+
+        if (!confirmed) return;
+
+        try {
+            await deleteProduct(product.id).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Success",
+                message: `Product "${product.name}" has been deleted.`,
+                confirmText: "OK",
+            });
+
+            refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Error",
+                message: error?.data?.message || "Failed to delete product",
+                confirmText: "OK",
+            });
+        }
     };
 
     if (isLoading) {
@@ -320,10 +322,10 @@ export default function ProductsTab() {
 
                                 <button
                                     onClick={() => {
-                                        openModal({
+                                        showModal({
                                             type: "info",
                                             title: "Product Details",
-                                            message: "",
+                                            message: "", // can be empty since children will show the content
                                             children: (
                                                 <div className="space-y-3">
                                                     <div>
@@ -348,6 +350,7 @@ export default function ProductsTab() {
                                                     )}
                                                 </div>
                                             ),
+                                            confirmText: "Close",
                                         });
                                     }}
                                     className="px-4 py-2 bg-slate-700 text-white rounded-lg text-sm hover:bg-slate-600 transition-colors"
