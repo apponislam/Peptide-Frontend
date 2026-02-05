@@ -29,7 +29,8 @@ interface Order {
     country: string;
     phone: string;
     items: OrderItem[];
-    status: "PENDING" | "PAID" | "SHIPPED" | "CANCELLED";
+    // status: "PENDING" | "PAID" | "SHIPPED" | "CANCELLED";
+    status: "PENDING" | "FAILED" | "CANCELLED" | "PAID" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "RETURNED" | "REFUNDED";
     shipstationOrderId?: number;
     trackingNumber?: string;
     labelUrl?: string;
@@ -137,6 +138,31 @@ export default function OrdersTab() {
         }
     };
 
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "PENDING":
+                return "bg-yellow-900/30 text-yellow-400";
+            case "FAILED":
+                return "bg-red-900/30 text-red-400";
+            case "CANCELLED":
+                return "bg-red-900/30 text-red-400";
+            case "PAID":
+                return "bg-green-900/30 text-green-400";
+            case "PROCESSING":
+                return "bg-purple-900/30 text-purple-400";
+            case "SHIPPED":
+                return "bg-blue-900/30 text-blue-400";
+            case "DELIVERED":
+                return "bg-indigo-900/30 text-indigo-400";
+            case "RETURNED":
+                return "bg-gray-900/30 text-gray-400";
+            case "REFUNDED":
+                return "bg-orange-900/30 text-orange-400";
+            default:
+                return "bg-slate-900/30 text-slate-400";
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -168,9 +194,14 @@ export default function OrdersTab() {
                         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg focus:border-cyan-500 focus:outline-none text-white">
                             <option value="">All Status</option>
                             <option value="PENDING">Pending</option>
-                            <option value="PAID">Paid</option>
-                            <option value="SHIPPED">Shipped</option>
+                            <option value="FAILED">Failed</option>
                             <option value="CANCELLED">Cancelled</option>
+                            <option value="PAID">Paid</option>
+                            <option value="PROCESSING">Processing</option>
+                            <option value="SHIPPED">Shipped</option>
+                            <option value="DELIVERED">Delivered</option>
+                            <option value="RETURNED">Returned</option>
+                            <option value="REFUNDED">Refunded</option>
                         </select>
                     </div>
 
@@ -265,7 +296,7 @@ export default function OrdersTab() {
                                 <div className="text-right">
                                     <p className="text-2xl font-bold text-cyan-400">${order.total.toFixed(2)}</p>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className={`px-2 py-1 rounded text-xs ${order.status === "PAID" ? "bg-green-900/30 text-green-400" : order.status === "SHIPPED" ? "bg-blue-900/30 text-blue-400" : order.status === "PENDING" ? "bg-yellow-900/30 text-yellow-400" : "bg-red-900/30 text-red-400"}`}>{order.status}</span>
+                                        <span className={`px-2 py-1 rounded text-xs ${getStatusColor(order.status)}`}>{order.status}</span>
                                         {order.trackingNumber && <span className="px-2 py-1 bg-slate-700 rounded text-xs">📦 Tracking</span>}
                                     </div>
                                 </div>
@@ -304,9 +335,14 @@ export default function OrdersTab() {
                                 {/* Status Dropdown */}
                                 <select value={order.status} onChange={(e) => handleUpdateStatus(order.id, e.target.value)} className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm">
                                     <option value="PENDING">Pending</option>
-                                    <option value="PAID">Paid</option>
-                                    <option value="SHIPPED">Shipped</option>
+                                    <option value="FAILED">Failed</option>
                                     <option value="CANCELLED">Cancelled</option>
+                                    <option value="PAID">Paid</option>
+                                    <option value="PROCESSING">Processing</option>
+                                    <option value="SHIPPED">Shipped</option>
+                                    <option value="DELIVERED">Delivered</option>
+                                    <option value="RETURNED">Returned</option>
+                                    <option value="REFUNDED">Refunded</option>
                                 </select>
 
                                 {/* ShipStation Actions */}

@@ -6,6 +6,7 @@ import { useCreateShipStationLabelMutation, useCreateShipStationOrderMutation, u
 import { useCreateRefundMutation } from "@/app/redux/features/payment/paymentApi";
 import Link from "next/link";
 import { ArrowLeft, Package, Truck, User, CreditCard, MapPin, Phone, Tag, ExternalLink, Calendar, DollarSign, RotateCcw } from "lucide-react";
+import { useModal } from "@/app/providers/ModalContext";
 
 interface OrderItem {
     id: string;
@@ -49,7 +50,8 @@ interface Order {
     country: string;
     phone: string;
     items?: OrderItem[];
-    status: "PENDING" | "PAID" | "SHIPPED" | "CANCELLED";
+    // status: "PENDING" | "PAID" | "SHIPPED" | "CANCELLED";
+    status: "PENDING" | "FAILED" | "CANCELLED" | "PAID" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "RETURNED" | "REFUNDED";
     shipstationOrderId?: number;
     trackingNumber?: string;
     labelUrl?: string;
@@ -58,12 +60,13 @@ interface Order {
 }
 
 export default function OrderDetailsPage() {
+    const { openModal } = useModal();
     const { id } = useParams();
     const router = useRouter();
     const [trackingInput, setTrackingInput] = useState("");
     const [carrier, setCarrier] = useState("fedex");
     const [service, setService] = useState("fedex_ground");
-    const [refundAmount, setRefundAmount] = useState<string>(""); // ADD THIS
+    const [refundAmount, setRefundAmount] = useState<string>("");
 
     const {
         data: orderData,
@@ -78,110 +81,214 @@ export default function OrderDetailsPage() {
     const [createShipStationOrder] = useCreateShipStationOrderMutation();
     const [createShippingLabel] = useCreateShipStationLabelMutation();
     const [markAsShipped] = useMarkAsShippedMutation();
-    const [createRefund] = useCreateRefundMutation(); // ADD THIS
+    const [createRefund] = useCreateRefundMutation();
 
     const order: Order | undefined = orderData?.data;
-    const isPaid = order?.status === "PAID";
-    const isShipped = order?.status === "SHIPPED";
+    // const isPaid = order?.status === "PAID";
+    // const isShipped = order?.status === "SHIPPED";
     const hasShipStationOrder = !!order?.shipstationOrderId;
 
     // Debug log to see what data you're getting
-    useEffect(() => {
-        if (orderData) {
-            console.log("Order Data:", orderData);
-            console.log("Order Items:", order?.items);
-            console.log("User Data:", order?.user);
-        }
-        if (error) {
-            console.error("Error loading order:", error);
-        }
-    }, [orderData, error, order]);
+    // useEffect(() => {
+    //     if (orderData) {
+    //         console.log("Order Data:", orderData);
+    //         console.log("Order Items:", order?.items);
+    //         console.log("User Data:", order?.user);
+    //     }
+    //     if (error) {
+    //         console.error("Error loading order:", error);
+    //     }
+    // }, [orderData, error, order]);
 
     const handleUpdateStatus = async (status: string) => {
         try {
             await updateOrderStatus({ id: id as string, status }).unwrap();
-            alert("✅ Order status updated!");
-            refetch();
+
+            openModal({
+                type: "success",
+                title: "Status Updated",
+                message: "✅ Order status updated successfully!",
+                onConfirm: () => {
+                    refetch();
+                },
+            });
         } catch (error: any) {
-            alert("❌ Failed to update: " + (error.data?.message || error.message));
+            openModal({
+                type: "error",
+                title: "Update Failed",
+                message: `❌ Failed to update status: ${error.data?.message || error.message}`,
+            });
         }
     };
 
     const handleCreateShipStationOrder = async () => {
-        if (!confirm("Create ShipStation order?")) return;
-        try {
-            await createShipStationOrder(id as string).unwrap();
-            alert("✅ ShipStation order created!");
-            refetch();
-        } catch (error: any) {
-            alert("❌ Failed: " + (error.data?.error || error.message));
-        }
+        openModal({
+            type: "confirm",
+            title: "Create ShipStation Order",
+            message: "Create a new ShipStation order for this order?",
+            confirmText: "Create",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+                try {
+                    await createShipStationOrder(id as string).unwrap();
+
+                    openModal({
+                        type: "success",
+                        title: "Order Created",
+                        message: "✅ ShipStation order created successfully!",
+                        onConfirm: () => {
+                            refetch();
+                        },
+                    });
+                } catch (error: any) {
+                    openModal({
+                        type: "error",
+                        title: "Creation Failed",
+                        message: `❌ Failed to create ShipStation order: ${error.data?.error || error.message}`,
+                    });
+                }
+            },
+        });
     };
 
     const handleCreateLabel = async () => {
         if (!hasShipStationOrder) {
-            alert("Please create ShipStation order first");
+            openModal({
+                type: "error",
+                title: "ShipStation Order Required",
+                message: "Please create ShipStation order first",
+            });
             return;
         }
-        try {
-            await createShippingLabel(id as string).unwrap();
-            alert("✅ Shipping label created!");
-            refetch();
-        } catch (error: any) {
-            alert("❌ Failed: " + (error.data?.error || error.message));
-        }
+
+        openModal({
+            type: "confirm",
+            title: "Create Shipping Label",
+            message: "Create a shipping label for this order?",
+            confirmText: "Create",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+                try {
+                    await createShippingLabel(id as string).unwrap();
+
+                    openModal({
+                        type: "success",
+                        title: "Label Created",
+                        message: "✅ Shipping label created successfully!",
+                        onConfirm: () => {
+                            refetch();
+                        },
+                    });
+                } catch (error: any) {
+                    openModal({
+                        type: "error",
+                        title: "Creation Failed",
+                        message: `❌ Failed to create shipping label: ${error.data?.error || error.message}`,
+                    });
+                }
+            },
+        });
     };
 
     const handleAddTracking = async () => {
         if (!trackingInput.trim()) {
-            alert("Please enter tracking number");
+            openModal({
+                type: "error",
+                title: "Tracking Required",
+                message: "Please enter tracking number",
+            });
             return;
         }
-        try {
-            await markAsShipped(id as string).unwrap();
-            alert("✅ Tracking added!");
-            setTrackingInput("");
-            refetch();
-        } catch (error: any) {
-            alert("❌ Failed: " + (error.data?.error || error.message));
-        }
+
+        openModal({
+            type: "confirm",
+            title: "Add Tracking Number",
+            message: `Add tracking number "${trackingInput}" and mark order as shipped?`,
+            confirmText: "Add Tracking",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+                try {
+                    await markAsShipped(id as string).unwrap();
+
+                    openModal({
+                        type: "success",
+                        title: "Tracking Added",
+                        message: "✅ Tracking number added successfully!",
+                        onConfirm: () => {
+                            setTrackingInput("");
+                            refetch();
+                        },
+                    });
+                } catch (error: any) {
+                    openModal({
+                        type: "error",
+                        title: "Failed to Add Tracking",
+                        message: `❌ Failed to add tracking: ${error.data?.error || error.message}`,
+                    });
+                }
+            },
+        });
     };
 
     const handleOpenLabel = () => {
         if (order?.labelUrl) {
             window.open(order.labelUrl, "_blank");
+        } else {
+            openModal({
+                type: "error",
+                title: "No Label Available",
+                message: "Shipping label has not been created yet. Please create a label first.",
+            });
         }
     };
 
-    // ADD REFUND HANDLER
     const handleRefundOrder = async () => {
         if (!order) return;
 
         const amount = refundAmount ? parseFloat(refundAmount) : undefined;
 
         if (amount && (amount <= 0 || amount > order.total)) {
-            alert("Invalid refund amount. Must be between $0.01 and $" + order.total.toFixed(2));
+            openModal({
+                type: "error",
+                title: "Invalid Amount",
+                message: `Invalid refund amount. Must be between $0.01 and $${order.total.toFixed(2)}`,
+            });
             return;
         }
 
         const confirmMessage = amount ? `Refund $${amount.toFixed(2)} from order ${order.id}?` : `Full refund of $${order.total.toFixed(2)} from order ${order.id}?`;
 
-        if (!confirm(confirmMessage + "\n\nThis will cancel the order and restore store credit.")) {
-            return;
-        }
+        openModal({
+            type: "confirm",
+            title: "Confirm Refund",
+            message: confirmMessage + "\n\nThis will cancel the order and restore store credit.",
+            confirmText: "Refund",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+                try {
+                    const result = await createRefund({
+                        orderId: order.id,
+                        amount,
+                    }).unwrap();
 
-        try {
-            const result = await createRefund({
-                orderId: order.id,
-                amount,
-            }).unwrap();
-
-            alert("✅ Refund processed successfully!");
-            setRefundAmount("");
-            refetch();
-        } catch (error: any) {
-            alert("❌ Refund failed: " + (error.data?.error || error.message));
-        }
+                    openModal({
+                        type: "success",
+                        title: "Refund Successful",
+                        message: "✅ Refund processed successfully!",
+                        onConfirm: () => {
+                            setRefundAmount("");
+                            refetch();
+                        },
+                    });
+                } catch (error: any) {
+                    openModal({
+                        type: "error",
+                        title: "Refund Failed",
+                        message: `❌ Refund failed: ${error.data?.error || error.message}`,
+                    });
+                }
+            },
+        });
     };
 
     // Format date safely
@@ -192,6 +299,31 @@ export default function OrderDetailsPage() {
             return date.toLocaleDateString() + " " + date.toLocaleTimeString();
         } catch {
             return "Invalid Date";
+        }
+    };
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "PENDING":
+                return "bg-yellow-900/30 text-yellow-400";
+            case "FAILED":
+                return "bg-red-900/30 text-red-400";
+            case "CANCELLED":
+                return "bg-red-900/30 text-red-400";
+            case "PAID":
+                return "bg-green-900/30 text-green-400";
+            case "PROCESSING":
+                return "bg-purple-900/30 text-purple-400";
+            case "SHIPPED":
+                return "bg-blue-900/30 text-blue-400";
+            case "DELIVERED":
+                return "bg-indigo-900/30 text-indigo-400";
+            case "RETURNED":
+                return "bg-gray-900/30 text-gray-400";
+            case "REFUNDED":
+                return "bg-orange-900/30 text-orange-400";
+            default:
+                return "bg-slate-900/30 text-slate-400";
         }
     };
 
@@ -249,7 +381,7 @@ export default function OrderDetailsPage() {
                     {/* Status Bar */}
                     <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-800/50 rounded-xl mb-6">
                         <div className="flex items-center gap-3">
-                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${order.status === "PAID" ? "bg-green-900/30 text-green-400" : order.status === "SHIPPED" ? "bg-blue-900/30 text-blue-400" : order.status === "PENDING" ? "bg-yellow-900/30 text-yellow-400" : "bg-red-900/30 text-red-400"}`}>{order.status}</div>
+                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>{order.status}</div>
                             <div className="text-white">
                                 <Calendar className="w-4 h-4 inline mr-1" />
                                 {formatDate(order.createdAt)}
@@ -261,9 +393,14 @@ export default function OrderDetailsPage() {
                             <span className="text-gray-400">Change Status:</span>
                             <select value={order.status} onChange={(e) => handleUpdateStatus(e.target.value)} className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500">
                                 <option value="PENDING">Pending</option>
-                                <option value="PAID">Paid</option>
-                                <option value="SHIPPED">Shipped</option>
+                                <option value="FAILED">Failed</option>
                                 <option value="CANCELLED">Cancelled</option>
+                                <option value="PAID">Paid</option>
+                                <option value="PROCESSING">Processing</option>
+                                <option value="SHIPPED">Shipped</option>
+                                <option value="DELIVERED">Delivered</option>
+                                <option value="RETURNED">Returned</option>
+                                <option value="REFUNDED">Refunded</option>
                             </select>
                         </div>
                     </div>
@@ -414,34 +551,46 @@ export default function OrderDetailsPage() {
                                     <p className="text-gray-400">
                                         <span className="text-gray-500">Commission:</span> ${commissionAmount.toFixed(2)}
                                     </p>
-                                    {/* <p className="text-gray-400">
-                                        <span className="text-gray-500">Commission Paid:</span> {order.commissionPaid ? "Yes" : "No"}
-                                    </p> */}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Refund Section - ADD THIS */}
-                        <div className="bg-slate-800/50 rounded-xl p-6 border border-red-900/30">
-                            <div className="flex items-center gap-3 mb-6">
-                                <RotateCcw className="w-5 h-5 text-red-400" />
-                                <h3 className="text-lg font-bold text-white">Refund Order</h3>
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Refund Amount (Optional)</label>
-                                <div className="relative">
-                                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                    <input type="number" value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} placeholder={`Full refund: $${order.total.toFixed(2)}`} className="w-full pl-10 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-red-500 focus:outline-none" min="0.01" max={order.total} step="0.01" />
+                        {(order.status === "PAID" || order.status === "PROCESSING" || order.status === "SHIPPED" || order.status === "DELIVERED") && (
+                            <div className="bg-slate-800/50 rounded-xl p-6 border border-red-900/30">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <RotateCcw className="w-5 h-5 text-red-400" />
+                                    <h3 className="text-lg font-bold text-white">Refund Order</h3>
                                 </div>
-                                <p className="text-xs text-gray-400 mt-1">Leave empty for full refund (${order.total.toFixed(2)})</p>
-                            </div>
 
-                            <button onClick={handleRefundOrder} disabled={order.status === "CANCELLED"} className={`w-full px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${order.status === "CANCELLED" ? "bg-gray-700 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"}`}>
-                                <RotateCcw className="w-5 h-5" />
-                                {order.status === "CANCELLED" ? "Already Refunded" : "Process Refund"}
-                            </button>
-                        </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-300 mb-2">Refund Amount (Optional)</label>
+                                    <div className="relative">
+                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                        <input type="number" value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} placeholder={`Full refund: $${order.total.toFixed(2)}`} className="w-full pl-10 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-red-500 focus:outline-none" min="0.01" max={order.total} step="0.01" />
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-1">Leave empty for full refund (${order.total.toFixed(2)})</p>
+                                </div>
+
+                                <button onClick={handleRefundOrder} className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                                    <RotateCcw className="w-5 h-5" />
+                                    Process Refund
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Show message for already refunded/cancelled orders */}
+                        {(order.status === "REFUNDED" || order.status === "CANCELLED") && (
+                            <div className="bg-slate-800/50 rounded-xl p-6 border border-gray-700">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <RotateCcw className="w-5 h-5 text-gray-400" />
+                                    <h3 className="text-lg font-bold text-gray-300">Refund Status</h3>
+                                </div>
+                                <div className="text-center py-4">
+                                    <p className="text-gray-400 mb-2">{order.status === "REFUNDED" ? "This order has been refunded" : "This order has been cancelled"}</p>
+                                    <p className="text-sm text-gray-500">{order.status === "REFUNDED" ? `Store credit was restored to the customer.` : `Order was cancelled before payment was processed.`}</p>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Shipping Actions */}
                         <div className="bg-slate-800/50 rounded-xl p-6">

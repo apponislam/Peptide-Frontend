@@ -33,8 +33,6 @@ export default function Header() {
             dispatch(baseApi.util.resetApiState());
         }
     };
-
-    // Use cartCount directly (it's already a number)
     const itemsInCart = cartCount;
 
     return (

@@ -108,7 +108,7 @@ export default function OrdersPage() {
                 <div className="mb-8">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400 mb-4">
                         <span className="mr-2">Filter by:</span>
-                        <button onClick={() => handleStatusFilter("ALL")} className={`px-3 py-1 rounded transition ${statusFilter === "ALL" ? "bg-cyan-500 text-white" : "hover:text-white"}`}>
+                        {/* <button onClick={() => handleStatusFilter("ALL")} className={`px-3 py-1 rounded transition ${statusFilter === "ALL" ? "bg-cyan-500 text-white" : "hover:text-white"}`}>
                             All
                         </button>
                         <button onClick={() => handleStatusFilter(OrderStatus.PAID)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.PAID ? "bg-green-500/20 text-green-400" : "hover:text-white"}`}>
@@ -122,6 +122,36 @@ export default function OrdersPage() {
                         </button>
                         <button onClick={() => handleStatusFilter(OrderStatus.CANCELLED)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.CANCELLED ? "bg-red-500/20 text-red-400" : "hover:text-white"}`}>
                             Cancelled
+                        </button> */}
+                        <button onClick={() => handleStatusFilter("ALL")} className={`px-3 py-1 rounded transition ${statusFilter === "ALL" ? "bg-cyan-500 text-white" : "hover:text-white"}`}>
+                            All
+                        </button>
+                        <button onClick={() => handleStatusFilter(OrderStatus.PAID)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.PAID ? "bg-green-500/20 text-green-400" : "hover:text-white"}`}>
+                            Paid
+                        </button>
+                        <button onClick={() => handleStatusFilter(OrderStatus.PROCESSING)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.PROCESSING ? "bg-purple-500/20 text-purple-400" : "hover:text-white"}`}>
+                            Processing
+                        </button>
+                        <button onClick={() => handleStatusFilter(OrderStatus.SHIPPED)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.SHIPPED ? "bg-blue-500/20 text-blue-400" : "hover:text-white"}`}>
+                            Shipped
+                        </button>
+                        <button onClick={() => handleStatusFilter(OrderStatus.DELIVERED)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.DELIVERED ? "bg-indigo-500/20 text-indigo-400" : "hover:text-white"}`}>
+                            Delivered
+                        </button>
+                        <button onClick={() => handleStatusFilter(OrderStatus.PENDING)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.PENDING ? "bg-yellow-500/20 text-yellow-400" : "hover:text-white"}`}>
+                            Pending
+                        </button>
+                        <button onClick={() => handleStatusFilter(OrderStatus.FAILED)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.FAILED ? "bg-red-500/20 text-red-400" : "hover:text-white"}`}>
+                            Failed
+                        </button>
+                        <button onClick={() => handleStatusFilter(OrderStatus.CANCELLED)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.CANCELLED ? "bg-red-500/20 text-red-400" : "hover:text-white"}`}>
+                            Cancelled
+                        </button>
+                        <button onClick={() => handleStatusFilter(OrderStatus.REFUNDED)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.REFUNDED ? "bg-orange-500/20 text-orange-400" : "hover:text-white"}`}>
+                            Refunded
+                        </button>
+                        <button onClick={() => handleStatusFilter(OrderStatus.RETURNED)} className={`px-3 py-1 rounded transition ${statusFilter === OrderStatus.RETURNED ? "bg-gray-500/20 text-gray-400" : "hover:text-white"}`}>
+                            Returned
                         </button>
                     </div>
 

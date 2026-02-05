@@ -1,10 +1,22 @@
 import { baseApi } from "../../api/baseApi";
 
+// export enum OrderStatus {
+//     PENDING = "PENDING",
+//     PAID = "PAID",
+//     SHIPPED = "SHIPPED",
+//     CANCELLED = "CANCELLED",
+// }
+
 export enum OrderStatus {
     PENDING = "PENDING",
-    PAID = "PAID",
-    SHIPPED = "SHIPPED",
+    FAILED = "FAILED",
     CANCELLED = "CANCELLED",
+    PAID = "PAID",
+    PROCESSING = "PROCESSING",
+    SHIPPED = "SHIPPED",
+    DELIVERED = "DELIVERED",
+    RETURNED = "RETURNED",
+    REFUNDED = "REFUNDED",
 }
 
 export const orderApi = baseApi.injectEndpoints({
