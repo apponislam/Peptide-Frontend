@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
 import { useLoginMutation, useCheckReferralCodeQuery } from "@/app/redux/features/auth/authApi";
-import { redirectPath, setRedirectPath, setUser } from "@/app/redux/features/auth/authSlice";
+import { redirectPath, setDemoUser, setRedirectPath, setUser } from "@/app/redux/features/auth/authSlice";
 
 // Validation schemas
 const loginSchema = z.object({
@@ -95,40 +95,69 @@ export default function LoginPage() {
         }
     };
 
+    // const onReferralSubmit = async (data: ReferralFormData) => {
+    //     setError("");
+    //     const code = data.referralCode.trim().toUpperCase();
+
+    //     if (referralCheck?.data?.available === false) {
+    //         const userId = "user_" + Math.random().toString(36).substring(7);
+    //         const userReferralCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    //         const mockUser = {
+    //             id: userId,
+    //             name: "New Member",
+    //             email: "new@member.com",
+    //             role: "USER" as const,
+    //             referralCode: userReferralCode,
+    //             tier: "Member",
+    //             storeCredit: 0,
+    //             referralCount: 0,
+    //             createdAt: new Date().toISOString(),
+    //         };
+
+    //         // Create mock access token
+    //         const mockToken = "mock_token_" + Math.random().toString(36).substring(2);
+
+    //         // Dispatch to Redux
+    //         dispatch(
+    //             setUser({
+    //                 user: mockUser,
+    //                 token: mockToken,
+    //             }),
+    //         );
+
+    //         // Store in localStorage for persistence
+    //         localStorage.setItem("accessToken", mockToken);
+    //         localStorage.setItem("user", JSON.stringify(mockUser));
+
+    //         router.push("/");
+    //     } else {
+    //         setError("Invalid invitation code. Please check and try again.");
+    //     }
+    // };
+
     const onReferralSubmit = async (data: ReferralFormData) => {
         setError("");
-        const code = data.referralCode.trim().toUpperCase();
+        const enteredCode = data.referralCode.trim().toUpperCase(); // The code user actually typed
 
         if (referralCheck?.data?.available === false) {
             const userId = "user_" + Math.random().toString(36).substring(7);
-            const userReferralCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
+            // Use the ENTERED referral code, not a random one!
             const mockUser = {
                 id: userId,
                 name: "New Member",
                 email: "new@member.com",
                 role: "USER" as const,
-                referralCode: userReferralCode,
+                referralCode: enteredCode, // ✅ Use the actual code user entered
                 tier: "Member",
                 storeCredit: 0,
                 referralCount: 0,
                 createdAt: new Date().toISOString(),
             };
 
-            // Create mock access token
-            const mockToken = "mock_token_" + Math.random().toString(36).substring(2);
-
-            // Dispatch to Redux
-            dispatch(
-                setUser({
-                    user: mockUser,
-                    token: mockToken,
-                }),
-            );
-
-            // Store in localStorage for persistence
-            localStorage.setItem("accessToken", mockToken);
-            localStorage.setItem("user", JSON.stringify(mockUser));
+            // Just set in Redux, no localStorage needed
+            dispatch(setDemoUser(mockUser));
 
             router.push("/");
         } else {

@@ -414,9 +414,9 @@ export default function OrderDetailsPage() {
                                     <p className="text-gray-400">
                                         <span className="text-gray-500">Commission:</span> ${commissionAmount.toFixed(2)}
                                     </p>
-                                    <p className="text-gray-400">
+                                    {/* <p className="text-gray-400">
                                         <span className="text-gray-500">Commission Paid:</span> {order.commissionPaid ? "Yes" : "No"}
-                                    </p>
+                                    </p> */}
                                 </div>
                             </div>
                         </div>

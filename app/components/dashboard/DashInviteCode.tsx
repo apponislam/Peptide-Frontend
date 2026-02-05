@@ -3,12 +3,14 @@
 import { User } from "@/app/types";
 import { useState, useEffect } from "react";
 import { useUpdateReferralCodeMutation, useCheckReferralCodeQuery } from "@/app/redux/features/auth/authApi";
+import { useModal } from "@/app/providers/ModalContext";
 
 interface InvitationCodeProps {
     user?: User | null;
 }
 
 export default function InvitationCode({ user }: InvitationCodeProps) {
+    const { openModal } = useModal();
     const [showEditModal, setShowEditModal] = useState(false);
     const [newCode, setNewCode] = useState("");
     const [currentUser, setCurrentUser] = useState(user);
@@ -31,10 +33,21 @@ export default function InvitationCode({ user }: InvitationCodeProps) {
 
             if (result.success) {
                 setCurrentUser(result.data);
+
+                openModal({
+                    type: "success",
+                    title: "Success",
+                    message: `Referral code updated to ${newCodeValue}`,
+                });
             }
         } catch (error: any) {
             console.error("Error updating code:", error);
-            alert(error?.data?.message || "Failed to update referral code");
+
+            openModal({
+                type: "error",
+                title: "Error",
+                message: error?.data?.message || "Failed to update referral code",
+            });
         }
     };
 
@@ -51,19 +64,29 @@ export default function InvitationCode({ user }: InvitationCodeProps) {
         e.preventDefault();
 
         if (!newCode.trim()) {
-            alert("Please enter a referral code");
+            openModal({
+                type: "error",
+                title: "Error",
+                message: "Please enter a referral code",
+            });
             return;
         }
 
-        // Check if code has at least 4 characters
         if (cleanedCode.length < 4) {
-            alert("Referral code must be at least 4 characters");
+            openModal({
+                type: "error",
+                title: "Error",
+                message: "Referral code must be at least 4 characters",
+            });
             return;
         }
 
-        // Check if code is available before submitting
         if (!isCodeAvailable) {
-            alert("This code is already taken. Please choose a different one.");
+            openModal({
+                type: "error",
+                title: "Error",
+                message: "This code is already taken. Please choose a different one.",
+            });
             return;
         }
 
@@ -80,7 +103,6 @@ export default function InvitationCode({ user }: InvitationCodeProps) {
         setNewCode(cleanedValue);
     };
 
-    // Reset newCode when modal opens
     useEffect(() => {
         if (showEditModal) {
             setNewCode(currentUser?.referralCode || "");

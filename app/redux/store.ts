@@ -8,7 +8,7 @@ import cartReducer from "./features/cart/cartSlice";
 const persistConfigure = {
     key: "auth",
     storage,
-    whitelist: ["user", "token", "isAuthenticated", "redirectPath"],
+    whitelist: ["user", "token", "isAuthenticated", "redirectPath", "demoUser"],
 };
 
 const cartPersistConfig = {
