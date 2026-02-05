@@ -202,7 +202,7 @@ export default function LoginPage() {
                                 )}
                             </div>
 
-                            <button type="submit" disabled={referralSubmitting} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50">
+                            <button type="submit" disabled={referralSubmitting} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cusror-pointer">
                                 {referralSubmitting ? "Processing..." : "Unlock Access"}
                             </button>
                         </form>
@@ -220,7 +220,7 @@ export default function LoginPage() {
                             {loginErrors.email && <p className="text-red-400 text-sm mb-2">{loginErrors.email.message}</p>}
                             <input type="password" placeholder="Password" {...registerLogin("password")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white mb-4" />
                             {loginErrors.password && <p className="text-red-400 text-sm mb-2">{loginErrors.password.message}</p>}
-                            <button type="submit" disabled={loginSubmitting} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50">
+                            <button type="submit" disabled={loginSubmitting} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
                                 {loginSubmitting ? "Signing In..." : "Sign In"}
                             </button>
                         </form>
