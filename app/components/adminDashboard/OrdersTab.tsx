@@ -4,6 +4,7 @@ import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from "@/app/redux/
 import Link from "next/link";
 import { useCreateShipStationLabelMutation, useCreateShipStationOrderMutation, useMarkAsShippedMutation } from "@/app/redux/features/shipment/shipmentApi";
 import Pagination from "@/app/utils/Pagination";
+import { useModal } from "@/app/providers/ModalContext";
 
 interface OrderItem {
     id: string;
@@ -37,6 +38,7 @@ interface Order {
 }
 
 export default function OrdersTab() {
+    const { openModal } = useModal();
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [carrier, setCarrier] = useState("fedex");
     const [service, setService] = useState("fedex_ground");
@@ -87,55 +89,133 @@ export default function OrdersTab() {
     const handleUpdateStatus = async (orderId: string, status: string) => {
         try {
             await updateOrderStatus({ id: orderId, status }).unwrap();
-            refetch();
+
+            openModal({
+                type: "success",
+                title: "Status Updated",
+                message: `✅ Order status updated to ${status}`,
+                onConfirm: () => {
+                    refetch();
+                },
+            });
         } catch (error: any) {
-            alert("Failed to update order: " + error.data?.message || error.message);
+            openModal({
+                type: "error",
+                title: "Update Failed",
+                message: `❌ Failed to update order: ${error.data?.message || error.message}`,
+            });
         }
     };
 
     const handleCreateShipStation = async (orderId: string) => {
-        if (!confirm("Create ShipStation order for this order?")) return;
+        openModal({
+            type: "confirm",
+            title: "Create ShipStation Order",
+            message: "Create ShipStation order for this order?",
+            confirmText: "Create",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+                try {
+                    await createShipStationOrder(orderId).unwrap();
 
-        try {
-            await createShipStationOrder(orderId).unwrap();
-            alert("✅ ShipStation order created!");
-            refetch();
-        } catch (error: any) {
-            alert("❌ Failed: " + error.data?.error || error.message);
-        }
+                    openModal({
+                        type: "success",
+                        title: "Order Created",
+                        message: "✅ ShipStation order created successfully!",
+                        onConfirm: () => {
+                            refetch();
+                        },
+                    });
+                } catch (error: any) {
+                    openModal({
+                        type: "error",
+                        title: "Creation Failed",
+                        message: `❌ Failed to create ShipStation order: ${error.data?.error || error.message}`,
+                    });
+                }
+            },
+        });
     };
 
     const handleCreateLabel = async (order: Order) => {
         if (!order.shipstationOrderId) {
-            alert("Please create ShipStation order first");
+            openModal({
+                type: "error",
+                title: "ShipStation Order Required",
+                message: "Please create ShipStation order first",
+            });
             return;
         }
 
-        try {
-            await createShippingLabel(order.id).unwrap();
-            alert("✅ Shipping label created!");
-            refetch();
-        } catch (error: any) {
-            console.log(error);
-            alert("❌ Failed: " + error.data?.error || error.message);
-        }
+        openModal({
+            type: "confirm",
+            title: "Create Shipping Label",
+            message: "Create shipping label for this order?",
+            confirmText: "Create",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+                try {
+                    await createShippingLabel(order.id).unwrap();
+
+                    openModal({
+                        type: "success",
+                        title: "Label Created",
+                        message: "✅ Shipping label created successfully!",
+                        onConfirm: () => {
+                            refetch();
+                        },
+                    });
+                } catch (error: any) {
+                    console.log(error);
+                    openModal({
+                        type: "error",
+                        title: "Creation Failed",
+                        message: `❌ Failed to create shipping label: ${error.data?.error || error.message}`,
+                    });
+                }
+            },
+        });
     };
 
     const handleAddTracking = async (orderId: string) => {
-        if (!trackingInput) {
-            alert("Please enter tracking number");
+        if (!trackingInput.trim()) {
+            openModal({
+                type: "error",
+                title: "Tracking Required",
+                message: "Please enter tracking number",
+            });
             return;
         }
 
-        try {
-            await markAsShipped(orderId).unwrap();
-            alert("✅ Tracking added and marked as shipped!");
-            setTrackingInput("");
-            setSelectedOrder(null);
-            refetch();
-        } catch (error: any) {
-            alert("❌ Failed: " + error.data?.error || error.message);
-        }
+        openModal({
+            type: "confirm",
+            title: "Add Tracking Number",
+            message: `Add tracking number "${trackingInput}" and mark order as shipped?`,
+            confirmText: "Add Tracking",
+            cancelText: "Cancel",
+            onConfirm: async () => {
+                try {
+                    await markAsShipped(orderId).unwrap();
+
+                    openModal({
+                        type: "success",
+                        title: "Tracking Added",
+                        message: "✅ Tracking added and marked as shipped successfully!",
+                        onConfirm: () => {
+                            setTrackingInput("");
+                            setSelectedOrder(null);
+                            refetch();
+                        },
+                    });
+                } catch (error: any) {
+                    openModal({
+                        type: "error",
+                        title: "Failed to Add Tracking",
+                        message: `❌ Failed to add tracking: ${error.data?.error || error.message}`,
+                    });
+                }
+            },
+        });
     };
 
     const getStatusColor = (status: string) => {
