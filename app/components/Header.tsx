@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
-import { currentUser, logOut } from "@/app/redux/features/auth/authSlice";
+import { currentUser, demoLogOut, logOut } from "@/app/redux/features/auth/authSlice";
 import { useGetMeQuery, useLogoutMutation } from "@/app/redux/features/auth/authApi";
 import { baseApi } from "../redux/api/baseApi";
 import { getTier } from "../utils/pricing";
@@ -30,6 +30,7 @@ export default function Header() {
             console.error("Logout API error:", error);
         } finally {
             dispatch(logOut());
+            dispatch(demoLogOut());
             dispatch(baseApi.util.resetApiState());
         }
     };

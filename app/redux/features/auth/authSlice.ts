@@ -62,7 +62,7 @@ const authSlice = createSlice({
     },
 });
 
-export const { setUser, logOut, setRedirectPath } = authSlice.actions;
+export const { setUser, logOut, setRedirectPath, demoLogOut } = authSlice.actions;
 export default authSlice.reducer;
 
 export const currentToken = (state: RootState) => state.auth.token;
