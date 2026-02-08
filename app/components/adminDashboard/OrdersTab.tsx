@@ -847,7 +847,7 @@ export default function OrdersTab() {
                                 </Link>
 
                                 {/* Create ShipStation Button - Show only for PAID orders without ShipStation ID */}
-                                {order.status === "PAID" && !order.shipstationOrderId && (
+                                {order.status === "PAID" && (
                                     <button onClick={() => handleCreateShipStation(order.id)} className="px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm">
                                         Create ShipStation
                                     </button>

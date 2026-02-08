@@ -783,11 +783,13 @@ export default function OrderDetailsPage() {
         skip: !id,
     });
 
+    console.log(orderData);
+
     const [updateOrderStatus] = useUpdateOrderStatusMutation();
     const [createShipStationOrder] = useCreateShipStationOrderMutation();
     const [createRefund] = useCreateRefundMutation();
-    const [markAsDelivered] = useMarkAsDeliveredMutation(); // NEW
-    const [cancelOrder] = useCancelOrderMutation(); // NEW
+    const [markAsDelivered] = useMarkAsDeliveredMutation();
+    const [cancelOrder] = useCancelOrderMutation();
 
     const order: Order | undefined = orderData?.data;
     const hasShipStationOrder = !!order?.shipstationOrderId;
@@ -1266,7 +1268,7 @@ export default function OrderDetailsPage() {
                                 )}
 
                                 {/* Create ShipStation Button - Show only for PAID/PROCESSING orders without ShipStation ID */}
-                                {(order.status === "PAID" || order.status === "PROCESSING") && !order.shipstationOrderId && (
+                                {(order.status === "PAID" || order.status === "PROCESSING") && (
                                     <button onClick={handleCreateShipStationOrder} className="w-full px-4 py-3 bg-cyan-600 hover:bg-cyan-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
                                         <Package className="w-5 h-5" />
                                         Create ShipStation Order
