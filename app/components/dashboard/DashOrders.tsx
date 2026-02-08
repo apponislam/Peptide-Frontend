@@ -49,7 +49,7 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                         <div key={order.id} className="bg-slate-900 rounded-lg p-4 md:p-6">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                                 <div>
-                                    <h3 className="font-bold text-white">Order #{order.id?.slice(-8) || "N/A"}</h3>
+                                    <h3 className="font-bold text-white">Order #{order.id || "N/A"}</h3>
                                     <p className="text-sm text-gray-400">
                                         {new Date(orderDate).toLocaleDateString("en-US", {
                                             year: "numeric",
