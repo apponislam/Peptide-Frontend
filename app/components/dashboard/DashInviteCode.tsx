@@ -53,10 +53,42 @@ export default function InvitationCode({ user }: InvitationCodeProps) {
         }
     };
 
+    // const handleCopyLink = () => {
+    //     if (currentUser?.referralCode) {
+    //         const referralLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/register?ref=${currentUser.referralCode}`;
+    //         navigator.clipboard.writeText(referralLink);
+    //         setLinkCopied(true);
+    //         setTimeout(() => setLinkCopied(false), 2000);
+    //     }
+    // };
+
     const handleCopyLink = () => {
         if (currentUser?.referralCode) {
             const referralLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/register?ref=${currentUser.referralCode}`;
-            navigator.clipboard.writeText(referralLink);
+
+            // Check if clipboard API is available
+            if (!navigator.clipboard) {
+                // Fallback for older browsers or HTTP
+                const textArea = document.createElement("textarea");
+                textArea.value = referralLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+            } else {
+                // Modern clipboard API
+                navigator.clipboard.writeText(referralLink).catch((err) => {
+                    console.error("Clipboard error:", err);
+                    // Fallback if clipboard fails
+                    const textArea = document.createElement("textarea");
+                    textArea.value = referralLink;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(textArea);
+                });
+            }
+
             setLinkCopied(true);
             setTimeout(() => setLinkCopied(false), 2000);
         }
