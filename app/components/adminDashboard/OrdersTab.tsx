@@ -491,7 +491,11 @@
 import { useState, useEffect } from "react";
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from "@/app/redux/features/admin/adminApi";
 import Link from "next/link";
-import { useCreateShipStationOrderMutation } from "@/app/redux/features/shipment/shipmentApi";
+import {
+    useCreateShipStationOrderMutation,
+    useMarkAsDeliveredMutation, // NEW
+    useCancelOrderMutation, // NEW
+} from "@/app/redux/features/shipment/shipmentApi";
 import Pagination from "@/app/utils/Pagination";
 import { useModal } from "@/app/providers/ModalContext";
 
@@ -554,6 +558,8 @@ export default function OrdersTab() {
 
     const [updateOrderStatus] = useUpdateOrderStatusMutation();
     const [createShipStationOrder] = useCreateShipStationOrderMutation();
+    const [markAsDelivered] = useMarkAsDeliveredMutation(); // NEW
+    const [cancelOrder] = useCancelOrderMutation(); // NEW
 
     const orders: Order[] = ordersData?.data || [];
     const meta = ordersData?.meta || {
@@ -591,7 +597,6 @@ export default function OrdersTab() {
     };
 
     const handleCreateShipStation = async (orderId: string) => {
-        // Step 1: Ask for confirmation
         const confirmed = await showModal({
             type: "confirm",
             title: "Create ShipStation Order",
@@ -600,13 +605,11 @@ export default function OrdersTab() {
             cancelText: "Cancel",
         });
 
-        if (!confirmed) return; // user cancelled
+        if (!confirmed) return;
 
         try {
-            // Step 2: API call
             await createShipStationOrder(orderId).unwrap();
 
-            // Step 3: Show success modal
             await showModal({
                 type: "success",
                 title: "Order Created",
@@ -616,11 +619,76 @@ export default function OrdersTab() {
 
             refetch();
         } catch (error: any) {
-            // Step 4: Show error modal
             await showModal({
                 type: "error",
                 title: "Creation Failed",
                 message: `❌ Failed: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
+    };
+
+    // NEW: Mark order as delivered
+    const handleMarkAsDelivered = async (orderId: string) => {
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Mark as Delivered",
+            message: "Mark this order as delivered? (Email will be sent to customer)",
+            confirmText: "Mark Delivered",
+            cancelText: "Cancel",
+        });
+
+        if (!confirmed) return;
+
+        try {
+            await markAsDelivered(orderId).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Order Delivered",
+                message: "✅ Order marked as delivered! Email sent to customer.",
+                confirmText: "OK",
+            });
+
+            refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Failed",
+                message: `❌ Failed to mark as delivered: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
+    };
+
+    // NEW: Cancel order
+    const handleCancelOrder = async (orderId: string) => {
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Cancel Order",
+            message: "Cancel this order? (Email will be sent to customer)",
+            confirmText: "Cancel Order",
+            cancelText: "Cancel",
+        });
+
+        if (!confirmed) return;
+
+        try {
+            await cancelOrder(orderId).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Order Cancelled",
+                message: "✅ Order cancelled! Email sent to customer.",
+                confirmText: "OK",
+            });
+
+            refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Failed",
+                message: `❌ Failed to cancel order: ${error.data?.error || error.message}`,
                 confirmText: "OK",
             });
         }
@@ -782,6 +850,20 @@ export default function OrdersTab() {
                                 {order.status === "PAID" && !order.shipstationOrderId && (
                                     <button onClick={() => handleCreateShipStation(order.id)} className="px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm">
                                         Create ShipStation
+                                    </button>
+                                )}
+
+                                {/* NEW: Mark as Delivered Button - Show only for SHIPPED orders */}
+                                {order.status === "SHIPPED" && (
+                                    <button onClick={() => handleMarkAsDelivered(order.id)} className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-sm">
+                                        Mark as Delivered
+                                    </button>
+                                )}
+
+                                {/* NEW: Cancel Order Button - Show only for PENDING or PROCESSING orders */}
+                                {(order.status === "PENDING" || order.status === "PROCESSING") && (
+                                    <button onClick={() => handleCancelOrder(order.id)} className="px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm">
+                                        Cancel Order
                                     </button>
                                 )}
                             </div>

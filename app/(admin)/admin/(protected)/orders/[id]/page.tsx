@@ -708,10 +708,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGetOrderById2Query, useUpdateOrderStatusMutation } from "@/app/redux/features/admin/adminApi";
-import { useCreateShipStationOrderMutation } from "@/app/redux/features/shipment/shipmentApi";
+import {
+    useCreateShipStationOrderMutation,
+    useMarkAsDeliveredMutation, // NEW
+    useCancelOrderMutation, // NEW
+} from "@/app/redux/features/shipment/shipmentApi";
 import { useCreateRefundMutation } from "@/app/redux/features/payment/paymentApi";
 import Link from "next/link";
-import { ArrowLeft, Package, Truck, User, CreditCard, MapPin, Phone, Tag, ExternalLink, Calendar, DollarSign, RotateCcw } from "lucide-react";
+import { ArrowLeft, Package, Truck, User, CreditCard, MapPin, Phone, Tag, ExternalLink, Calendar, DollarSign, RotateCcw, CheckCircle, XCircle } from "lucide-react";
 import { useModal } from "@/app/providers/ModalContext";
 
 interface OrderItem {
@@ -782,6 +786,8 @@ export default function OrderDetailsPage() {
     const [updateOrderStatus] = useUpdateOrderStatusMutation();
     const [createShipStationOrder] = useCreateShipStationOrderMutation();
     const [createRefund] = useCreateRefundMutation();
+    const [markAsDelivered] = useMarkAsDeliveredMutation(); // NEW
+    const [cancelOrder] = useCancelOrderMutation(); // NEW
 
     const order: Order | undefined = orderData?.data;
     const hasShipStationOrder = !!order?.shipstationOrderId;
@@ -897,6 +903,77 @@ export default function OrderDetailsPage() {
                 type: "error",
                 title: "Refund Failed",
                 message: `❌ Refund failed: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
+    };
+
+    // NEW: Handle mark as delivered
+    const handleMarkAsDelivered = async () => {
+        if (!order) return;
+
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Mark as Delivered",
+            message: `Mark order ${order.id} as delivered? (Email will be sent to customer)`,
+            confirmText: "Mark Delivered",
+            cancelText: "Cancel",
+        });
+
+        if (!confirmed) return;
+
+        try {
+            await markAsDelivered(order.id).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Order Delivered",
+                message: "✅ Order marked as delivered! Email sent to customer.",
+                confirmText: "OK",
+            });
+
+            refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Failed",
+                message: `❌ Failed to mark as delivered: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
+    };
+
+    // NEW: Handle cancel order
+    const handleCancelOrder = async () => {
+        if (!order) return;
+
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Cancel Order",
+            message: `Cancel order ${order.id}? (Email will be sent to customer)\n\nOnly orders in PENDING or PROCESSING status can be cancelled.`,
+            confirmText: "Cancel Order",
+            cancelText: "Cancel",
+        });
+
+        if (!confirmed) return;
+
+        try {
+            await cancelOrder(order.id).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Order Cancelled",
+                message: "✅ Order cancelled! Email sent to customer.",
+                confirmText: "OK",
+            });
+
+            refetch();
+        } catch (error: any) {
+            console.log(error);
+            await showModal({
+                type: "error",
+                title: "Failed",
+                message: `❌ Failed to cancel order: ${error.data?.error || error.message}`,
                 confirmText: "OK",
             });
         }
@@ -1161,6 +1238,48 @@ export default function OrderDetailsPage() {
                                         <span className="text-gray-500">Commission:</span> ${commissionAmount.toFixed(2)}
                                     </p>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="bg-slate-800/50 rounded-xl p-6 border border-cyan-900/30">
+                            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
+                                <CheckCircle className="w-5 h-5 text-cyan-400" />
+                                Quick Actions
+                            </h3>
+
+                            <div className="space-y-4">
+                                {/* Mark as Delivered Button - Show only for SHIPPED orders */}
+                                {order.status === "SHIPPED" && (
+                                    <button onClick={handleMarkAsDelivered} className="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                                        <CheckCircle className="w-5 h-5" />
+                                        Mark as Delivered
+                                    </button>
+                                )}
+
+                                {/* Cancel Order Button - Show only for PENDING or PROCESSING orders */}
+                                {(order.status === "PENDING" || order.status === "PROCESSING") && (
+                                    <button onClick={handleCancelOrder} className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                                        <XCircle className="w-5 h-5" />
+                                        Cancel Order
+                                    </button>
+                                )}
+
+                                {/* Create ShipStation Button - Show only for PAID/PROCESSING orders without ShipStation ID */}
+                                {(order.status === "PAID" || order.status === "PROCESSING") && !order.shipstationOrderId && (
+                                    <button onClick={handleCreateShipStationOrder} className="w-full px-4 py-3 bg-cyan-600 hover:bg-cyan-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                                        <Package className="w-5 h-5" />
+                                        Create ShipStation Order
+                                    </button>
+                                )}
+
+                                {/* View Shipping Label Button - Show only if label exists */}
+                                {order.labelUrl && (
+                                    <button onClick={handleOpenLabel} className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                                        <ExternalLink className="w-5 h-5" />
+                                        View Shipping Label
+                                    </button>
+                                )}
                             </div>
                         </div>
 

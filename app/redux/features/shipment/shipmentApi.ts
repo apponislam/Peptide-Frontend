@@ -68,6 +68,24 @@ export const shipmentApi = baseApi.injectEndpoints({
             }),
             providesTags: ["Warehouses"],
         }),
+
+        // 9. NEW: Mark order as delivered
+        markAsDelivered: builder.mutation({
+            query: (orderId: string) => ({
+                url: `/shipment/delivered/${orderId}`,
+                method: "PUT",
+            }),
+            invalidatesTags: (result, error, orderId) => [{ type: "ShipStationOrders", id: orderId }, { type: "Orders", id: orderId }, "ShipStationOrders", "Orders"],
+        }),
+
+        // 10. NEW: Cancel order
+        cancelOrder: builder.mutation({
+            query: (orderId: string) => ({
+                url: `/shipment/order/${orderId}/cancel`,
+                method: "POST",
+            }),
+            invalidatesTags: ["Orders", "ShipStationOrders"],
+        }),
     }),
 });
 
@@ -81,4 +99,6 @@ export const {
     useMarkAsShippedMutation,
     useGetCarriersQuery,
     useGetWarehousesQuery,
+    useMarkAsDeliveredMutation,
+    useCancelOrderMutation,
 } = shipmentApi;
