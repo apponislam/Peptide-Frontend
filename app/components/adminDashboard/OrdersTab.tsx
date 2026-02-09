@@ -5,7 +5,8 @@ import Link from "next/link";
 import {
     useCreateShipStationOrderMutation,
     useMarkAsDeliveredMutation, // NEW
-    useCancelOrderMutation, // NEW
+    useCancelOrderMutation,
+    useMarkAsShippedMutation, // NEW
 } from "@/app/redux/features/shipment/shipmentApi";
 import Pagination from "@/app/utils/Pagination";
 import { useModal } from "@/app/providers/ModalContext";
@@ -71,6 +72,7 @@ export default function OrdersTab() {
     const [createShipStationOrder] = useCreateShipStationOrderMutation();
     const [markAsDelivered] = useMarkAsDeliveredMutation(); // NEW
     const [cancelOrder] = useCancelOrderMutation(); // NEW
+    const [markAsShipped] = useMarkAsShippedMutation();
 
     const orders: Order[] = ordersData?.data || [];
     const meta = ordersData?.meta || {
@@ -134,6 +136,40 @@ export default function OrdersTab() {
                 type: "error",
                 title: "Creation Failed",
                 message: `❌ Failed: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
+    };
+
+    // Mark order as shipped
+    const handleMarkAsShipped = async (orderId: string) => {
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Mark as Shipped",
+            message: "Mark this order as shipped? (Shipping confirmation email will be sent to customer)",
+            confirmText: "Mark Shipped",
+            cancelText: "Cancel",
+        });
+
+        if (!confirmed) return;
+
+        try {
+            const result = await markAsShipped(orderId).unwrap();
+            console.log(result);
+
+            await showModal({
+                type: "success",
+                title: "Order Shipped",
+                message: "✅ Order marked as shipped! Shipping confirmation email sent to customer.",
+                confirmText: "OK",
+            });
+
+            refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Failed",
+                message: `❌ Failed to mark as shipped: ${error.data?.error || error.message}`,
                 confirmText: "OK",
             });
         }
@@ -361,6 +397,13 @@ export default function OrdersTab() {
                                 {order.status === "PAID" && (
                                     <button onClick={() => handleCreateShipStation(order.id)} className="px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm">
                                         Create ShipStation
+                                    </button>
+                                )}
+
+                                {/* Mark as Shipped Button - Show for PROCESSING orders OR for orders with ShipStation ID */}
+                                {(order.status === "PROCESSING" || (order.status === "PAID" && order.shipstationOrderId)) && (
+                                    <button onClick={() => handleMarkAsShipped(order.id)} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm">
+                                        Mark as Shipped
                                     </button>
                                 )}
 
