@@ -5,7 +5,8 @@ import { useGetOrderById2Query, useUpdateOrderStatusMutation } from "@/app/redux
 import {
     useCreateShipStationOrderMutation,
     useMarkAsDeliveredMutation, // NEW
-    useCancelOrderMutation, // NEW
+    useCancelOrderMutation,
+    useMarkAsShippedMutation, // NEW
 } from "@/app/redux/features/shipment/shipmentApi";
 import { useCreateRefundMutation } from "@/app/redux/features/payment/paymentApi";
 import Link from "next/link";
@@ -84,9 +85,43 @@ export default function OrderDetailsPage() {
     const [createRefund] = useCreateRefundMutation();
     const [markAsDelivered] = useMarkAsDeliveredMutation();
     const [cancelOrder] = useCancelOrderMutation();
+    const [markAsShipped] = useMarkAsShippedMutation();
 
     const order: Order | undefined = orderData?.data;
-    const hasShipStationOrder = !!order?.shipstationOrderId;
+    // const hasShipStationOrder = !!order?.shipstationOrderId;
+
+    // Mark order as shipped
+    const handleMarkAsShipped = (orderId: string) => async () => {
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Mark as Shipped",
+            message: "Mark this order as shipped? (Shipping confirmation email will be sent to customer)",
+            confirmText: "Mark Shipped",
+            cancelText: "Cancel",
+        });
+
+        if (!confirmed) return;
+
+        try {
+            await markAsShipped(orderId).unwrap();
+
+            await showModal({
+                type: "success",
+                title: "Order Shipped",
+                message: "✅ Order marked as shipped! Shipping confirmation email sent to customer.",
+                confirmText: "OK",
+            });
+
+            refetch();
+        } catch (error: any) {
+            await showModal({
+                type: "error",
+                title: "Failed",
+                message: `❌ Failed to mark as shipped: ${error.data?.error || error.message}`,
+                confirmText: "OK",
+            });
+        }
+    };
 
     const handleUpdateStatus = async (status: string) => {
         try {
@@ -545,6 +580,22 @@ export default function OrderDetailsPage() {
                             </h3>
 
                             <div className="space-y-4">
+                                {/* Create ShipStation Button - Show only for PAID/PROCESSING orders without ShipStation ID */}
+                                {(order.status === "PAID" || order.status === "PROCESSING") && (
+                                    <button onClick={handleCreateShipStationOrder} className="w-full px-4 py-3 bg-cyan-600 hover:bg-cyan-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                                        <Package className="w-5 h-5" />
+                                        Create ShipStation
+                                    </button>
+                                )}
+
+                                {/* Mark as Shipped Button - Show for PROCESSING orders OR for orders with ShipStation ID */}
+                                {(order.status === "PROCESSING" || (order.status === "PAID" && order.shipstationOrderId)) && (
+                                    <button onClick={handleMarkAsShipped(order.id)} className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                                        <Truck className="w-5 h-5" />
+                                        Mark as Shipped
+                                    </button>
+                                )}
+
                                 {/* Mark as Delivered Button - Show only for SHIPPED orders */}
                                 {order.status === "SHIPPED" && (
                                     <button onClick={handleMarkAsDelivered} className="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
@@ -558,14 +609,6 @@ export default function OrderDetailsPage() {
                                     <button onClick={handleCancelOrder} className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
                                         <XCircle className="w-5 h-5" />
                                         Cancel Order
-                                    </button>
-                                )}
-
-                                {/* Create ShipStation Button - Show only for PAID/PROCESSING orders without ShipStation ID */}
-                                {(order.status === "PAID" || order.status === "PROCESSING") && (
-                                    <button onClick={handleCreateShipStationOrder} className="w-full px-4 py-3 bg-cyan-600 hover:bg-cyan-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
-                                        <Package className="w-5 h-5" />
-                                        Create ShipStation Order
                                     </button>
                                 )}
 
