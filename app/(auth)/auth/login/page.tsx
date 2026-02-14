@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
 import { useLoginMutation, useCheckReferralCodeQuery } from "@/app/redux/features/auth/authApi";
-import { demoLogOut, redirectPath, setDemoUser, setRedirectPath, setUser } from "@/app/redux/features/auth/authSlice";
+import { redirectPath, setRedirectPath, setUser } from "@/app/redux/features/auth/authSlice";
 
 // Validation schemas
 const loginSchema = z.object({
@@ -77,7 +77,7 @@ export default function LoginPage() {
         try {
             const response = await login(data).unwrap();
 
-            dispatch(demoLogOut());
+            // dispatch(demoLogOut());
             dispatch(
                 setUser({
                     user: response.data.user,
@@ -95,68 +95,27 @@ export default function LoginPage() {
         }
     };
 
-    // const onReferralSubmit = async (data: ReferralFormData) => {
-    //     setError("");
-    //     const code = data.referralCode.trim().toUpperCase();
+    // const handleLogoClick = (e: React.MouseEvent) => {
+    //     e.preventDefault();
 
-    //     if (referralCheck?.data?.available === false) {
-    //         const userId = "user_" + Math.random().toString(36).substring(7);
-    //         const userReferralCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    //     const randomCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    //     const userId = "user_" + Math.random().toString(36).substring(7);
 
-    //         const mockUser = {
-    //             id: userId,
-    //             name: "New Member",
-    //             email: "new@member.com",
-    //             role: "USER" as const,
-    //             referralCode: userReferralCode,
-    //             tier: "Member",
-    //             storeCredit: 0,
-    //             referralCount: 0,
-    //             createdAt: new Date().toISOString(),
-    //         };
+    //     const mockUser = {
+    //         id: userId,
+    //         name: "Demo User",
+    //         email: "demo@user.com",
+    //         role: "USER" as const,
+    //         referralCode: randomCode,
+    //         tier: "Member",
+    //         storeCredit: 100,
+    //         referralCount: 0,
+    //         createdAt: new Date().toISOString(),
+    //     };
 
-    //         // Create mock access token
-    //         const mockToken = "mock_token_" + Math.random().toString(36).substring(2);
-
-    //         // Dispatch to Redux
-    //         dispatch(
-    //             setUser({
-    //                 user: mockUser,
-    //                 token: mockToken,
-    //             }),
-    //         );
-
-    //         // Store in localStorage for persistence
-    //         localStorage.setItem("accessToken", mockToken);
-    //         localStorage.setItem("user", JSON.stringify(mockUser));
-
-    //         router.push("/");
-    //     } else {
-    //         setError("Invalid invitation code. Please check and try again.");
-    //     }
+    //     // dispatch(setDemoUser(mockUser));
+    //     router.push("/"); // Manually navigate after setting user
     // };
-
-    const handleLogoClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-
-        const randomCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
-        const userId = "user_" + Math.random().toString(36).substring(7);
-
-        const mockUser = {
-            id: userId,
-            name: "Demo User",
-            email: "demo@user.com",
-            role: "USER" as const,
-            referralCode: randomCode,
-            tier: "Member",
-            storeCredit: 100,
-            referralCount: 0,
-            createdAt: new Date().toISOString(),
-        };
-
-        dispatch(setDemoUser(mockUser));
-        router.push("/"); // Manually navigate after setting user
-    };
 
     const onReferralSubmit = async (data: ReferralFormData) => {
         setError("");
@@ -179,7 +138,7 @@ export default function LoginPage() {
             };
 
             // Just set in Redux, no localStorage needed
-            dispatch(setDemoUser(mockUser));
+            // dispatch(setDemoUser(mockUser));
 
             router.push("/");
         } else {
@@ -195,12 +154,14 @@ export default function LoginPage() {
                 {/* Logo */}
                 <div className="text-center mb-8 md:mb-12">
                     <div className="flex justify-center mb-4">
+                        <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
+
                         {/* <Link href="/">
                             <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
                         </Link> */}
-                        <button onClick={handleLogoClick} className="focus:outline-none">
+                        {/* <button onClick={handleLogoClick} className="focus:outline-none">
                             <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
-                        </button>
+                        </button> */}
                     </div>
                     <p className="text-gray-400 text-base md:text-lg">By invitation only</p>
                 </div>

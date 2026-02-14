@@ -65,10 +65,11 @@ const authSlice = createSlice({
     },
 });
 
-export const { setUser, setDemoUser, logOut, setRedirectPath, demoLogOut } = authSlice.actions;
+// export const { setUser, setDemoUser, logOut, setRedirectPath, demoLogOut } = authSlice.actions;
+export const { setUser, logOut, setRedirectPath } = authSlice.actions;
 export default authSlice.reducer;
 
 export const currentToken = (state: RootState) => state.auth.token;
 export const currentUser = (state: RootState) => state.auth.user;
 export const redirectPath = (state: RootState) => state.auth.redirectPath;
-export const demoUser = (state: RootState) => state.auth.demoUser;
+// export const demoUser = (state: RootState) => state.auth.demoUser;

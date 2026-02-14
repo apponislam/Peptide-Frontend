@@ -4,7 +4,7 @@
 // import { useRouter, useSearchParams } from "next/navigation";
 // import Image from "next/image";
 // import Link from "next/link";
-// import { ArrowLeft, Key, Mail, User } from "lucide-react";
+// import { ArrowLeft, Key, Mail, User, Edit2 } from "lucide-react";
 // import { useAppDispatch } from "@/app/redux/hooks";
 // import { useRegisterMutation } from "@/app/redux/features/auth/authApi";
 // import { setUser } from "@/app/redux/features/auth/authSlice";
@@ -15,15 +15,15 @@
 //     const dispatch = useAppDispatch();
 //     const [register, { isLoading }] = useRegisterMutation();
 
-//     // Get referral code from URL params
-//     const referralFromUrl = searchParams.get("ref") || "";
+//     const referralFromUrl = searchParams.get("ref") ? searchParams.get("ref")!.toUpperCase() : "";
+//     const [isRefEditable, setIsRefEditable] = useState(false);
 
 //     const [formData, setFormData] = useState({
 //         name: "",
 //         email: "",
 //         password: "",
 //         confirmPassword: "",
-//         referralCode: referralFromUrl, // Initialize with URL param
+//         referralCode: referralFromUrl,
 //     });
 //     const [error, setError] = useState("");
 //     const [success, setSuccess] = useState("");
@@ -32,14 +32,9 @@
 //     useEffect(() => {
 //         if (referralFromUrl) {
 //             updateFormData("referralCode", referralFromUrl);
+//             setIsRefEditable(false);
 //         }
 //     }, [referralFromUrl]);
-
-//     const validateInvitationCode = (code: string): boolean => {
-//         if (!code.trim()) return true;
-//         const validCodes = ["JAKE", "WELCOME", "ACCESS2024", "PEPTIDE123"];
-//         return validCodes.includes(code.toUpperCase());
-//     };
 
 //     const handleRegistrationSubmit = async (e: FormEvent) => {
 //         e.preventDefault();
@@ -48,7 +43,7 @@
 
 //         // Basic validation
 //         if (!formData.name.trim()) {
-//             setError("Full name is required");
+//             setError("Name is required");
 //             return;
 //         }
 
@@ -67,12 +62,6 @@
 //             return;
 //         }
 
-//         // Validate invitation code if provided
-//         if (formData.referralCode && !validateInvitationCode(formData.referralCode)) {
-//             setError("Invalid invitation code.");
-//             return;
-//         }
-
 //         try {
 //             // Prepare registration data
 //             const registerData = {
@@ -81,9 +70,11 @@
 //                 password: formData.password,
 //                 referralCode: formData.referralCode || undefined,
 //             };
+//             console.log(registerData);
 
 //             // Call the register API
 //             const response = await register(registerData).unwrap();
+//             console.log(response);
 
 //             if (response.success) {
 //                 // Dispatch user to Redux store
@@ -124,7 +115,17 @@
 //     };
 
 //     const updateFormData = (field: string, value: string) => {
-//         setFormData((prev) => ({ ...prev, [field]: value }));
+//         if (field === "referralCode") {
+//             // Only referral code gets converted to uppercase
+//             setFormData((prev) => ({ ...prev, [field]: value.toUpperCase() }));
+//         } else {
+//             // All other fields stay as entered
+//             setFormData((prev) => ({ ...prev, [field]: value }));
+//         }
+//     };
+
+//     const toggleRefEdit = () => {
+//         setIsRefEditable(true);
 //     };
 
 //     return (
@@ -134,7 +135,7 @@
 //                 <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start">
 //                     <div className="mb-6 lg:mb-8">
 //                         <Link href="/">
-//                             <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={500} height={120} className="h-20 lg:h-24 w-auto" priority />
+//                             <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
 //                         </Link>
 //                     </div>
 
@@ -170,13 +171,13 @@
 
 //                         <form onSubmit={handleRegistrationSubmit}>
 //                             <div className="space-y-4">
-//                                 {/* Full Name */}
+//                                 {/* Name */}
 //                                 <div>
 //                                     <label className="block text-gray-300 mb-2">
 //                                         <User className="inline w-4 h-4 mr-2 mb-1" />
-//                                         Full Name
+//                                         Name
 //                                     </label>
-//                                     <input type="text" value={formData.name} onChange={(e) => updateFormData("name", e.target.value)} placeholder="Enter your full name" required className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors" />
+//                                     <input type="text" value={formData.name} onChange={(e) => updateFormData("name", e.target.value)} placeholder="Enter your Name" required className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors" />
 //                                 </div>
 
 //                                 {/* Email */}
@@ -223,15 +224,23 @@
 //                                     <label className="block text-gray-300 mb-2">
 //                                         Invitation / Referral Code
 //                                         <span className="text-gray-500 text-sm font-normal ml-2">(Optional)</span>
-//                                         {/* {referralFromUrl && <span className="text-green-400 text-xs font-normal ml-2">✓ Pre-filled from referral link</span>} */}
 //                                     </label>
-//                                     <input
-//                                         type="text"
-//                                         value={formData.referralCode}
-//                                         onChange={(e) => updateFormData("referralCode", e.target.value.toUpperCase())}
-//                                         placeholder="Enter invitation or referral code"
-//                                         className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
-//                                     />
+
+//                                     <div className="relative">
+//                                         <input
+//                                             type="text"
+//                                             value={formData.referralCode}
+//                                             onChange={(e) => updateFormData("referralCode", e.target.value)}
+//                                             placeholder="Enter invitation or referral code"
+//                                             disabled={referralFromUrl ? !isRefEditable : false}
+//                                             className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors pr-10"
+//                                         />
+//                                         {referralFromUrl && !isRefEditable && (
+//                                             <button type="button" onClick={toggleRefEdit} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300" title="Edit referral code">
+//                                                 <Edit2 className="w-4 h-4" />
+//                                             </button>
+//                                         )}
+//                                     </div>
 //                                 </div>
 
 //                                 {/* Submit Button */}
@@ -263,7 +272,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Key, Mail, User, Edit2 } from "lucide-react";
+import { ArrowLeft, Key, Mail, User } from "lucide-react";
 import { useAppDispatch } from "@/app/redux/hooks";
 import { useRegisterMutation } from "@/app/redux/features/auth/authApi";
 import { setUser } from "@/app/redux/features/auth/authSlice";
@@ -274,33 +283,23 @@ export default function RegisterPage() {
     const dispatch = useAppDispatch();
     const [register, { isLoading }] = useRegisterMutation();
 
-    // Get referral code from URL params and convert to uppercase
     const referralFromUrl = searchParams.get("ref") ? searchParams.get("ref")!.toUpperCase() : "";
-    const [isRefEditable, setIsRefEditable] = useState(false);
+
+    // Redirect to login if no referral code is present
+    useEffect(() => {
+        if (!referralFromUrl) {
+            router.push("/auth/login");
+        }
+    }, [referralFromUrl, router]);
 
     const [formData, setFormData] = useState({
         name: "",
         email: "",
         password: "",
         confirmPassword: "",
-        referralCode: referralFromUrl, // Initialize with URL param (uppercase)
     });
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-
-    // Auto-fill referral code from URL
-    useEffect(() => {
-        if (referralFromUrl) {
-            updateFormData("referralCode", referralFromUrl);
-            setIsRefEditable(false); // Start with disabled when pre-filled
-        }
-    }, [referralFromUrl]);
-
-    // const validateInvitationCode = (code: string): boolean => {
-    //     if (!code.trim()) return true;
-    //     const validCodes = ["JAKE", "WELCOME", "ACCESS2024", "PEPTIDE123"];
-    //     return validCodes.includes(code.toUpperCase());
-    // };
 
     const handleRegistrationSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -309,7 +308,7 @@ export default function RegisterPage() {
 
         // Basic validation
         if (!formData.name.trim()) {
-            setError("Full name is required");
+            setError("Name is required");
             return;
         }
 
@@ -328,19 +327,13 @@ export default function RegisterPage() {
             return;
         }
 
-        // Validate invitation code if provided
-        // if (formData.referralCode && !validateInvitationCode(formData.referralCode)) {
-        //     setError("Invalid invitation code.");
-        //     return;
-        // }
-
         try {
-            // Prepare registration data
+            // Prepare registration data with referral code from URL
             const registerData = {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
-                referralCode: formData.referralCode || undefined,
+                referralCode: referralFromUrl,
             };
             console.log(registerData);
 
@@ -387,18 +380,13 @@ export default function RegisterPage() {
     };
 
     const updateFormData = (field: string, value: string) => {
-        if (field === "referralCode") {
-            // Only referral code gets converted to uppercase
-            setFormData((prev) => ({ ...prev, [field]: value.toUpperCase() }));
-        } else {
-            // All other fields stay as entered
-            setFormData((prev) => ({ ...prev, [field]: value }));
-        }
+        setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-    const toggleRefEdit = () => {
-        setIsRefEditable(true);
-    };
+    // If no referral code, don't render the component (will redirect)
+    if (!referralFromUrl) {
+        return null; // or a loading spinner
+    }
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
@@ -414,6 +402,7 @@ export default function RegisterPage() {
                     <div className="text-center lg:text-left">
                         <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">Join PEPTIDE.CLUB</h1>
                         <p className="text-gray-400">Research-grade peptides</p>
+                        {/* <p className="text-cyan-400 mt-4 text-sm">Using referral code: {referralFromUrl}</p> */}
                     </div>
                 </div>
 
@@ -443,13 +432,13 @@ export default function RegisterPage() {
 
                         <form onSubmit={handleRegistrationSubmit}>
                             <div className="space-y-4">
-                                {/* Full Name */}
+                                {/* Name */}
                                 <div>
                                     <label className="block text-gray-300 mb-2">
                                         <User className="inline w-4 h-4 mr-2 mb-1" />
-                                        Full Name
+                                        Name
                                     </label>
-                                    <input type="text" value={formData.name} onChange={(e) => updateFormData("name", e.target.value)} placeholder="Enter your full name" required className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors" />
+                                    <input type="text" value={formData.name} onChange={(e) => updateFormData("name", e.target.value)} placeholder="Enter your Name" required className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors" />
                                 </div>
 
                                 {/* Email */}
@@ -489,30 +478,6 @@ export default function RegisterPage() {
                                         required
                                         className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
                                     />
-                                </div>
-
-                                {/* Invitation/Referral Code */}
-                                <div>
-                                    <label className="block text-gray-300 mb-2">
-                                        Invitation / Referral Code
-                                        <span className="text-gray-500 text-sm font-normal ml-2">(Optional)</span>
-                                    </label>
-
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            value={formData.referralCode}
-                                            onChange={(e) => updateFormData("referralCode", e.target.value)}
-                                            placeholder="Enter invitation or referral code"
-                                            disabled={referralFromUrl ? !isRefEditable : false}
-                                            className="w-full px-4 py-3 bg-slate-900/70 border border-slate-700 rounded-lg text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors pr-10"
-                                        />
-                                        {referralFromUrl && !isRefEditable && (
-                                            <button type="button" onClick={toggleRefEdit} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300" title="Edit referral code">
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                    </div>
                                 </div>
 
                                 {/* Submit Button */}

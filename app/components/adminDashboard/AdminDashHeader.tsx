@@ -1,7 +1,7 @@
 "use client";
 import { baseApi } from "@/app/redux/api/baseApi";
 import { useLogoutMutation } from "@/app/redux/features/auth/authApi";
-import { demoLogOut, logOut } from "@/app/redux/features/auth/authSlice";
+import { logOut } from "@/app/redux/features/auth/authSlice";
 import { useAppDispatch } from "@/app/redux/hooks";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +19,7 @@ const AdminDashHeader = () => {
             console.error("Logout API error:", error);
         } finally {
             dispatch(logOut());
-            dispatch(demoLogOut());
+            // dispatch(demoLogOut());
             router.push("/admin/login");
             dispatch(baseApi.util.resetApiState());
         }
