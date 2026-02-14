@@ -168,7 +168,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                                         <div>
                                             <p className="text-gray-400 text-sm">Free Shipping Credit</p>
                                             <p className="text-white">${shippingCredit?.toFixed(2) || "0.00"}</p>
-                                            <p className="text-gray-400 text-xs">{shippingCredit > 0 ? `${(shippingCredit / 6.75).toFixed(0)} free shipments left` : "Credit used up"}</p>
+                                            {/* <p className="text-gray-400 text-xs">{shippingCredit > 0 ? `${(shippingCredit / 6.75).toFixed(0)} free shipments left` : "Credit used up"}</p> */}
                                         </div>
                                     )}
 
