@@ -145,13 +145,6 @@ export default function LoginPage() {
                 <div className="text-center mb-8 md:mb-12">
                     <div className="flex justify-center mb-4">
                         <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
-
-                        {/* <Link href="/">
-                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
-                        </Link> */}
-                        {/* <button onClick={handleLogoClick} className="focus:outline-none">
-                            <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
-                        </button> */}
                     </div>
                     <p className="text-gray-400 text-base md:text-lg">By invitation only</p>
                 </div>
@@ -166,8 +159,8 @@ export default function LoginPage() {
                 {/* Login Grid */}
                 <div className="grid md:grid-cols-2 gap-6 md:gap-8">
                     {/* New Member Section */}
-                    <div className="bg-slate-800 rounded-xl md:rounded-2xl p-6 md:p-8 border border-slate-700 flex justify-between flex-col gap-4">
-                        <h2 className="text-xl md:text-2xl font-bold text-white">New Member</h2>
+                    <div className="bg-slate-800 rounded-xl md:rounded-2xl p-6 md:p-8 border border-slate-700 ">
+                        <h2 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">New Member</h2>
 
                         <form onSubmit={handleReferralSubmit(onReferralSubmit)}>
                             <div className="mb-2">
@@ -181,7 +174,7 @@ export default function LoginPage() {
                                         target.value = upperValue;
                                         setValue("referralCode", upperValue, { shouldValidate: true });
                                     }}
-                                    className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white"
+                                    className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white mb-4"
                                 />
                                 {referralErrors.referralCode && <p className="text-red-400 text-sm mt-1">{referralErrors.referralCode.message}</p>}
 
@@ -212,9 +205,9 @@ export default function LoginPage() {
                             </button>
                         </form>
 
-                        <Link href="/auth/register" className="text-right font-medium text-transparent bg-clip-text bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition">
+                        {/* <Link href="/auth/register" className="text-right font-medium text-transparent bg-clip-text bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition">
                             Create an account
-                        </Link>
+                        </Link> */}
                     </div>
 
                     {/* Member Access Section */}
