@@ -95,26 +95,33 @@ export default function LoginPage() {
         }
     };
 
-    // const handleLogoClick = (e: React.MouseEvent) => {
-    //     e.preventDefault();
+    // const onReferralSubmit = async (data: ReferralFormData) => {
+    //     setError("");
+    //     const enteredCode = data.referralCode.trim().toUpperCase(); // The code user actually typed
 
-    //     const randomCode = "REF" + Math.random().toString(36).substring(2, 8).toUpperCase();
-    //     const userId = "user_" + Math.random().toString(36).substring(7);
+    //     if (referralCheck?.data?.available === false) {
+    //         const userId = "user_" + Math.random().toString(36).substring(7);
 
-    //     const mockUser = {
-    //         id: userId,
-    //         name: "Demo User",
-    //         email: "demo@user.com",
-    //         role: "USER" as const,
-    //         referralCode: randomCode,
-    //         tier: "Member",
-    //         storeCredit: 100,
-    //         referralCount: 0,
-    //         createdAt: new Date().toISOString(),
-    //     };
+    //         // Use the ENTERED referral code, not a random one!
+    //         const mockUser = {
+    //             id: userId,
+    //             name: "New Member",
+    //             email: "new@member.com",
+    //             role: "USER" as const,
+    //             referralCode: enteredCode,
+    //             tier: "Member",
+    //             storeCredit: 0,
+    //             referralCount: 0,
+    //             createdAt: new Date().toISOString(),
+    //         };
 
-    //     // dispatch(setDemoUser(mockUser));
-    //     router.push("/"); // Manually navigate after setting user
+    //         // Just set in Redux, no localStorage needed
+    //         // dispatch(setDemoUser(mockUser));
+
+    //         router.push("/");
+    //     } else {
+    //         setError("Invalid invitation code. Please check and try again.");
+    //     }
     // };
 
     const onReferralSubmit = async (data: ReferralFormData) => {
@@ -122,25 +129,8 @@ export default function LoginPage() {
         const enteredCode = data.referralCode.trim().toUpperCase(); // The code user actually typed
 
         if (referralCheck?.data?.available === false) {
-            const userId = "user_" + Math.random().toString(36).substring(7);
-
-            // Use the ENTERED referral code, not a random one!
-            const mockUser = {
-                id: userId,
-                name: "New Member",
-                email: "new@member.com",
-                role: "USER" as const,
-                referralCode: enteredCode,
-                tier: "Member",
-                storeCredit: 0,
-                referralCount: 0,
-                createdAt: new Date().toISOString(),
-            };
-
-            // Just set in Redux, no localStorage needed
-            // dispatch(setDemoUser(mockUser));
-
-            router.push("/");
+            // Redirect to register page with the referral code in URL
+            router.push(`/auth/register?ref=${enteredCode}`);
         } else {
             setError("Invalid invitation code. Please check and try again.");
         }

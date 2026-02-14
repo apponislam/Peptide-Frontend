@@ -91,7 +91,7 @@ export default function Header() {
                             </button>
 
                             {/* Mobile Menu Button */}
-                            <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="md:hidden text-gray-300 hover:text-cyan-400 cursor-pointer">
+                            <button type="button" onClick={() => setShowMobileMenu(!showMobileMenu)} className="md:hidden text-gray-300 hover:text-cyan-400 cursor-pointer" aria-label="Toggle menu">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
