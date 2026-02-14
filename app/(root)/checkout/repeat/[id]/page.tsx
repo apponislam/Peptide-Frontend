@@ -295,7 +295,7 @@ export default function RepeatOrderPage() {
 
         if (shippingCost === 0) {
             if (user?.tier === "Founder" || user?.tier === "VIP") {
-                return { text: "Free (Premium Tier)", className: "text-green-400" };
+                return { text: `Free (${user.tier})`, className: "text-green-400" };
             }
             if (user?.tier === "Member" && user?.shippingCredit && user.shippingCredit >= 6.95) {
                 return { text: "Free (Credit Applied)", className: "text-green-400" };
