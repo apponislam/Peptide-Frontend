@@ -3,20 +3,33 @@
 // import { useParams, useRouter } from "next/navigation";
 // import { useState, useEffect } from "react";
 // import Link from "next/link";
-// import { useCart } from "@/app/contexts/CartContext";
-// import { getMemberPrice, getTier } from "@/app/lib/products";
+// import Image from "next/image";
+// import { useDispatch, useSelector } from "react-redux";
+// import { addToCart, removeFromCart } from "@/app/redux/features/cart/cartSlice";
+// import { selectCartItems } from "@/app/redux/features/cart/cartSlice";
+// import { getTier } from "@/app/utils/pricing";
 // import { useGetSingleProductQuery } from "@/app/redux/features/products/productsApi";
 // import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 
 // type TabType = "overview" | "research" | "coa";
+
+// // Define the product type based on API response
 // interface ProductSize {
 //     mg: number;
 //     price: number;
+//     quantity: number;
 // }
 
 // interface ProductReference {
 //     url: string;
 //     title: string;
+// }
+
+// interface ProductCOA {
+//     url: string;
+//     filename: string;
+//     mimetype: string;
+//     size: number;
 // }
 
 // interface Product {
@@ -26,6 +39,8 @@
 //     desc: string;
 //     details: string;
 //     references: ProductReference[];
+//     image?: string | null;
+//     coa?: ProductCOA | null;
 //     createdAt: string;
 //     updatedAt: string;
 // }
@@ -33,12 +48,15 @@
 // export default function ProductPage() {
 //     const params = useParams();
 //     const router = useRouter();
-//     const { cart, addToCart, removeFromCart } = useCart();
+//     const dispatch = useDispatch();
 //     const { data: userData } = useGetMeQuery();
 //     const user = userData?.data;
-//     // const { user } = useAuth();
+
+//     // Get cart from Redux
+//     const cart = useSelector(selectCartItems);
 
 //     const [selectedTab, setSelectedTab] = useState<TabType>("overview");
+//     const [showCoaModal, setShowCoaModal] = useState(false);
 //     const productId = params.id ? parseInt(params.id as string) : null;
 
 //     // Fetch product from API
@@ -46,8 +64,18 @@
 
 //     const product = productData?.data;
 
-//     const tier = getTier(user?.referralCount || 0);
+//     // Use user.tier instead of referralCount
+//     const tier = getTier(user?.tier || "Member");
 //     const isBacWater = product?.name?.includes("BAC Water") || false;
+
+//     // API URL for images
+//     const API_URL = process.env.NEXT_PUBLIC_BASE_API || "http://localhost:5050/api/v1";
+
+//     // Simple getMemberPrice function
+//     const getMemberPrice = (price: number) => {
+//         if (!user) return price.toFixed(2);
+//         return (price * (1 - tier.discount / 100)).toFixed(2);
+//     };
 
 //     // Handle loading state
 //     if (isLoading) {
@@ -86,8 +114,19 @@
 //                 {/* Product Details */}
 //                 <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-8">
 //                     {/* Product Image */}
-//                     <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 md:p-8 flex items-center justify-center aspect-square">
-//                         <div className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-600 text-center">{product.name.substring(0, 5)}</div>
+//                     <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 md:p-8 flex items-center justify-center aspect-square relative">
+//                         {product.image ? (
+//                             <Image
+//                                 src={`${API_URL}${product.image}`}
+//                                 alt={product.name}
+//                                 fill
+//                                 className="object-cover rounded-lg"
+//                                 sizes="(max-width: 768px) 100vw, 50vw"
+//                                 unoptimized // Temporary fix for image optimization
+//                             />
+//                         ) : (
+//                             <div className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-600 text-center">{product.name.substring(0, 5)}</div>
+//                         )}
 //                     </div>
 
 //                     {/* Product Info */}
@@ -110,14 +149,14 @@
 //                                         <div className="flex items-center gap-4">
 //                                             <div className="text-right">
 //                                                 <div className="text-sm text-gray-500 line-through">${size.price}</div>
-//                                                 <div className="text-xl md:text-2xl font-bold text-cyan-400">${getMemberPrice(size.price, user ? user : null)}</div>
+//                                                 <div className="text-xl md:text-2xl font-bold text-cyan-400">${getMemberPrice(size.price)}</div>
 //                                             </div>
 //                                             <div className="flex items-center gap-2 bg-slate-800 rounded-lg p-2">
-//                                                 <button onClick={() => removeFromCart(product.id, size.mg)} className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded font-bold">
+//                                                 <button onClick={() => dispatch(removeFromCart({ productId: product.id, mg: size.mg }))} className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded font-bold">
 //                                                     -
 //                                                 </button>
 //                                                 <span className="w-8 text-center text-white font-bold">{quantity}</span>
-//                                                 <button onClick={() => addToCart(product, size)} className="w-8 h-8 flex items-center justify-center bg-cyan-500 hover:bg-cyan-600 text-white rounded font-bold">
+//                                                 <button onClick={() => dispatch(addToCart({ product: product, size: size }))} className="w-8 h-8 flex items-center justify-center bg-cyan-500 hover:bg-cyan-600 text-white rounded font-bold">
 //                                                     +
 //                                                 </button>
 //                                             </div>
@@ -200,32 +239,76 @@
 //                         {selectedTab === "coa" && !isBacWater && (
 //                             <div>
 //                                 <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">Certificate of Analysis</h3>
-//                                 <div className="bg-slate-900 rounded-lg p-4 md:p-6 lg:p-8 mt-4">
-//                                     <div className="grid md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
-//                                         <div>
-//                                             <h4 className="text-gray-400 text-sm mb-1">Batch Number</h4>
-//                                             <p className="text-white text-lg md:text-xl font-bold">PC-{product.name.substring(0, 3).toUpperCase()}-240124</p>
-//                                         </div>
-//                                         <div>
-//                                             <h4 className="text-gray-400 text-sm mb-1">Purity</h4>
-//                                             <p className="text-green-400 text-lg md:text-xl font-bold">99%</p>
-//                                         </div>
-//                                         <div>
-//                                             <h4 className="text-gray-400 text-sm mb-1">Testing Date</h4>
-//                                             <p className="text-white text-lg md:text-xl font-bold">October 2024</p>
-//                                         </div>
-//                                         <div>
-//                                             <h4 className="text-gray-400 text-sm mb-1">Method</h4>
-//                                             <p className="text-white text-lg md:text-xl font-bold">HPLC</p>
+
+//                                 {product.coa ? (
+//                                     <div>
+//                                         <div className="bg-slate-900 rounded-lg p-4 md:p-6 mb-4">
+//                                             <div className="flex items-center justify-between mb-4">
+//                                                 <div className="flex items-center gap-3">
+//                                                     <span className="text-3xl">{product.coa.mimetype?.startsWith("image/") ? "🖼️" : "📄"}</span>
+//                                                     <div>
+//                                                         <p className="text-white font-semibold">{product.coa.filename}</p>
+//                                                         <p className="text-sm text-gray-400">{(product.coa.size / 1024).toFixed(2)} KB</p>
+//                                                     </div>
+//                                                 </div>
+//                                                 <button onClick={() => setShowCoaModal(true)} className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold">
+//                                                     View COA
+//                                                 </button>
+//                                             </div>
+//                                             <p className="text-xs text-gray-400">Click "View COA" to open the certificate in full screen</p>
 //                                         </div>
 //                                     </div>
-//                                     <p className="text-xs text-gray-400 text-center">Every batch tested for purity and identity • Third-party lab verified</p>
-//                                 </div>
+//                                 ) : (
+//                                     <div className="bg-slate-900 rounded-lg p-8 text-center">
+//                                         <p className="text-gray-400">No COA available for this product</p>
+//                                     </div>
+//                                 )}
 //                             </div>
 //                         )}
 //                     </div>
 //                 </div>
 //             </div>
+
+//             {/* COA Preview Modal */}
+//             {showCoaModal && product?.coa && (
+//                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90">
+//                     <div className="relative w-full max-w-5xl h-[90vh] bg-slate-900 rounded-xl border border-slate-700 flex flex-col">
+//                         {/* Modal Header */}
+//                         <div className="flex justify-between items-center p-4 border-b border-slate-700">
+//                             <div className="flex items-center gap-3">
+//                                 <span className="text-2xl">{product.coa.mimetype?.startsWith("image/") ? "🖼️" : "📄"}</span>
+//                                 <div>
+//                                     <h3 className="text-lg font-bold text-white">{product.coa.filename}</h3>
+//                                     <p className="text-sm text-gray-400">{(product.coa.size / 1024).toFixed(2)} KB</p>
+//                                 </div>
+//                             </div>
+//                             <button onClick={() => setShowCoaModal(false)} className="p-2 hover:bg-slate-800 rounded-lg text-gray-400 hover:text-white">
+//                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+//                                 </svg>
+//                             </button>
+//                         </div>
+
+//                         {/* Modal Content */}
+//                         <div className="flex-1 overflow-auto p-4">
+//                             {product.coa.mimetype?.startsWith("image/") ? (
+//                                 <div className="relative w-full h-full min-h-125">
+//                                     <Image src={`${API_URL}${product.coa.url}`} alt="COA" fill className="object-contain" unoptimized />
+//                                 </div>
+//                             ) : (
+//                                 <iframe src={`${API_URL}${product.coa.url}#toolbar=0`} className="w-full h-full rounded-lg" title="COA PDF" />
+//                             )}
+//                         </div>
+
+//                         {/* Modal Footer */}
+//                         <div className="flex justify-end gap-3 p-4 border-t border-slate-700">
+//                             <button onClick={() => setShowCoaModal(false)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold">
+//                                 Close
+//                             </button>
+//                         </div>
+//                     </div>
+//                 </div>
+//             )}
 //         </div>
 //     );
 // }
@@ -233,8 +316,9 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, removeFromCart } from "@/app/redux/features/cart/cartSlice";
 import { selectCartItems } from "@/app/redux/features/cart/cartSlice";
@@ -248,11 +332,19 @@ type TabType = "overview" | "research" | "coa";
 interface ProductSize {
     mg: number;
     price: number;
+    quantity: number;
 }
 
 interface ProductReference {
     url: string;
     title: string;
+}
+
+interface ProductCOA {
+    url: string;
+    filename: string;
+    mimetype: string;
+    size: number;
 }
 
 interface Product {
@@ -262,6 +354,8 @@ interface Product {
     desc: string;
     details: string;
     references: ProductReference[];
+    image?: string | null;
+    coa?: ProductCOA | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -277,6 +371,7 @@ export default function ProductPage() {
     const cart = useSelector(selectCartItems);
 
     const [selectedTab, setSelectedTab] = useState<TabType>("overview");
+    const [showCoaModal, setShowCoaModal] = useState(false);
     const productId = params.id ? parseInt(params.id as string) : null;
 
     // Fetch product from API
@@ -288,10 +383,42 @@ export default function ProductPage() {
     const tier = getTier(user?.tier || "Member");
     const isBacWater = product?.name?.includes("BAC Water") || false;
 
-    // Simple getMemberPrice function (since you removed the imported one)
+    // API URL for images
+    const API_URL = process.env.NEXT_PUBLIC_BASE_API || "http://localhost:5050/api/v1";
+
+    // Simple getMemberPrice function
     const getMemberPrice = (price: number) => {
         if (!user) return price.toFixed(2);
         return (price * (1 - tier.discount / 100)).toFixed(2);
+    };
+
+    // Handle add to cart with stock limit
+    const handleAddToCart = (product: Product, size: ProductSize) => {
+        const cartItem = cart.find((item) => item.product.id === product.id && item.size.mg === size.mg);
+        const currentQty = cartItem ? cartItem.quantity : 0;
+
+        if (currentQty < size.quantity) {
+            // Create a product that matches cartSlice's Product type
+            const cartProduct = {
+                id: product.id,
+                name: product.name,
+                desc: product.desc,
+                details: product.details,
+                sizes: product.sizes, // Now includes quantity
+                references: product.references,
+                coa: product.coa ? product.coa.url : null,
+                createdAt: product.createdAt,
+                updatedAt: product.updatedAt,
+                image: product.image,
+            };
+
+            dispatch(addToCart({ product: cartProduct, size }));
+        }
+    };
+
+    // Handle remove from cart
+    const handleRemoveFromCart = (productId: number, mg: number) => {
+        dispatch(removeFromCart({ productId, mg }));
     };
 
     // Handle loading state
@@ -331,8 +458,8 @@ export default function ProductPage() {
                 {/* Product Details */}
                 <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-8">
                     {/* Product Image */}
-                    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 md:p-8 flex items-center justify-center aspect-square">
-                        <div className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-600 text-center">{product.name.substring(0, 5)}</div>
+                    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 md:p-8 flex items-center justify-center aspect-square relative">
+                        {product.image ? <Image src={`${API_URL}${product.image}`} alt={product.name} fill className="object-cover rounded-lg" sizes="(max-width: 768px) 100vw, 50vw" unoptimized /> : <div className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-600 text-center">{product.name.substring(0, 5)}</div>}
                     </div>
 
                     {/* Product Info */}
@@ -345,12 +472,14 @@ export default function ProductPage() {
                             {product.sizes.map((size: ProductSize) => {
                                 const cartItem = cart.find((item) => item.product.id === product.id && item.size.mg === size.mg);
                                 const quantity = cartItem ? cartItem.quantity : 0;
+                                const maxReached = quantity >= size.quantity;
 
                                 return (
                                     <div key={size.mg} className="flex items-center justify-between p-4 bg-slate-900 rounded-lg">
                                         <div>
                                             <div className="text-lg font-bold text-white">{size.mg}mg</div>
                                             <div className="text-sm text-gray-400">Lyophilized Powder</div>
+                                            <div className="text-xs text-gray-500 mt-1">Stock: {size.quantity}</div>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="text-right">
@@ -358,11 +487,11 @@ export default function ProductPage() {
                                                 <div className="text-xl md:text-2xl font-bold text-cyan-400">${getMemberPrice(size.price)}</div>
                                             </div>
                                             <div className="flex items-center gap-2 bg-slate-800 rounded-lg p-2">
-                                                <button onClick={() => dispatch(removeFromCart({ productId: product.id, mg: size.mg }))} className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded font-bold">
+                                                <button onClick={() => handleRemoveFromCart(product.id, size.mg)} className={`w-8 h-8 flex items-center justify-center rounded font-bold ${quantity === 0 ? "bg-slate-800 cursor-not-allowed opacity-50" : "bg-slate-700 hover:bg-slate-600"} text-white`} disabled={quantity === 0}>
                                                     -
                                                 </button>
                                                 <span className="w-8 text-center text-white font-bold">{quantity}</span>
-                                                <button onClick={() => dispatch(addToCart({ product: product, size: size }))} className="w-8 h-8 flex items-center justify-center bg-cyan-500 hover:bg-cyan-600 text-white rounded font-bold">
+                                                <button onClick={() => handleAddToCart(product, size)} className={`w-8 h-8 flex items-center justify-center rounded font-bold ${maxReached ? "bg-gray-600 cursor-not-allowed opacity-50" : "bg-cyan-500 hover:bg-cyan-600"} text-white`} disabled={maxReached}>
                                                     +
                                                 </button>
                                             </div>
@@ -445,32 +574,76 @@ export default function ProductPage() {
                         {selectedTab === "coa" && !isBacWater && (
                             <div>
                                 <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">Certificate of Analysis</h3>
-                                <div className="bg-slate-900 rounded-lg p-4 md:p-6 lg:p-8 mt-4">
-                                    <div className="grid md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
-                                        <div>
-                                            <h4 className="text-gray-400 text-sm mb-1">Batch Number</h4>
-                                            <p className="text-white text-lg md:text-xl font-bold">PC-{product.name.substring(0, 3).toUpperCase()}-240124</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-gray-400 text-sm mb-1">Purity</h4>
-                                            <p className="text-green-400 text-lg md:text-xl font-bold">99%</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-gray-400 text-sm mb-1">Testing Date</h4>
-                                            <p className="text-white text-lg md:text-xl font-bold">October 2024</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-gray-400 text-sm mb-1">Method</h4>
-                                            <p className="text-white text-lg md:text-xl font-bold">HPLC</p>
+
+                                {product.coa ? (
+                                    <div>
+                                        <div className="bg-slate-900 rounded-lg p-4 md:p-6 mb-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-3xl">{product.coa.mimetype?.startsWith("image/") ? "🖼️" : "📄"}</span>
+                                                    <div>
+                                                        <p className="text-white font-semibold">{product.coa.filename}</p>
+                                                        <p className="text-sm text-gray-400">{(product.coa.size / 1024).toFixed(2)} KB</p>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => setShowCoaModal(true)} className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold">
+                                                    View COA
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-gray-400">Click "View COA" to open the certificate in full screen</p>
                                         </div>
                                     </div>
-                                    <p className="text-xs text-gray-400 text-center">Every batch tested for purity and identity • Third-party lab verified</p>
-                                </div>
+                                ) : (
+                                    <div className="bg-slate-900 rounded-lg p-8 text-center">
+                                        <p className="text-gray-400">No COA available for this product</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* COA Preview Modal */}
+            {showCoaModal && product?.coa && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90">
+                    <div className="relative w-full max-w-5xl h-[90vh] bg-slate-900 rounded-xl border border-slate-700 flex flex-col">
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-center p-4 border-b border-slate-700">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">{product.coa.mimetype?.startsWith("image/") ? "🖼️" : "📄"}</span>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white">{product.coa.filename}</h3>
+                                    <p className="text-sm text-gray-400">{(product.coa.size / 1024).toFixed(2)} KB</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowCoaModal(false)} className="p-2 hover:bg-slate-800 rounded-lg text-gray-400 hover:text-white">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="flex-1 overflow-auto p-4">
+                            {product.coa.mimetype?.startsWith("image/") ? (
+                                <div className="relative w-full h-full min-h-125">
+                                    <Image src={`${API_URL}${product.coa.url}`} alt="COA" fill className="object-contain" unoptimized />
+                                </div>
+                            ) : (
+                                <iframe src={`${API_URL}${product.coa.url}#toolbar=0`} className="w-full h-full rounded-lg" title="COA PDF" />
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="flex justify-end gap-3 p-4 border-t border-slate-700">
+                            <button onClick={() => setShowCoaModal(false)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

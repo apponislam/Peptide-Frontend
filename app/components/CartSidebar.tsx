@@ -11,8 +11,8 @@
 //     const dispatch = useDispatch();
 //     const router = useRouter();
 //     const { data: userData } = useGetMeQuery();
+//     console.log(userData);
 //     const user = userData?.data;
-//     console.log(user);
 
 //     // Get cart state from Redux
 //     const cart = useSelector(selectCartItems);
@@ -31,14 +31,64 @@
 //     };
 
 //     const calculateShipping = () => {
-//         if (tier.freeShipping) return 0;
 //         const subtotal = calculateSubtotal();
+
+//         if (user?.tier === "Founder" || user?.tier === "VIP") {
+//             return 0;
+//         }
+
+//         // Member: Check shipping credit
+//         if (user?.tier === "Member") {
+//             if (user?.shippingCredit && user.shippingCredit > 0) {
+//                 if (user.shippingCredit >= 6.95) {
+//                     return 0;
+//                 } else {
+//                     return 6.95 - user.shippingCredit;
+//                 }
+//             }
+
+//             if (subtotal >= 150) return 0;
+
+//             return 6.95;
+//         }
+
 //         return subtotal >= 150 ? 0 : 6.95;
 //     };
 
 //     const calculateTotal = () => {
 //         return calculateSubtotal() + calculateShipping();
 //     };
+
+//     // Get shipping display message
+//     const getShippingMessage = () => {
+//         const shippingCost = calculateShipping();
+//         const subtotal = calculateSubtotal();
+
+//         if (shippingCost === 0) {
+//             if (user?.tier === "Founder" || user?.tier === "VIP") {
+//                 return { text: `Free (${user.tier})`, color: "text-green-400" };
+//             }
+//             if (user?.tier === "Member" && user?.shippingCredit && user.shippingCredit >= 6.95) {
+//                 return { text: "Free (Credit Applied)", color: "text-green-400" };
+//             }
+//             if (subtotal >= 150) {
+//                 return { text: "Free (Over $150)", color: "text-green-400" };
+//             }
+//             return { text: "Free", color: "text-green-400" };
+//         }
+
+//         // Partially paid by credit
+//         if (user?.tier === "Member" && user?.shippingCredit && user.shippingCredit > 0) {
+//             return {
+//                 text: `$${shippingCost.toFixed(2)} (Credit: $${user.shippingCredit.toFixed(2)})`,
+//                 color: "text-yellow-400",
+//             };
+//         }
+
+//         return { text: `$${shippingCost.toFixed(2)}`, color: "text-yellow-400" };
+//     };
+
+//     const shippingMessage = getShippingMessage();
 
 //     const checkout = () => {
 //         router.push("/checkout");
@@ -57,7 +107,7 @@
 //                 {/* Header */}
 //                 <div className="p-4 border-b border-slate-700 flex items-center justify-between">
 //                     <h2 className="text-xl font-bold text-white">Cart</h2>
-//                     <button onClick={() => dispatch(closeCart())} className="text-gray-400 hover:text-white">
+//                     <button onClick={() => dispatch(closeCart())} className="text-gray-400 hover:text-white transition-colors">
 //                         ✕
 //                     </button>
 //                 </div>
@@ -86,11 +136,31 @@
 //                                         </div>
 //                                     </div>
 //                                     <div className="flex items-center gap-3">
-//                                         <button onClick={() => dispatch(removeFromCart({ productId: item.product.id, mg: item.size.mg }))} className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white">
+//                                         <button
+//                                             onClick={() =>
+//                                                 dispatch(
+//                                                     removeFromCart({
+//                                                         productId: item.product.id,
+//                                                         mg: item.size.mg,
+//                                                     }),
+//                                                 )
+//                                             }
+//                                             className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white transition-colors"
+//                                         >
 //                                             -
 //                                         </button>
 //                                         <span className="text-white font-bold">{item.quantity}</span>
-//                                         <button onClick={() => dispatch(addToCart({ product: item.product, size: item.size }))} className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white">
+//                                         <button
+//                                             onClick={() =>
+//                                                 dispatch(
+//                                                     addToCart({
+//                                                         product: item.product,
+//                                                         size: item.size,
+//                                                     }),
+//                                                 )
+//                                             }
+//                                             className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white transition-colors"
+//                                         >
 //                                             +
 //                                         </button>
 //                                     </div>
@@ -107,17 +177,21 @@
 //                             <span>Subtotal:</span>
 //                             <span>${calculateSubtotal().toFixed(2)}</span>
 //                         </div>
+
 //                         <div className="mb-4 text-sm text-gray-400 flex justify-between">
 //                             <span>Shipping:</span>
-//                             <span>${calculateShipping().toFixed(2)}</span>
+//                             <span className={shippingMessage.color}>{shippingMessage.text}</span>
 //                         </div>
+
 //                         <div className="flex justify-between mb-4 text-lg font-bold">
 //                             <span className="text-white">Total:</span>
 //                             <span className="text-cyan-400">${calculateTotal().toFixed(2)}</span>
 //                         </div>
-//                         <button onClick={checkout} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+
+//                         <button onClick={checkout} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-cyan-500/20 cursor-pointer">
 //                             Checkout via REVEL
 //                         </button>
+
 //                         <p className="text-xs text-gray-500 text-center mt-2">Payments will appear on statement as REVEL</p>
 //                     </div>
 //                 )}
@@ -223,6 +297,18 @@ export default function CartSidebar() {
         dispatch(closeCart());
     };
 
+    // Handle add to cart with stock limit
+    const handleAddToCart = (item: (typeof cart)[0]) => {
+        // Find the original product size to check available quantity
+        const productSize = item.product.sizes.find((s) => s.mg === item.size.mg);
+        if (!productSize) return;
+
+        const currentQty = item.quantity;
+        if (currentQty < productSize.quantity) {
+            dispatch(addToCart({ product: item.product, size: item.size }));
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -249,12 +335,18 @@ export default function CartSidebar() {
                             const originalPrice = item.size.price;
                             const discountedPrice = getMemberPrice(originalPrice);
 
+                            // Find the original product size to check available quantity
+                            const productSize = item.product.sizes.find((s) => s.mg === item.size.mg);
+                            const availableQty = productSize?.quantity || 0;
+                            const maxReached = item.quantity >= availableQty;
+
                             return (
                                 <div key={`${item.product.id}-${item.size.mg}`} className="bg-slate-800 rounded-lg p-3 mb-3">
                                     <div className="flex justify-between mb-2">
                                         <div>
                                             <h4 className="font-bold text-white text-sm">{item.product.name}</h4>
                                             <p className="text-xs text-gray-400">{item.size.mg}mg</p>
+                                            <p className="text-xs text-gray-500 mt-1">Stock: {availableQty}</p>
                                         </div>
                                         <div className="text-right">
                                             {/* Show original price crossed out */}
@@ -278,20 +370,11 @@ export default function CartSidebar() {
                                             -
                                         </button>
                                         <span className="text-white font-bold">{item.quantity}</span>
-                                        <button
-                                            onClick={() =>
-                                                dispatch(
-                                                    addToCart({
-                                                        product: item.product,
-                                                        size: item.size,
-                                                    }),
-                                                )
-                                            }
-                                            className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white transition-colors"
-                                        >
+                                        <button onClick={() => handleAddToCart(item)} disabled={maxReached} className={`px-3 py-1 rounded transition-colors ${maxReached ? "bg-gray-600 cursor-not-allowed opacity-50" : "bg-slate-700 hover:bg-slate-600 text-white"}`}>
                                             +
                                         </button>
                                     </div>
+                                    {maxReached && <p className="text-xs text-red-400 mt-2">Max stock reached ({availableQty})</p>}
                                 </div>
                             );
                         })

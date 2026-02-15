@@ -5,11 +5,13 @@ export interface Product {
     desc: string;
     details: string;
     references: Reference[];
+    image?: string;
 }
 
 export interface ProductSize {
     mg: number;
     price: number;
+    quantity: number;
 }
 
 export interface Reference {
