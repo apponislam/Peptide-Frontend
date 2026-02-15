@@ -1,20 +1,3 @@
-// "use client";
-// import { useGetOrderQuery } from "@/app/redux/features/order/orderApi";
-// import { useParams } from "next/navigation";
-// import React from "react";
-
-// const page = () => {
-//     const params = useParams();
-//     console.log(params.id);
-
-//     const { data } = useGetOrderQuery(params?.id);
-//     console.log(data);
-
-//     return <div></div>;
-// };
-
-// export default page;
-
 "use client";
 
 import { useGetOrderQuery } from "@/app/redux/features/order/orderApi";
@@ -74,15 +57,50 @@ export default function OrderDetailsPage() {
     const getStatusColor = (status: string) => {
         switch (status?.toUpperCase()) {
             case "PAID":
-                return "bg-green-500/20 text-green-400";
+                return "bg-green-500/20 text-green-400 border border-green-500/30";
+            case "PROCESSING":
+                return "bg-purple-500/20 text-purple-400 border border-purple-500/30";
             case "SHIPPED":
-                return "bg-blue-500/20 text-blue-400";
+                return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
+            case "DELIVERED":
+                return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";
             case "PENDING":
-                return "bg-yellow-500/20 text-yellow-400";
+                return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30";
+            case "FAILED":
+                return "bg-red-500/20 text-red-400 border border-red-500/30";
             case "CANCELLED":
-                return "bg-red-500/20 text-red-400";
+                return "bg-red-500/20 text-red-400 border border-red-500/30";
+            case "REFUNDED":
+                return "bg-orange-500/20 text-orange-400 border border-orange-500/30";
+            case "RETURNED":
+                return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
             default:
-                return "bg-gray-500/20 text-gray-400";
+                return "bg-gray-500/20 text-gray-400 border border-gray-500/30";
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status?.toUpperCase()) {
+            case "PAID":
+                return "✅";
+            case "PROCESSING":
+                return "⚙️";
+            case "SHIPPED":
+                return "📦";
+            case "DELIVERED":
+                return "🏠";
+            case "PENDING":
+                return "⏳";
+            case "FAILED":
+                return "❌";
+            case "CANCELLED":
+                return "🚫";
+            case "REFUNDED":
+                return "💰";
+            case "RETURNED":
+                return "↩️";
+            default:
+                return "📝";
         }
     };
 
@@ -127,7 +145,10 @@ export default function OrderDetailsPage() {
                                         <h2 className="text-xl font-bold">
                                             Order <span className="wrap-break-word">#{order.id}</span>
                                         </h2>
-                                        <span className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusColor(order.status)}`}>{order.status}</span>
+                                        <span className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1 ${getStatusColor(order.status)}`}>
+                                            <span>{getStatusIcon(order.status)}</span>
+                                            {order.status}
+                                        </span>
                                     </div>
                                     <p className="text-gray-400">Placed on {formatDate(order.createdAt)}</p>
                                 </div>
@@ -143,13 +164,13 @@ export default function OrderDetailsPage() {
                             {order.trackingNumber && (
                                 <div className="mb-6 p-4 bg-slate-900/50 rounded-lg">
                                     <h3 className="font-bold text-white mb-2">Tracking Information</h3>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                                         <div>
                                             <p className="text-sm text-gray-400">Tracking Number</p>
                                             <p className="text-lg font-bold text-cyan-400">{order.trackingNumber}</p>
                                         </div>
                                         {order.labelUrl && (
-                                            <a href={order.labelUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition">
+                                            <a href={order.labelUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition text-center">
                                                 View Shipping Label
                                             </a>
                                         )}
@@ -158,7 +179,7 @@ export default function OrderDetailsPage() {
                             )}
                         </div>
 
-                        {/* Order Items */}
+                        {/* Order Items - WITH SIZE DISPLAY */}
                         <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
                             <h2 className="text-xl font-bold mb-6">Order Items</h2>
                             <div className="space-y-4">
@@ -167,7 +188,10 @@ export default function OrderDetailsPage() {
                                         <div key={item.id} className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg">
                                             <div>
                                                 <h3 className="font-bold text-white">{item.product?.name || "Product"}</h3>
-                                                <p className="text-sm text-gray-400">Quantity: {item.quantity}</p>
+                                                <div className="flex items-center gap-2 text-sm mt-1">
+                                                    {item.size && <span className="text-cyan-400 font-medium">{item.size}mg</span>}
+                                                    <span className="text-gray-400">Qty: {item.quantity}</span>
+                                                </div>
                                                 <p className="text-sm text-gray-400">
                                                     Unit Price: ${item.unitPrice?.toFixed(2)}
                                                     {item.discountedPrice !== item.unitPrice && <span className="ml-2 text-cyan-400">(Discounted: ${item.discountedPrice?.toFixed(2)})</span>}
@@ -225,11 +249,11 @@ export default function OrderDetailsPage() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-400">Email</p>
-                                    <p className="font-medium">{order.email}</p>
+                                    <p className="font-medium break-all">{order.email}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-400">Phone</p>
-                                    <p className="font-medium">{order.phone}</p>
+                                    <p className="font-medium">{order.phone || "N/A"}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-400">Address</p>
@@ -246,9 +270,12 @@ export default function OrderDetailsPage() {
                         <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
                             <h2 className="text-xl font-bold mb-6">Payment Information</h2>
                             <div className="space-y-3">
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center">
                                     <span className="text-gray-400">Payment Status</span>
-                                    <span className={`px-2 py-1 rounded text-xs ${order.status === "PAID" ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>{order.status === "PAID" ? "Paid" : "Pending"}</span>
+                                    <span className={`px-3 py-1 rounded text-xs font-medium flex items-center gap-1 ${getStatusColor(order.status)}`}>
+                                        <span>{getStatusIcon(order.status)}</span>
+                                        {order.status}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-400">Order Date</span>
@@ -257,7 +284,9 @@ export default function OrderDetailsPage() {
                                 {order.checkoutSessions && order.checkoutSessions.length > 0 && (
                                     <div>
                                         <p className="text-sm text-gray-400 mb-1">Stripe Session</p>
-                                        <p className="text-sm font-mono text-gray-300 truncate">{order.checkoutSessions[0].stripeSessionId}</p>
+                                        <p className="text-sm font-mono text-gray-300 truncate" title={order.checkoutSessions[0].stripeSessionId}>
+                                            {order.checkoutSessions[0].stripeSessionId}
+                                        </p>
                                     </div>
                                 )}
                             </div>
