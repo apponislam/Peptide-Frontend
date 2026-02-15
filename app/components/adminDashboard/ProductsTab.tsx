@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeleteProductMutation, useGetProductsQuery } from "@/app/redux/features/products/productsApi";
+import { useDeleteProductMutation, useGetAdminProductsQuery } from "@/app/redux/features/products/productsApi";
 import Link from "next/link";
 import { useState } from "react";
 import { useModal } from "@/app/providers/ModalContext";
@@ -33,12 +33,14 @@ export default function ProductsTab() {
         data: productsData,
         isLoading,
         refetch,
-    } = useGetProductsQuery({
+    } = useGetAdminProductsQuery({
         page,
         limit,
         sortBy: "createdAt",
         sortOrder: "desc",
     });
+
+    // console.log(productsData);
 
     const products = productsData?.data || [];
     const meta = productsData?.meta || { page: 1, limit: 12, total: 0, totalPages: 1 };

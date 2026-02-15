@@ -195,6 +195,42 @@ export default function CheckoutPage() {
     };
 
     // Calculate store credit distribution per item
+    // const calculateAdjustedItems = () => {
+    //     const storeCreditUsed = calculateStoreCreditUsage();
+    //     const subtotal = calculateSubtotal();
+    //     const totalPayable = calculateTotalPayable();
+
+    //     // How much Stripe should charge
+    //     const stripeChargeAmount = totalPayable - storeCreditUsed;
+
+    //     return cart.map((item) => {
+    //         const originalPrice = parseFloat(getMemberPrice(item.size.price));
+    //         const itemTotal = originalPrice * item.quantity;
+    //         const itemProportion = subtotal > 0 ? itemTotal / subtotal : 1 / cart.length;
+
+    //         // Calculate how much of the Stripe charge applies to this item
+    //         const stripeChargeForItem = stripeChargeAmount * itemProportion;
+
+    //         // Calculate adjusted price per unit (minimum $0.01)
+    //         const adjustedPricePerUnit = Math.max(0.01, stripeChargeForItem / item.quantity);
+
+    //         // Calculate how much store credit was used for this item
+    //         const storeCreditForItem = Math.max(0, itemTotal - stripeChargeForItem);
+
+    //         return {
+    //             productId: item.product.id,
+    //             name: item.product.name,
+    //             description: `${item.size.mg}mg ${item.product.name}`,
+    //             price: adjustedPricePerUnit,
+    //             originalPrice: originalPrice,
+    //             storeCreditApplied: storeCreditForItem,
+    //             quantity: item.quantity,
+    //             size: `${item.size.mg}mg`,
+    //         };
+    //     });
+    // };
+
+    // Calculate store credit distribution per item
     const calculateAdjustedItems = () => {
         const storeCreditUsed = calculateStoreCreditUsage();
         const subtotal = calculateSubtotal();
@@ -225,7 +261,7 @@ export default function CheckoutPage() {
                 originalPrice: originalPrice,
                 storeCreditApplied: storeCreditForItem,
                 quantity: item.quantity,
-                size: `${item.size.mg}mg`,
+                size: item.size.mg, // Keep as number
             };
         });
     };
@@ -287,7 +323,17 @@ export default function CheckoutPage() {
             // Calculate adjusted prices with store credit distributed
             const adjustedItems = calculateAdjustedItems();
 
-            const subtotal = adjustedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            // Transform items to match API expected type
+            const itemsForApi = adjustedItems.map((item) => ({
+                productId: item.productId,
+                name: item.name,
+                description: item.description,
+                price: item.price,
+                quantity: item.quantity,
+                size: item.size.toString(),
+            }));
+
+            const subtotal = itemsForApi.reduce((sum, item) => sum + item.price * item.quantity, 0);
             const shippingAmount = calculateAdjustedShipping();
             const storeCreditUsed = calculateStoreCreditUsage();
 
@@ -307,7 +353,7 @@ export default function CheckoutPage() {
 
             const result = await createCheckout({
                 userId: user?.id || "guest",
-                items: adjustedItems,
+                items: itemsForApi,
                 shippingInfo,
                 shippingAmount,
                 subtotal: calculateSubtotal(),
@@ -317,13 +363,16 @@ export default function CheckoutPage() {
                     userId: user?.id || "guest",
                     originalSubtotal: calculateSubtotal(),
                     storeCreditUsed,
-                    originalItems: JSON.stringify(
-                        cart.map((item) => ({
-                            productId: item.product.id,
-                            originalPrice: parseFloat(getMemberPrice(item.size.price)),
+                    // Send detailed item info including sizes
+                    itemDetails: JSON.stringify(
+                        adjustedItems.map((item) => ({
+                            productId: item.productId,
+                            originalPrice: item.originalPrice,
                             quantity: item.quantity,
-                            name: item.product.name,
-                            size: `${item.size.mg}mg`,
+                            name: item.name,
+                            size: item.size,
+                            storeCreditApplied: item.storeCreditApplied,
+                            finalPrice: item.price,
                         })),
                     ),
                 },

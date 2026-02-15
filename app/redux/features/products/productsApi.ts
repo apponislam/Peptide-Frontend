@@ -63,6 +63,31 @@ export const productsApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ["Products", "DeletedProducts"],
         }),
+
+        // Admin - Get all products (no stock filters, only isDeleted: false)
+        getAdminProducts: builder.query({
+            query: (params?: { search?: string; page?: number; limit?: number; sortBy?: string; sortOrder?: "asc" | "desc" }) => ({
+                url: "/products/admin",
+                params: params,
+            }),
+            providesTags: ["Products"],
+        }),
+
+        // Admin - Get single product by ID (no stock filters, only isDeleted: false)
+        getAdminSingleProduct: builder.query({
+            query: (id: number) => ({
+                url: `/products/admin/${id}`,
+            }),
+            providesTags: (result, error, id) => [{ type: "Products", id }],
+        }),
+
+        getProductsByIds: builder.mutation({
+            query: (ids: number[]) => ({
+                url: "/products/get-by-ids",
+                method: "POST",
+                body: { ids },
+            }),
+        }),
     }),
 });
 
@@ -76,4 +101,9 @@ export const {
     // New exports
     useGetDeletedProductsQuery,
     useRestoreProductMutation,
+
+    // for admin
+    useGetAdminProductsQuery,
+    useGetAdminSingleProductQuery,
+    useGetProductsByIdsMutation,
 } = productsApi;
