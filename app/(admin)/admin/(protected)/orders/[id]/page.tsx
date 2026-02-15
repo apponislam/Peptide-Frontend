@@ -24,6 +24,7 @@ interface OrderItem {
     quantity: number;
     unitPrice: number;
     discountedPrice: number;
+    size?: number;
 }
 
 interface Order {
@@ -498,12 +499,21 @@ export default function OrderDetailsPage() {
                                                 </div>
                                                 <div>
                                                     <h4 className="font-medium text-white">{item.product?.name || `Product ${item.productId || "Unknown"}`}</h4>
-                                                    <p className="text-sm text-gray-400">Product ID: {item.productId || item.product?.id || "N/A"}</p>
+                                                    <div className="flex items-center gap-3 text-sm">
+                                                        <span className="text-gray-400">ID: {item.productId || item.product?.id || "N/A"}</span>
+                                                        {item.size && (
+                                                            <>
+                                                                <span className="text-gray-600">|</span>
+                                                                <span className="text-cyan-400">{item.size}mg</span>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                     <p className="text-sm text-gray-400">Qty: {item.quantity}</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-white">${item.unitPrice.toFixed(2)} each</p>
+                                                {item.discountedPrice && item.discountedPrice !== item.unitPrice && <p className="text-xs text-gray-500 line-through">${item.discountedPrice.toFixed(2)}</p>}
                                                 <p className="text-lg font-bold text-cyan-400">${(item.unitPrice * item.quantity).toFixed(2)}</p>
                                             </div>
                                         </div>
