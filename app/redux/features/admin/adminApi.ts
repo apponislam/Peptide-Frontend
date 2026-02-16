@@ -81,17 +81,24 @@ export const adminApi = baseApi.injectEndpoints({
         }),
 
         getTopSellingProducts: builder.query({
-            query: (limit: number = 5) => ({
+            query: ({ limit = 5, year, month }: { limit?: number; year?: number; month?: number } = {}) => ({
                 url: "/admin/top-products",
-                params: { limit },
+                params: {
+                    limit,
+                    ...(year && { year }),
+                    ...(month && { month }),
+                },
             }),
             providesTags: ["TopProducts"],
         }),
 
         // Get referral performance
         getReferralPerformance: builder.query({
-            query: () => ({
+            query: ({ tier }: { tier?: string } = {}) => ({
                 url: "/admin/referral-performance",
+                params: {
+                    ...(tier && { tier }),
+                },
             }),
             providesTags: ["ReferralPerformance"],
         }),
