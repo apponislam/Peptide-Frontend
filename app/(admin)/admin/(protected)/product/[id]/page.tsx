@@ -1,4 +1,4 @@
-import AdminProductDetailsPage from "@/app/components/dashboard/AdminProductDetils";
+import AdminProductDetailsPage from "@/app/components/adminDashboard/AdminProductDetils";
 import React from "react";
 
 const page = () => {
