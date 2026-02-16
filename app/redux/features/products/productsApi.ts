@@ -88,6 +88,13 @@ export const productsApi = baseApi.injectEndpoints({
                 body: { ids },
             }),
         }),
+        toggleProductStock: builder.mutation({
+            query: (id: number) => ({
+                url: `/products/admin/toggle-stock/${id}`,
+                method: "PATCH",
+            }),
+            invalidatesTags: (result, error, id) => ["Products", { type: "Products", id }],
+        }),
     }),
 });
 
@@ -106,4 +113,5 @@ export const {
     useGetAdminProductsQuery,
     useGetAdminSingleProductQuery,
     useGetProductsByIdsMutation,
+    useToggleProductStockMutation,
 } = productsApi;
