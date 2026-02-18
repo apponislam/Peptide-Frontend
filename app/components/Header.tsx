@@ -22,6 +22,9 @@ export default function Header() {
     const userTier = userData?.tier;
     const tier = getTier(userTier || "Member");
 
+    const isGoldTier = userData?.tier === "VIP" || userData?.tier === "Founder" || tier.discount === 20;
+
+
     const handleLogout = async () => {
         try {
             await logoutApi().unwrap();
@@ -54,9 +57,15 @@ export default function Header() {
                                         <span className="px-2 py-1 bg-cyan-500/20 rounded-full text-cyan-400 text-xs font-semibold">{userData?.tier || "Member"}</span>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-cyan-400 text-xs font-semibold">
+                                        {/* <div className="text-cyan-400 text-xs font-semibold">
                                             {tier.discount}% Discount {tier.commission > 0 && `& ${tier.commission}% Commission`}
+                                        </div> */}
+                                        <div className="text-xs font-semibold text-cyan-400">
+                                            <span className={tier.discount === 20 ? "text-yellow-400" : ""}>{tier.discount}% Discount</span>
+
+                                            {tier.commission > 0 && <span> & {tier.commission}% Commission</span>}
                                         </div>
+
                                         {tier.freeShipping ? <div className="text-green-400 text-xs">Free Shipping</div> : <div className="text-yellow-400 text-xs">Free shipping $150+</div>}
                                     </div>
                                 </div>
