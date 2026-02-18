@@ -15,7 +15,7 @@ export const paymentApi = baseApi.injectEndpoints({
                     size?: string;
                     image?: string;
                 }>;
-                shippingInfo: {
+                shippingInfo?: {
                     name: string;
                     email: string;
                     phone: string;

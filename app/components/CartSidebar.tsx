@@ -95,6 +95,18 @@
 //         dispatch(closeCart());
 //     };
 
+//     // Handle add to cart with stock limit
+//     const handleAddToCart = (item: (typeof cart)[0]) => {
+//         // Find the original product size to check available quantity
+//         const productSize = item.product.sizes.find((s) => s.mg === item.size.mg);
+//         if (!productSize) return;
+
+//         const currentQty = item.quantity;
+//         if (currentQty < productSize.quantity) {
+//             dispatch(addToCart({ product: item.product, size: item.size }));
+//         }
+//     };
+
 //     if (!isOpen) return null;
 
 //     return (
@@ -121,12 +133,18 @@
 //                             const originalPrice = item.size.price;
 //                             const discountedPrice = getMemberPrice(originalPrice);
 
+//                             // Find the original product size to check available quantity
+//                             const productSize = item.product.sizes.find((s) => s.mg === item.size.mg);
+//                             const availableQty = productSize?.quantity || 0;
+//                             const maxReached = item.quantity >= availableQty;
+
 //                             return (
 //                                 <div key={`${item.product.id}-${item.size.mg}`} className="bg-slate-800 rounded-lg p-3 mb-3">
 //                                     <div className="flex justify-between mb-2">
 //                                         <div>
 //                                             <h4 className="font-bold text-white text-sm">{item.product.name}</h4>
 //                                             <p className="text-xs text-gray-400">{item.size.mg}mg</p>
+//                                             {/* <p className="text-xs text-gray-500 mt-1">Stock: {availableQty}</p> */}
 //                                         </div>
 //                                         <div className="text-right">
 //                                             {/* Show original price crossed out */}
@@ -150,20 +168,12 @@
 //                                             -
 //                                         </button>
 //                                         <span className="text-white font-bold">{item.quantity}</span>
-//                                         <button
-//                                             onClick={() =>
-//                                                 dispatch(
-//                                                     addToCart({
-//                                                         product: item.product,
-//                                                         size: item.size,
-//                                                     }),
-//                                                 )
-//                                             }
-//                                             className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 text-white transition-colors"
-//                                         >
+//                                         <button onClick={() => handleAddToCart(item)} disabled={maxReached} className={`px-3 py-1 rounded transition-colors ${maxReached ? "bg-gray-600 cursor-not-allowed opacity-50" : "bg-slate-700 hover:bg-slate-600 text-white"}`}>
 //                                             +
 //                                         </button>
 //                                     </div>
+//                                     {/* {maxReached && <p className="text-xs text-red-400 mt-2">Max stock reached ({availableQty})</p>} */}
+//                                     {maxReached && <p className="text-xs text-red-400 mt-2">Max stock reached</p>}
 //                                 </div>
 //                             );
 //                         })
@@ -205,20 +215,40 @@
 import { useGetMeQuery } from "../redux/features/auth/authApi";
 import { getTier } from "../utils/pricing";
 import { useSelector, useDispatch } from "react-redux";
-import { closeCart, addToCart, removeFromCart } from "../redux/features/cart/cartSlice";
+import { closeCart, addToCart, removeFromCart, clearCart } from "../redux/features/cart/cartSlice";
 import { selectCartItems, selectCartOpen } from "../redux/features/cart/cartSlice";
+import { useCreateCheckoutSessionMutation } from "../redux/features/payment/paymentApi";
 import { useRouter } from "next/navigation";
+
+// Update the API type to match your backend (NO shippingInfo, NO image)
+type CreateCheckoutPayload = {
+    userId: string;
+    items: Array<{
+        productId: number;
+        name: string;
+        description: string;
+        price: number;
+        quantity: number;
+        size?: string;
+    }>;
+    shippingAmount: number;
+    subtotal: number;
+    total: number;
+    storeCreditUsed: number;
+    metadata?: Record<string, any>;
+};
 
 export default function CartSidebar() {
     const dispatch = useDispatch();
     const router = useRouter();
     const { data: userData } = useGetMeQuery();
-    console.log(userData);
     const user = userData?.data;
 
     // Get cart state from Redux
     const cart = useSelector(selectCartItems);
     const isOpen = useSelector(selectCartOpen);
+
+    const [createCheckout, { isLoading: isCheckoutLoading }] = useCreateCheckoutSessionMutation();
 
     const tier = getTier(user?.tier || "Member");
 
@@ -292,14 +322,67 @@ export default function CartSidebar() {
 
     const shippingMessage = getShippingMessage();
 
-    const checkout = () => {
-        router.push("/checkout");
-        dispatch(closeCart());
+    // Handle checkout directly from sidebar
+    const handleCheckout = async () => {
+        try {
+            if (!user) {
+                router.push("/auth/login");
+                dispatch(closeCart());
+                return;
+            }
+
+            // Prepare items for API - NO image field
+            const itemsForApi = cart.map((item) => ({
+                productId: item.product.id,
+                name: item.product.name,
+                description: `${item.size.mg}mg ${item.product.name}`,
+                price: parseFloat(getMemberPrice(item.size.price)),
+                quantity: item.quantity,
+                size: item.size.mg.toString(),
+            }));
+
+            const subtotal = calculateSubtotal();
+            const shippingAmount = calculateShipping();
+            const total = calculateTotal();
+
+            // Create checkout session - NO shippingInfo
+            const result = await createCheckout({
+                userId: user.id,
+                items: itemsForApi,
+                shippingAmount,
+                subtotal,
+                storeCreditUsed: 0, // No store credit in sidebar
+                total,
+                metadata: {
+                    userId: user.id,
+                    originalSubtotal: subtotal,
+                    storeCreditUsed: 0,
+                    itemDetails: JSON.stringify(
+                        cart.map((item) => ({
+                            productId: item.product.id,
+                            originalPrice: item.size.price,
+                            quantity: item.quantity,
+                            name: item.product.name,
+                            size: item.size.mg,
+                            finalPrice: parseFloat(getMemberPrice(item.size.price)),
+                        })),
+                    ),
+                },
+            }).unwrap();
+
+            if (result.url) {
+                dispatch(clearCart());
+                dispatch(closeCart());
+                window.location.href = result.url;
+            }
+        } catch (error: any) {
+            console.error("Checkout failed:", error);
+            alert(`Checkout failed: ${error?.data?.error || error.message}`);
+        }
     };
 
     // Handle add to cart with stock limit
     const handleAddToCart = (item: (typeof cart)[0]) => {
-        // Find the original product size to check available quantity
         const productSize = item.product.sizes.find((s) => s.mg === item.size.mg);
         if (!productSize) return;
 
@@ -335,7 +418,6 @@ export default function CartSidebar() {
                             const originalPrice = item.size.price;
                             const discountedPrice = getMemberPrice(originalPrice);
 
-                            // Find the original product size to check available quantity
                             const productSize = item.product.sizes.find((s) => s.mg === item.size.mg);
                             const availableQty = productSize?.quantity || 0;
                             const maxReached = item.quantity >= availableQty;
@@ -346,12 +428,9 @@ export default function CartSidebar() {
                                         <div>
                                             <h4 className="font-bold text-white text-sm">{item.product.name}</h4>
                                             <p className="text-xs text-gray-400">{item.size.mg}mg</p>
-                                            {/* <p className="text-xs text-gray-500 mt-1">Stock: {availableQty}</p> */}
                                         </div>
                                         <div className="text-right">
-                                            {/* Show original price crossed out */}
                                             <div className="text-xs text-gray-500 line-through mb-1">${originalPrice.toFixed(2)}</div>
-                                            {/* Show discounted price */}
                                             <div className="text-cyan-400 font-bold">${discountedPrice}</div>
                                         </div>
                                     </div>
@@ -374,7 +453,6 @@ export default function CartSidebar() {
                                             +
                                         </button>
                                     </div>
-                                    {/* {maxReached && <p className="text-xs text-red-400 mt-2">Max stock reached ({availableQty})</p>} */}
                                     {maxReached && <p className="text-xs text-red-400 mt-2">Max stock reached</p>}
                                 </div>
                             );
@@ -400,8 +478,8 @@ export default function CartSidebar() {
                             <span className="text-cyan-400">${calculateTotal().toFixed(2)}</span>
                         </div>
 
-                        <button onClick={checkout} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-cyan-500/20 cursor-pointer">
-                            Checkout via REVEL
+                        <button onClick={handleCheckout} disabled={isCheckoutLoading} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-cyan-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                            {isCheckoutLoading ? "Processing..." : "Checkout via REVEL"}
                         </button>
 
                         <p className="text-xs text-gray-500 text-center mt-2">Payments will appear on statement as REVEL</p>
