@@ -346,7 +346,7 @@ export default function CartSidebar() {
                                         <div>
                                             <h4 className="font-bold text-white text-sm">{item.product.name}</h4>
                                             <p className="text-xs text-gray-400">{item.size.mg}mg</p>
-                                            <p className="text-xs text-gray-500 mt-1">Stock: {availableQty}</p>
+                                            {/* <p className="text-xs text-gray-500 mt-1">Stock: {availableQty}</p> */}
                                         </div>
                                         <div className="text-right">
                                             {/* Show original price crossed out */}
@@ -374,7 +374,8 @@ export default function CartSidebar() {
                                             +
                                         </button>
                                     </div>
-                                    {maxReached && <p className="text-xs text-red-400 mt-2">Max stock reached ({availableQty})</p>}
+                                    {/* {maxReached && <p className="text-xs text-red-400 mt-2">Max stock reached ({availableQty})</p>} */}
+                                    {maxReached && <p className="text-xs text-red-400 mt-2">Max stock reached</p>}
                                 </div>
                             );
                         })

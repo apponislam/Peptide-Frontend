@@ -69,7 +69,7 @@ export default function ProductPage() {
     const isBacWater = product?.name?.includes("BAC Water") || false;
 
     // API URL for images
-    const API_URL = process.env.NEXT_PUBLIC_BASE_API || "http://localhost:5050/api/v1";
+    const API_URL = process.env.NEXT_PUBLIC_BASE_API || "http://localhost:5050";
 
     // Simple getMemberPrice function
     const getMemberPrice = (price: number) => {
@@ -83,13 +83,12 @@ export default function ProductPage() {
         const currentQty = cartItem ? cartItem.quantity : 0;
 
         if (currentQty < size.quantity) {
-            // Create a product that matches cartSlice's Product type
             const cartProduct = {
                 id: product.id,
                 name: product.name,
                 desc: product.desc,
                 details: product.details,
-                sizes: product.sizes, // Now includes quantity
+                sizes: product.sizes,
                 references: product.references,
                 coa: product.coa ? product.coa.url : null,
                 createdAt: product.createdAt,
@@ -164,7 +163,8 @@ export default function ProductPage() {
                                         <div>
                                             <div className="text-lg font-bold text-white">{size.mg}mg</div>
                                             <div className="text-sm text-gray-400">Lyophilized Powder</div>
-                                            <div className="text-xs text-gray-500 mt-1">Stock: {size.quantity}</div>
+                                            {size.quantity === 0 && <div className="text-xs text-red-600 mt-1 font-semibold">Sold Out</div>}
+                                            {size.quantity > 0 && size.quantity < 3 && <div className="text-xs text-orange-500 mt-1 font-medium">Nearly Sold Out!</div>}
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className="text-right">
