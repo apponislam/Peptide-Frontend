@@ -68,6 +68,11 @@ export default function Header() {
                                     Dashboard
                                 </Link>
                             )}
+                            {hasUser && (
+                                <Link href="/" className="hidden md:block text-gray-300 hover:text-cyan-400 text-sm font-semibold">
+                                    Store
+                                </Link>
+                            )}
 
                             {/* Auth */}
                             {hasUser ? (
@@ -108,6 +113,9 @@ export default function Header() {
                                     <>
                                         <Link href="/dashboard" className="text-gray-300 hover:text-cyan-400 text-sm font-semibold py-2" onClick={() => setShowMobileMenu(false)}>
                                             Dashboard
+                                        </Link>
+                                        <Link href="/" className="text-gray-300 hover:text-cyan-400 text-sm font-semibold py-2" onClick={() => setShowMobileMenu(false)}>
+                                            Store
                                         </Link>
                                         <button
                                             onClick={() => {
