@@ -26,11 +26,7 @@ const productSchema = z.object({
             // Check for duplicate mg values
             const mgs = sizes.map((s) => s.mg);
             return new Set(mgs).size === mgs.length;
-        }, "Duplicate mg values are not allowed")
-        .refine((sizes) => {
-            // Check if at least one size has quantity > 0
-            return sizes.some((s) => s.quantity > 0);
-        }, "At least one size must have quantity greater than 0"),
+        }, "Duplicate mg values are not allowed"),
     references: z
         .array(
             z.object({
@@ -197,15 +193,15 @@ const CreateProductPage = () => {
             }
 
             // Check if at least one size has quantity > 0
-            if (!data.sizes.some((s) => s.quantity > 0)) {
-                await showModal({
-                    type: "error",
-                    title: "Validation Error",
-                    message: "At least one size must have quantity greater than 0",
-                    confirmText: "OK",
-                });
-                return;
-            }
+            // if (!data.sizes.some((s) => s.quantity > 0)) {
+            //     await showModal({
+            //         type: "error",
+            //         title: "Validation Error",
+            //         message: "At least one size must have quantity greater than 0",
+            //         confirmText: "OK",
+            //     });
+            //     return;
+            // }
 
             // Clean references
             const cleanReferences = data.references.filter((ref) => ref.url.trim() && ref.title.trim());
@@ -435,8 +431,10 @@ const CreateProductPage = () => {
                                                         {...field}
                                                         type="number"
                                                         step="1"
+                                                        value={field.value === 0 ? 0 : field.value} // Explicitly handle 0
                                                         onChange={(e) => {
-                                                            field.onChange(parseInt(e.target.value) || 0);
+                                                            const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
+                                                            field.onChange(isNaN(value) ? 0 : value);
                                                             trigger();
                                                         }}
                                                         className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
@@ -467,7 +465,7 @@ const CreateProductPage = () => {
                         </div>
 
                         {/* Stock Warning */}
-                        {sizes && sizes.every((s) => s.quantity === 0) && <p className="mt-4 text-sm text-yellow-400 bg-yellow-900/20 p-2 rounded-lg">⚠️ Warning: All quantities are 0. This product will not be visible to customers.</p>}
+                        {/* {sizes && sizes.every((s) => s.quantity === 0) && <p className="mt-4 text-sm text-yellow-400 bg-yellow-900/20 p-2 rounded-lg">⚠️ Warning: All quantities are 0. This product will not be visible to customers.</p>} */}
                     </div>
 
                     {/* References Card */}
