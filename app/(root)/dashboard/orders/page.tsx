@@ -552,6 +552,7 @@ export default function OrdersPage() {
                                         <div className="text-right">
                                             <div className="text-xl font-bold text-cyan-400">${order.total?.toFixed(2) || "0.00"}</div>
                                             <div className="text-sm text-gray-400">{orderItems.length} items</div>
+                                            <div className="text-xs text-gray-500 mt-1">Shipping: {order.shipping === 0 ? "FREE" : `$${order.shipping?.toFixed(2)}`}</div>
                                         </div>
                                     </div>
 

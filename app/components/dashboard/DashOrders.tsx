@@ -5,6 +5,8 @@
 // import { useGetOrdersQuery } from "@/app/redux/features/order/orderApi";
 // import { useRouter } from "next/navigation";
 // import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
+// import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
+// import { getMemberPrice } from "@/app/utils/pricing";
 
 // interface OrderHistoryProps {
 //     orders?: Order[];
@@ -17,10 +19,69 @@
 //     const user = userData?.data;
 
 //     const { data } = useGetOrdersQuery({ page: 1, limit: 3 });
+//     const [createCheckout, { isLoading: isCheckoutLoading }] = useCreateCheckoutSessionMutation();
+
 //     const displayedOrders = data?.data || orders.slice(0, 3);
 
-//     const onRepeatOrder = (orderId: string) => {
-//         router.push(`/checkout/repeat/${orderId}`);
+//     const handleDirectCheckout = async (order: any) => {
+//         try {
+//             if (!user) {
+//                 router.push("/auth/login");
+//                 return;
+//             }
+
+//             // Prepare items from the order
+//             const itemsForApi = order.items.map((item: any) => {
+//                 const sizeInfo = item.product.sizes.find((s: any) => s.mg === item.size);
+//                 const originalPrice = sizeInfo?.price || item.unitPrice;
+//                 const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
+
+//                 return {
+//                     productId: item.product.id,
+//                     name: item.product.name,
+//                     description: `${item.size}mg ${item.product.name}`,
+//                     price: currentPrice,
+//                     quantity: item.quantity,
+//                     size: item.size.toString(),
+//                 };
+//             });
+
+//             const subtotal = itemsForApi.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+
+//             const SHIPPING_RATE = 6.95;
+//             let shippingAmount = SHIPPING_RATE;
+
+//             if (user?.tier === "Founder" || user?.tier === "VIP") {
+//                 shippingAmount = 0;
+//             } else if (user?.tier === "Member" && subtotal >= 150) {
+//                 shippingAmount = 0;
+//             }
+
+//             const total = subtotal + shippingAmount;
+
+//             const result = await createCheckout({
+//                 userId: user.id,
+//                 items: itemsForApi,
+//                 shippingAmount,
+//                 subtotal,
+//                 storeCreditUsed: 0,
+//                 total,
+//                 metadata: {
+//                     userId: user.id,
+//                     originalSubtotal: subtotal,
+//                     storeCreditUsed: 0,
+//                     isRepeatOrder: "true",
+//                     originalOrderId: order.id,
+//                 },
+//             }).unwrap();
+
+//             if (result.url) {
+//                 window.location.href = result.url;
+//             }
+//         } catch (error: any) {
+//             console.error("Checkout failed:", error);
+//             alert(`Checkout failed: ${error?.data?.error || error.message}`);
+//         }
 //     };
 
 //     const getStatusBadgeClass = (status: string) => {
@@ -105,8 +166,8 @@
 //                             )}
 
 //                             <div className="flex gap-2">
-//                                 <button onClick={() => onRepeatOrder(order.id)} disabled={!isRepeat} className={`flex-1 py-2 rounded-lg font-semibold transition ${isRepeat ? "bg-cyan-500 hover:bg-cyan-600 text-white cursor-pointer" : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"}`}>
-//                                     {isRepeat ? "🔄 Repeat Order" : "📦 Stock Out"}
+//                                 <button onClick={() => handleDirectCheckout(order)} disabled={!isRepeat || isCheckoutLoading} className={`flex-1 py-2 rounded-lg font-semibold transition ${isRepeat && !isCheckoutLoading ? "bg-cyan-500 hover:bg-cyan-600 text-white cursor-pointer" : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"}`}>
+//                                     {isCheckoutLoading ? "Processing..." : isRepeat ? "🔄 Repeat Order" : "📦 Stock Out"}
 //                                 </button>
 //                                 <Link href={`/dashboard/orders/${order.id}`} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-center transition">
 //                                     View Details
@@ -278,6 +339,8 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                                 <div className="text-right">
                                     <div className="text-xl font-bold text-cyan-400">${order.total?.toFixed(2) || "0.00"}</div>
                                     <div className="text-sm text-gray-400">{orderItems.length} items</div>
+                                    {/* ADDED: Shipping amount display */}
+                                    <div className="text-xs text-gray-500 mt-1">Shipping: {order.shipping === 0 ? "FREE" : `$${order.shipping?.toFixed(2)}`}</div>
                                 </div>
                             </div>
 
