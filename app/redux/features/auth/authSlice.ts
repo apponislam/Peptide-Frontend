@@ -19,7 +19,7 @@ export type TUser = {
     referralCount: number;
     createdAt: string;
     profileImg?: string;
-    shippingCredit?: number;
+    // shippingCredit?: number;
     orders?: any[];
 };
 

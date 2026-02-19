@@ -1,6 +1,6 @@
 // "use client";
 
-// import { useEffect, useState } from "react";
+// import { useEffect, useState, useCallback } from "react";
 // import { useRouter, useParams } from "next/navigation";
 // import { useForm } from "react-hook-form";
 // import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +9,7 @@
 // import { getTier } from "@/app/utils/pricing";
 // import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
 // import { useGetOrderQuery } from "@/app/redux/features/order/orderApi";
+// import { useGetProductsByIdsMutation } from "@/app/redux/features/products/productsApi"; // Add this
 // import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
 // import { currentUser, setRedirectPath } from "@/app/redux/features/auth/authSlice";
 
@@ -40,13 +41,19 @@
 //             dispatch(setRedirectPath(`/checkout/repeat/${orderId}`));
 //             router.push("/auth/login");
 //         }
-//     }, [authUser, dispatch, router]);
+//     }, [authUser, dispatch, router, orderId]);
 
 //     const { data: orderData, isLoading: isOrderLoading } = useGetOrderQuery(orderId);
 //     const order = orderData?.data;
 
 //     const { data: userData } = useGetMeQuery();
 //     const user = userData?.data;
+
+//     const [getProductsByIds] = useGetProductsByIdsMutation();
+
+//     const [validatedItems, setValidatedItems] = useState<any[]>([]);
+//     const [validationErrors, setValidationErrors] = useState<string[]>([]);
+//     const [isValidating, setIsValidating] = useState(false);
 
 //     const [createCheckout, { isLoading: isCheckoutLoading }] = useCreateCheckoutSessionMutation();
 
@@ -75,6 +82,85 @@
 //             country: "US",
 //         },
 //     });
+
+//     // Validate products when order loads
+//     useEffect(() => {
+//         const validateProducts = async () => {
+//             if (!order?.items || isValidating || validatedItems.length > 0 || validationErrors.length > 0) {
+//                 return;
+//             }
+
+//             setIsValidating(true);
+
+//             try {
+//                 // Get unique product IDs from order items
+//                 const productIds = [...new Set(order.items.map((item: any) => item.product?.id).filter(Boolean))] as number[];
+
+//                 // Or use type assertion when calling the API
+//                 const result = await getProductsByIds(productIds as number[]).unwrap();
+//                 const products = result.data || [];
+
+//                 // Create a map for easy lookup
+//                 const productMap = new Map();
+//                 products.forEach((product: any) => {
+//                     productMap.set(product.id, product);
+//                 });
+
+//                 const validated: any[] = [];
+//                 const errors: string[] = [];
+
+//                 // Validate each order item
+//                 for (const item of order.items) {
+//                     const productId = item.product?.id;
+//                     const currentProduct = productMap.get(productId);
+
+//                     if (!currentProduct) {
+//                         errors.push(`Product "${item.product?.name || "Unknown"}" is no longer available`);
+//                         continue;
+//                     }
+
+//                     const size = item.size;
+//                     const currentSize = currentProduct.sizes?.find((s: any) => s.mg === size);
+
+//                     if (!currentSize) {
+//                         errors.push(`Size ${size || "?"}mg for "${item.product?.name}" is no longer available`);
+//                         continue;
+//                     }
+
+//                     if (currentSize.quantity <= 0) {
+//                         errors.push(`Size ${size}mg for "${item.product?.name}" is out of stock`);
+//                         continue;
+//                     }
+
+//                     if (currentSize.quantity < (item.quantity || 1)) {
+//                         errors.push(`Only ${currentSize.quantity} available for "${item.product?.name}" ${size}mg (you need ${item.quantity || 1})`);
+//                         continue;
+//                     }
+
+//                     validated.push({
+//                         ...item,
+//                         currentProduct,
+//                         currentSize,
+//                         price: item.discountedPrice || item.unitPrice,
+//                         originalPrice: currentSize.price,
+//                     });
+//                 }
+
+//                 setValidatedItems(validated);
+//                 setValidationErrors(errors);
+//             } catch (error) {
+//                 console.error("Error validating products:", error);
+//                 setValidationErrors(["Failed to validate products. Please try again."]);
+//             } finally {
+//                 setIsValidating(false);
+//             }
+//         };
+
+//         validateProducts();
+//     }, [order, getProductsByIds, isValidating, validatedItems.length, validationErrors.length]);
+
+//     // Rest of your component remains the same...
+//     // (all the calculation functions and JSX from before)
 
 //     // Pre-fill form with order shipping info
 //     useEffect(() => {
@@ -105,47 +191,41 @@
 //             const maxCredit = user.storeCredit;
 //             const maxAllowed = getMaxAllowedStoreCredit();
 
-//             // If maxAllowed is 0 or less, don't allow store credit
 //             if (maxAllowed <= 0) {
 //                 setUseStoreCredit(false);
 //                 setStoreCreditAmount(0);
 //                 return;
 //             }
 
-//             // Use the smaller of available credit or max allowed
 //             const amountToSet = Math.min(maxCredit, maxAllowed);
 //             setStoreCreditAmount(amountToSet);
 //         } else {
 //             setStoreCreditAmount(0);
 //         }
-//     }, [useStoreCredit, user?.storeCredit]);
+//     }, [useStoreCredit, user?.storeCredit, validatedItems]);
 
-//     // Calculate member price
-//     const getMemberPrice = (price: number) => {
-//         return (price * (1 - tier.discount / 100)).toFixed(2);
-//     };
+//     const getItemPrice = useCallback((item: any) => {
+//         return item.discountedPrice || item.unitPrice || 0;
+//     }, []);
 
-//     // Calculate subtotal (original price without store credit)
-//     const calculateSubtotal = () => {
-//         if (!order?.items) return 0;
-
-//         return order.items.reduce((sum: number, item: any) => {
-//             // Use the original unit price from order
-//             const itemPrice = item.unitPrice || 0;
-//             return sum + parseFloat(getMemberPrice(itemPrice)) * (item.quantity || 1);
+//     const calculateSubtotal = useCallback(() => {
+//         return validatedItems.reduce((sum: number, item: any) => {
+//             const itemPrice = getItemPrice(item);
+//             return sum + itemPrice * (item.quantity || 1);
 //         }, 0);
-//     };
+//     }, [validatedItems, getItemPrice]);
 
-//     // Calculate shipping cost
-//     const calculateShipping = () => {
+//     const getOriginalPrice = useCallback((item: any) => {
+//         return item.currentSize?.price || item.unitPrice * 1.25 || 0;
+//     }, []);
+
+//     const calculateShipping = useCallback(() => {
 //         const subtotal = calculateSubtotal();
 
-//         // Founder/VIP: Always free shipping
 //         if (user?.tier === "Founder" || user?.tier === "VIP") {
 //             return 0;
 //         }
 
-//         // Member: Check shipping credit first
 //         if (user?.tier === "Member") {
 //             if (user?.shippingCredit && user.shippingCredit > 0) {
 //                 if (user.shippingCredit >= 6.95) {
@@ -160,136 +240,102 @@
 //         }
 
 //         return subtotal >= 150 ? 0 : 6.95;
-//     };
+//     }, [user, calculateSubtotal]);
 
-//     // Calculate total payable (subtotal + shipping)
-//     const calculateTotalPayable = () => {
+//     const calculateTotalPayable = useCallback(() => {
 //         return calculateSubtotal() + calculateShipping();
-//     };
+//     }, [calculateSubtotal, calculateShipping]);
 
-//     // Get maximum allowed store credit (leaves at least $1 for Stripe)
-//     const getMaxAllowedStoreCredit = () => {
+//     const getMaxAllowedStoreCredit = useCallback(() => {
 //         const totalPayable = calculateTotalPayable();
 
-//         // If total is $1 or less, can't use any store credit
 //         if (totalPayable <= 1) {
 //             return 0;
 //         }
 
-//         // Maximum credit = total - $1 (minimum Stripe charge)
 //         const maxCredit = totalPayable - 1;
 //         return Math.max(0, maxCredit);
-//     };
+//     }, [calculateTotalPayable]);
 
-//     // Calculate store credit usage
-//     const calculateStoreCreditUsage = () => {
+//     const calculateStoreCreditUsage = useCallback(() => {
 //         if (!useStoreCredit || !user?.storeCredit || user.storeCredit <= 0) {
 //             return 0;
 //         }
 
 //         const maxAllowed = getMaxAllowedStoreCredit();
 
-//         // If no store credit can be used, return 0
 //         if (maxAllowed <= 0) {
 //             return 0;
 //         }
 
 //         const maxCredit = user.storeCredit;
-
-//         // Maximum user can apply is the smaller of their credit or max allowed
 //         const maxApplicable = Math.min(maxCredit, maxAllowed);
-
-//         // Use the amount they selected, but not more than max applicable
 //         const amountToUse = Math.min(storeCreditAmount, maxApplicable);
 
 //         return amountToUse;
-//     };
+//     }, [useStoreCredit, user?.storeCredit, storeCreditAmount, getMaxAllowedStoreCredit]);
 
-//     // Calculate store credit distribution per item
-//     const calculateAdjustedItems = () => {
+//     const calculateAdjustedItems = useCallback(() => {
 //         const storeCreditUsed = calculateStoreCreditUsage();
 //         const subtotal = calculateSubtotal();
 //         const totalPayable = calculateTotalPayable();
 
-//         // How much Stripe should charge
 //         const stripeChargeAmount = totalPayable - storeCreditUsed;
 
-//         if (!order?.items) return [];
+//         return validatedItems.map((item: any) => {
+//             const itemPrice = getItemPrice(item);
+//             const itemTotal = itemPrice * (item.quantity || 1);
+//             const itemProportion = subtotal > 0 ? itemTotal / subtotal : 1 / validatedItems.length;
 
-//         return order.items.map((item: any) => {
-//             const originalPrice = parseFloat(getMemberPrice(item.unitPrice || 0));
-//             const itemTotal = originalPrice * (item.quantity || 1);
-//             const itemProportion = subtotal > 0 ? itemTotal / subtotal : 1 / order.items.length;
-
-//             // Calculate how much of the Stripe charge applies to this item
 //             const stripeChargeForItem = stripeChargeAmount * itemProportion;
-
-//             // Calculate adjusted price per unit (minimum $0.01)
 //             const adjustedPricePerUnit = Math.max(0.01, stripeChargeForItem / (item.quantity || 1));
-
-//             // Calculate how much store credit was used for this item
 //             const storeCreditForItem = Math.max(0, itemTotal - stripeChargeForItem);
+
+//             const size = item.size || "0";
 
 //             return {
 //                 productId: item.product?.id || 0,
 //                 name: item.product?.name || "Product",
-//                 description: `${item.product?.name || "Product"}`,
+//                 description: `${size}mg ${item.product?.name || "Product"}`,
 //                 price: adjustedPricePerUnit,
-//                 originalPrice: originalPrice,
+//                 originalPrice: itemPrice,
 //                 storeCreditApplied: storeCreditForItem,
 //                 quantity: item.quantity || 1,
-//                 size: "0mg",
+//                 size: size.toString(),
 //             };
 //         });
-//     };
+//     }, [validatedItems, calculateStoreCreditUsage, calculateSubtotal, calculateTotalPayable, getItemPrice]);
 
-//     // Calculate adjusted shipping after store credit
-//     const calculateAdjustedShipping = () => {
+//     const calculateAdjustedShipping = useCallback(() => {
 //         const shipping = calculateShipping();
 //         const storeCreditUsed = calculateStoreCreditUsage();
 //         const subtotal = calculateSubtotal();
 
-//         // If store credit covers shipping (after covering products)
 //         if (storeCreditUsed > subtotal) {
 //             const creditForShipping = storeCreditUsed - subtotal;
 //             return Math.max(0, shipping - creditForShipping);
 //         }
 
 //         return shipping;
-//     };
+//     }, [calculateShipping, calculateStoreCreditUsage, calculateSubtotal]);
 
-//     // Calculate the actual amount to charge in Stripe
-//     // const calculateStripeTotal = () => {
-//     //     const adjustedItems = calculateAdjustedItems();
-//     //     const adjustedShipping = calculateAdjustedShipping();
-
-//     //     const itemsTotal = adjustedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-//     //     const stripeTotal = itemsTotal + adjustedShipping;
-
-//     //     return stripeTotal;
-//     // };
-
-//     // Calculate display total (what user sees on our site)
-//     const calculateDisplayTotal = () => {
+//     const calculateDisplayTotal = useCallback(() => {
 //         const totalPayable = calculateTotalPayable();
 //         const storeCreditUsed = calculateStoreCreditUsage();
 
 //         const displayTotal = totalPayable - storeCreditUsed;
-
-//         // Ensure at least $1.00 is displayed
 //         return Math.max(1.0, displayTotal);
-//     };
+//     }, [calculateTotalPayable, calculateStoreCreditUsage]);
 
-//     // Check if user can use store credit
-//     const canUseStoreCredit = () => {
+//     const canUseStoreCredit = useCallback(() => {
 //         if (!user?.storeCredit || user.storeCredit <= 0) {
 //             return false;
 //         }
 //         const totalPayable = calculateTotalPayable();
-//         return totalPayable > 1; // Can only use store credit if total is more than $1
-//     };
+//         return totalPayable > 1;
+//     }, [user, calculateTotalPayable]);
 
-//     const getShippingMessage = () => {
+//     const getShippingMessage = useCallback(() => {
 //         const shippingCost = calculateShipping();
 //         const subtotal = calculateSubtotal();
 
@@ -314,16 +360,20 @@
 //         }
 
 //         return { text: `$${shippingCost.toFixed(2)}`, className: "text-yellow-400" };
-//     };
+//     }, [user, calculateShipping, calculateSubtotal]);
 
 //     const onSubmit = async (data: CheckoutFormData) => {
 //         try {
-//             if (!order?.items) {
-//                 alert("No items to order");
+//             if (validatedItems.length === 0) {
+//                 alert("No valid items to order");
 //                 return;
 //             }
 
-//             // Calculate adjusted prices with store credit distributed
+//             if (validationErrors.length > 0) {
+//                 alert("Please resolve validation errors first");
+//                 return;
+//             }
+
 //             const adjustedItems = calculateAdjustedItems();
 
 //             const subtotal = adjustedItems.reduce((sum: any, item: any) => sum + item.price * item.quantity, 0);
@@ -357,12 +407,15 @@
 //                     repeatOrderId: orderId,
 //                     userTier: tier.name,
 //                     userShippingCredit: user?.shippingCredit || 0,
-//                     originalItems: JSON.stringify(
-//                         order.items.map((item: any) => ({
-//                             productId: item.product?.id || 0,
-//                             originalPrice: parseFloat(getMemberPrice(item.unitPrice || 0)),
-//                             quantity: item.quantity || 1,
-//                             name: item.product?.name || "Product",
+//                     itemDetails: JSON.stringify(
+//                         adjustedItems.map((item: any) => ({
+//                             productId: item.productId,
+//                             originalPrice: item.originalPrice,
+//                             quantity: item.quantity,
+//                             name: item.name,
+//                             size: item.size,
+//                             storeCreditApplied: item.storeCreditApplied,
+//                             finalPrice: item.price,
 //                         })),
 //                     ),
 //                 },
@@ -405,6 +458,44 @@
 //         );
 //     }
 
+//     if (isValidating) {
+//         return (
+//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//                 <div className="container mx-auto max-w-6xl">
+//                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
+//                     <div className="text-center py-20">
+//                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+//                         <p className="text-gray-400">Validating products...</p>
+//                     </div>
+//                 </div>
+//             </div>
+//         );
+//     }
+
+//     if (validationErrors.length > 0) {
+//         return (
+//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//                 <div className="container mx-auto max-w-6xl">
+//                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
+//                     <div className="bg-red-900/20 border border-red-500 rounded-lg p-6 mb-6">
+//                         <h2 className="text-xl font-bold text-red-400 mb-4">Cannot Repeat Order</h2>
+//                         <p className="text-gray-300 mb-4">The following items have issues:</p>
+//                         <ul className="list-disc list-inside space-y-2">
+//                             {validationErrors.map((error, index) => (
+//                                 <li key={index} className="text-red-400">
+//                                     {error}
+//                                 </li>
+//                             ))}
+//                         </ul>
+//                         <button onClick={() => router.push("/")} className="mt-6 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-semibold">
+//                             Browse Products
+//                         </button>
+//                     </div>
+//                 </div>
+//             </div>
+//         );
+//     }
+
 //     return (
 //         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
 //             <div className="container mx-auto max-w-6xl">
@@ -420,23 +511,27 @@
 //                         <div className="bg-slate-800 rounded-lg p-6 mb-6">
 //                             <h2 className="text-xl font-bold mb-4">Repeat Order Summary</h2>
 
-//                             {order.items &&
-//                                 order.items.map((item: any, index: number) => {
-//                                     const originalPrice = item.unitPrice || 0;
-//                                     const discountedPrice = getMemberPrice(originalPrice);
-//                                     return (
-//                                         <div key={index} className="flex justify-between items-center py-3 border-b border-slate-700">
-//                                             <div>
-//                                                 <h3 className="font-semibold">{item.product?.name || "Product"}</h3>
-//                                                 <p className="text-sm text-gray-400">Quantity: {item.quantity || 1}</p>
-//                                             </div>
-//                                             <div className="text-right">
-//                                                 <p className="text-sm text-gray-400 line-through">${originalPrice.toFixed(2)}</p>
-//                                                 <p className="text-cyan-400">${discountedPrice}</p>
-//                                             </div>
+//                             {validatedItems.map((item: any, index: number) => {
+//                                 const originalPrice = getOriginalPrice(item);
+//                                 const itemPrice = getItemPrice(item);
+//                                 const size = item.size || "0";
+
+//                                 return (
+//                                     <div key={`${item.product?.id}-${size}-${index}`} className="flex justify-between items-center py-3 border-b border-slate-700">
+//                                         <div>
+//                                             <h3 className="font-semibold">{item.product?.name || "Product"}</h3>
+//                                             <p className="text-sm text-gray-400">
+//                                                 {size}mg × {item.quantity || 1}
+//                                             </p>
+//                                             <p className="text-xs text-green-400">In stock: {item.currentSize?.quantity}</p>
 //                                         </div>
-//                                     );
-//                                 })}
+//                                         <div className="text-right">
+//                                             <p className="text-sm text-gray-400 line-through">${originalPrice.toFixed(2)}</p>
+//                                             <p className="text-cyan-400">${itemPrice.toFixed(2)}</p>
+//                                         </div>
+//                                     </div>
+//                                 );
+//                             })}
 
 //                             <div className="mt-6 space-y-3">
 //                                 <div className="flex justify-between">
@@ -448,7 +543,6 @@
 //                                     <span className={shippingMessage.className}>{shippingMessage.text}</span>
 //                                 </div>
 
-//                                 {/* STORE CREDIT SECTION */}
 //                                 {user?.storeCredit && user.storeCredit > 0 && canUseStoreCredit() && (
 //                                     <div className="border-t border-slate-700 pt-3">
 //                                         <label className="flex items-center justify-between cursor-pointer">
@@ -460,7 +554,6 @@
 //                                                         const checked = e.target.checked;
 //                                                         setUseStoreCredit(checked);
 //                                                         if (checked) {
-//                                                             // Auto-use max allowed credit
 //                                                             const maxCredit = user.storeCredit;
 //                                                             const maxAllowed = maxAllowedCredit;
 //                                                             const amountToSet = Math.min(maxCredit, maxAllowed);
@@ -484,10 +577,8 @@
 //                                                     <span className="text-green-400 text-lg font-bold">-${storeCreditUsed.toFixed(2)}</span>
 //                                                 </div>
 
-//                                                 {/* Informational text */}
 //                                                 <div className="text-xs text-gray-500 mt-1 mb-2">{maxAllowedCredit > 0 ? `Maximum $${maxAllowedCredit.toFixed(2)} can be applied (minimum $1.00 card payment required)` : "Cannot apply store credit (order total must be more than $1.00)"}</div>
 
-//                                                 {/* Slider for adjusting amount */}
 //                                                 {maxAllowedCredit > 0 && (
 //                                                     <div className="mt-3">
 //                                                         <input type="range" min="0" max={maxAllowedCredit.toFixed(2)} step="0.01" value={storeCreditAmount} onChange={(e) => setStoreCreditAmount(parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer" />
@@ -502,7 +593,6 @@
 //                                     </div>
 //                                 )}
 
-//                                 {/* Show message if user has store credit but can't use it */}
 //                                 {user?.storeCredit && user.storeCredit > 0 && !canUseStoreCredit() && (
 //                                     <div className="border-t border-slate-700 pt-3">
 //                                         <div className="flex items-center justify-between">
@@ -628,7 +718,7 @@
 //                                 </div>
 //                             </div>
 
-//                             <button type="submit" disabled={isCheckoutLoading} className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+//                             <button type="submit" disabled={isCheckoutLoading || validatedItems.length === 0} className="w-full py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
 //                                 {isCheckoutLoading ? "Processing..." : `Repeat Order - Pay $${displayTotal.toFixed(2)}`}
 //                             </button>
 
@@ -652,7 +742,7 @@ import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 import { getTier } from "@/app/utils/pricing";
 import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
 import { useGetOrderQuery } from "@/app/redux/features/order/orderApi";
-import { useGetProductsByIdsMutation } from "@/app/redux/features/products/productsApi"; // Add this
+import { useGetProductsByIdsMutation } from "@/app/redux/features/products/productsApi";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
 import { currentUser, setRedirectPath } from "@/app/redux/features/auth/authSlice";
 
@@ -739,7 +829,6 @@ export default function RepeatOrderPage() {
                 // Get unique product IDs from order items
                 const productIds = [...new Set(order.items.map((item: any) => item.product?.id).filter(Boolean))] as number[];
 
-                // Or use type assertion when calling the API
                 const result = await getProductsByIds(productIds as number[]).unwrap();
                 const products = result.data || [];
 
@@ -802,9 +891,6 @@ export default function RepeatOrderPage() {
         validateProducts();
     }, [order, getProductsByIds, isValidating, validatedItems.length, validationErrors.length]);
 
-    // Rest of your component remains the same...
-    // (all the calculation functions and JSX from before)
-
     // Pre-fill form with order shipping info
     useEffect(() => {
         if (order) {
@@ -862,27 +948,23 @@ export default function RepeatOrderPage() {
         return item.currentSize?.price || item.unitPrice * 1.25 || 0;
     }, []);
 
+    // UPDATED: Calculate shipping based on tier and subtotal only
     const calculateShipping = useCallback(() => {
         const subtotal = calculateSubtotal();
+        const SHIPPING_RATE = 6.95;
 
+        // Founder/VIP: Always free shipping
         if (user?.tier === "Founder" || user?.tier === "VIP") {
             return 0;
         }
 
+        // Member: Free shipping on orders $150+, otherwise $6.95
         if (user?.tier === "Member") {
-            if (user?.shippingCredit && user.shippingCredit > 0) {
-                if (user.shippingCredit >= 6.95) {
-                    return 0;
-                } else {
-                    return 6.95 - user.shippingCredit;
-                }
-            }
-
-            if (subtotal >= 150) return 0;
-            return 6.95;
+            return subtotal >= 150 ? 0 : SHIPPING_RATE;
         }
 
-        return subtotal >= 150 ? 0 : 6.95;
+        // Other tiers: Free shipping on orders $150+, otherwise $6.95
+        return subtotal >= 150 ? 0 : SHIPPING_RATE;
     }, [user, calculateSubtotal]);
 
     const calculateTotalPayable = useCallback(() => {
@@ -978,6 +1060,7 @@ export default function RepeatOrderPage() {
         return totalPayable > 1;
     }, [user, calculateTotalPayable]);
 
+    // UPDATED: Get shipping message without credit references
     const getShippingMessage = useCallback(() => {
         const shippingCost = calculateShipping();
         const subtotal = calculateSubtotal();
@@ -986,20 +1069,13 @@ export default function RepeatOrderPage() {
             if (user?.tier === "Founder" || user?.tier === "VIP") {
                 return { text: `Free (${user.tier})`, className: "text-green-400" };
             }
-            if (user?.tier === "Member" && user?.shippingCredit && user.shippingCredit >= 6.95) {
-                return { text: "Free (Credit Applied)", className: "text-green-400" };
+            if (user?.tier === "Member" && subtotal >= 150) {
+                return { text: "Free (Order ≥ $150)", className: "text-green-400" };
             }
             if (subtotal >= 150) {
                 return { text: "Free (Order ≥ $150)", className: "text-green-400" };
             }
             return { text: "Free", className: "text-green-400" };
-        }
-
-        if (user?.tier === "Member" && user?.shippingCredit && user.shippingCredit > 0 && user.shippingCredit < 6.95) {
-            return {
-                text: `$${shippingCost.toFixed(2)} ($${user.shippingCredit.toFixed(2)} credit applied)`,
-                className: "text-yellow-400",
-            };
         }
 
         return { text: `$${shippingCost.toFixed(2)}`, className: "text-yellow-400" };
@@ -1049,7 +1125,6 @@ export default function RepeatOrderPage() {
                     storeCreditUsed,
                     repeatOrderId: orderId,
                     userTier: tier.name,
-                    userShippingCredit: user?.shippingCredit || 0,
                     itemDetails: JSON.stringify(
                         adjustedItems.map((item: any) => ({
                             productId: item.productId,
@@ -1268,12 +1343,6 @@ export default function RepeatOrderPage() {
                                     <span className="text-gray-400">Shipping:</span>
                                     <span className={tier.freeShipping ? "text-green-400" : "text-yellow-400"}>{tier.freeShipping ? "Free Shipping" : "Free over $150"}</span>
                                 </div>
-                                {user?.tier === "Member" && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Shipping Credit:</span>
-                                        <span className="text-blue-400">${(user?.shippingCredit || 0).toFixed(2)}</span>
-                                    </div>
-                                )}
                                 <div className="flex justify-between">
                                     <span className="text-gray-400">Store Credit:</span>
                                     <span className="text-blue-400">${(user?.storeCredit || 0).toFixed(2)}</span>
