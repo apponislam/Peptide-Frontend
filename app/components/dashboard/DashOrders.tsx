@@ -137,8 +137,7 @@ import { useGetOrdersQuery } from "@/app/redux/features/order/orderApi";
 import { useRouter } from "next/navigation";
 import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
-import { useDispatch } from "react-redux";
-import { getMemberPrice, getTier } from "@/app/utils/pricing";
+import { getMemberPrice } from "@/app/utils/pricing";
 
 interface OrderHistoryProps {
     orders?: Order[];
@@ -146,7 +145,6 @@ interface OrderHistoryProps {
 
 export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
     const router = useRouter();
-    const dispatch = useDispatch();
 
     const { data: userData } = useGetMeQuery();
     const user = userData?.data;
