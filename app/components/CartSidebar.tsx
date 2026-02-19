@@ -509,18 +509,12 @@ export default function CartSidebar() {
     const calculateShipping = () => {
         const subtotal = calculateSubtotal();
         const SHIPPING_RATE = 6.95;
-
-        // Founder/VIP: Always free shipping
         if (user?.tier === "Founder" || user?.tier === "VIP") {
             return 0;
         }
-
-        // Member: Free shipping on orders $150+, otherwise $6.95
         if (user?.tier === "Member") {
             return subtotal >= 150 ? 0 : SHIPPING_RATE;
         }
-
-        // Other tiers: Free shipping on orders $150+, otherwise $6.95
         return subtotal >= 150 ? 0 : SHIPPING_RATE;
     };
 

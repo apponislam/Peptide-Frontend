@@ -10,8 +10,6 @@ import Link from "next/link";
 
 export default function DashboardPage() {
     const { data, isLoading, isError } = useGetMeQuery();
-    console.log("Query result:", data);
-
     const mainUser = data?.data;
     const tier = getTier(mainUser?.referralCount || 0);
 
