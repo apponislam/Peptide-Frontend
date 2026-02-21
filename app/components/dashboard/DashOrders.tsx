@@ -23,6 +23,67 @@
 
 //     const displayedOrders = data?.data || orders.slice(0, 3);
 
+//     // const handleDirectCheckout = async (order: any) => {
+//     //     try {
+//     //         if (!user) {
+//     //             router.push("/auth/login");
+//     //             return;
+//     //         }
+
+//     //         // Prepare items from the order
+//     //         const itemsForApi = order.items.map((item: any) => {
+//     //             const sizeInfo = item.product.sizes.find((s: any) => s.mg === item.size);
+//     //             const originalPrice = sizeInfo?.price || item.unitPrice;
+//     //             const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
+
+//     //             return {
+//     //                 productId: item.product.id,
+//     //                 name: item.product.name,
+//     //                 description: `${item.size}mg ${item.product.name}`,
+//     //                 price: currentPrice,
+//     //                 quantity: item.quantity,
+//     //                 size: item.size.toString(),
+//     //             };
+//     //         });
+
+//     //         const subtotal = itemsForApi.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+
+//     //         const SHIPPING_RATE = 6.95;
+//     //         let shippingAmount = SHIPPING_RATE;
+
+//     //         if (user?.tier === "Founder" || user?.tier === "VIP") {
+//     //             shippingAmount = 0;
+//     //         } else if (user?.tier === "Member" && subtotal >= 150) {
+//     //             shippingAmount = 0;
+//     //         }
+
+//     //         const total = subtotal + shippingAmount;
+
+//     //         const result = await createCheckout({
+//     //             userId: user.id,
+//     //             items: itemsForApi,
+//     //             shippingAmount,
+//     //             subtotal,
+//     //             storeCreditUsed: 0,
+//     //             total,
+//     //             metadata: {
+//     //                 userId: user.id,
+//     //                 originalSubtotal: subtotal,
+//     //                 storeCreditUsed: 0,
+//     //                 isRepeatOrder: "true",
+//     //                 originalOrderId: order.id,
+//     //             },
+//     //         }).unwrap();
+
+//     //         if (result.url) {
+//     //             window.location.href = result.url;
+//     //         }
+//     //     } catch (error: any) {
+//     //         console.error("Checkout failed:", error);
+//     //         alert(`Checkout failed: ${error?.data?.error || error.message}`);
+//     //     }
+//     // };
+
 //     const handleDirectCheckout = async (order: any) => {
 //         try {
 //             if (!user) {
@@ -36,13 +97,16 @@
 //                 const originalPrice = sizeInfo?.price || item.unitPrice;
 //                 const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
 
+//                 // Safely handle size value
+//                 const sizeValue = item.size || 0; // or provide a default value
+
 //                 return {
 //                     productId: item.product.id,
 //                     name: item.product.name,
-//                     description: `${item.size}mg ${item.product.name}`,
+//                     description: sizeValue ? `${sizeValue}mg ${item.product.name}` : item.product.name,
 //                     price: currentPrice,
 //                     quantity: item.quantity,
-//                     size: item.size.toString(),
+//                     size: sizeValue.toString(), // Now safe to call toString()
 //                 };
 //             });
 
@@ -59,6 +123,14 @@
 
 //             const total = subtotal + shippingAmount;
 
+//             // Create compact item string with null check
+//             const itemString = order.items
+//                 .map((item: any) => {
+//                     const sizeValue = item.size || 0;
+//                     return `${item.product.id}-${sizeValue}-${item.quantity}`;
+//                 })
+//                 .join(",");
+
 //             const result = await createCheckout({
 //                 userId: user.id,
 //                 items: itemsForApi,
@@ -72,6 +144,7 @@
 //                     storeCreditUsed: 0,
 //                     isRepeatOrder: "true",
 //                     originalOrderId: order.id,
+//                     items: itemString,
 //                 },
 //             }).unwrap();
 
@@ -147,6 +220,8 @@
 //                                 <div className="text-right">
 //                                     <div className="text-xl font-bold text-cyan-400">${order.total?.toFixed(2) || "0.00"}</div>
 //                                     <div className="text-sm text-gray-400">{orderItems.length} items</div>
+//                                     {/* ADDED: Shipping amount display */}
+//                                     <div className="text-xs text-gray-500 mt-1">Shipping: {order.shipping === 0 ? "FREE" : `$${order.shipping?.toFixed(2)}`}</div>
 //                                 </div>
 //                             </div>
 
@@ -199,6 +274,7 @@ import { useRouter } from "next/navigation";
 import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
 import { getMemberPrice } from "@/app/utils/pricing";
+import { useCreateOrderPreviewMutation } from "@/app/redux/features/orderpreview/orderpreviewApi";
 
 interface OrderHistoryProps {
     orders?: Order[];
@@ -212,69 +288,9 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
 
     const { data } = useGetOrdersQuery({ page: 1, limit: 3 });
     const [createCheckout, { isLoading: isCheckoutLoading }] = useCreateCheckoutSessionMutation();
+    const [createOrderPreview, { isLoading: isPreviewLoading }] = useCreateOrderPreviewMutation(); // ← MOVED HERE
 
     const displayedOrders = data?.data || orders.slice(0, 3);
-
-    // const handleDirectCheckout = async (order: any) => {
-    //     try {
-    //         if (!user) {
-    //             router.push("/auth/login");
-    //             return;
-    //         }
-
-    //         // Prepare items from the order
-    //         const itemsForApi = order.items.map((item: any) => {
-    //             const sizeInfo = item.product.sizes.find((s: any) => s.mg === item.size);
-    //             const originalPrice = sizeInfo?.price || item.unitPrice;
-    //             const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
-
-    //             return {
-    //                 productId: item.product.id,
-    //                 name: item.product.name,
-    //                 description: `${item.size}mg ${item.product.name}`,
-    //                 price: currentPrice,
-    //                 quantity: item.quantity,
-    //                 size: item.size.toString(),
-    //             };
-    //         });
-
-    //         const subtotal = itemsForApi.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-
-    //         const SHIPPING_RATE = 6.95;
-    //         let shippingAmount = SHIPPING_RATE;
-
-    //         if (user?.tier === "Founder" || user?.tier === "VIP") {
-    //             shippingAmount = 0;
-    //         } else if (user?.tier === "Member" && subtotal >= 150) {
-    //             shippingAmount = 0;
-    //         }
-
-    //         const total = subtotal + shippingAmount;
-
-    //         const result = await createCheckout({
-    //             userId: user.id,
-    //             items: itemsForApi,
-    //             shippingAmount,
-    //             subtotal,
-    //             storeCreditUsed: 0,
-    //             total,
-    //             metadata: {
-    //                 userId: user.id,
-    //                 originalSubtotal: subtotal,
-    //                 storeCreditUsed: 0,
-    //                 isRepeatOrder: "true",
-    //                 originalOrderId: order.id,
-    //             },
-    //         }).unwrap();
-
-    //         if (result.url) {
-    //             window.location.href = result.url;
-    //         }
-    //     } catch (error: any) {
-    //         console.error("Checkout failed:", error);
-    //         alert(`Checkout failed: ${error?.data?.error || error.message}`);
-    //     }
-    // };
 
     const handleDirectCheckout = async (order: any) => {
         try {
@@ -283,30 +299,28 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                 return;
             }
 
-            // Prepare items from the order
-            const itemsForApi = order.items.map((item: any) => {
+            // Prepare full item details from the order
+            const fullItemDetails = order.items.map((item: any) => {
                 const sizeInfo = item.product.sizes.find((s: any) => s.mg === item.size);
                 const originalPrice = sizeInfo?.price || item.unitPrice;
                 const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
 
-                // Safely handle size value
-                const sizeValue = item.size || 0; // or provide a default value
-
                 return {
                     productId: item.product.id,
                     name: item.product.name,
-                    description: sizeValue ? `${sizeValue}mg ${item.product.name}` : item.product.name,
-                    price: currentPrice,
+                    size: item.size,
                     quantity: item.quantity,
-                    size: sizeValue.toString(), // Now safe to call toString()
+                    originalPrice: originalPrice,
+                    finalPrice: currentPrice,
+                    description: `${item.size}mg ${item.product.name}`,
                 };
             });
 
-            const subtotal = itemsForApi.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+            const subtotal = fullItemDetails.reduce((sum: number, item: any) => sum + item.finalPrice * item.quantity, 0);
 
+            // Calculate shipping
             const SHIPPING_RATE = 6.95;
             let shippingAmount = SHIPPING_RATE;
-
             if (user?.tier === "Founder" || user?.tier === "VIP") {
                 shippingAmount = 0;
             } else if (user?.tier === "Member" && subtotal >= 150) {
@@ -315,14 +329,27 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
 
             const total = subtotal + shippingAmount;
 
-            // Create compact item string with null check
-            const itemString = order.items
-                .map((item: any) => {
-                    const sizeValue = item.size || 0;
-                    return `${item.product.id}-${sizeValue}-${item.quantity}`;
-                })
-                .join(",");
+            // 1. CREATE ORDER PREVIEW IN DATABASE
+            const previewResult = await createOrderPreview({
+                items: fullItemDetails,
+                subtotal,
+                shippingAmount,
+                total,
+            }).unwrap();
 
+            const previewId = previewResult.data.previewId;
+
+            // 2. Prepare minimal items for Stripe API
+            const itemsForApi = fullItemDetails.map((item: any) => ({
+                productId: item.productId,
+                name: item.name,
+                description: item.description,
+                price: item.finalPrice,
+                quantity: item.quantity,
+                size: item.size.toString(),
+            }));
+
+            // 3. Create checkout session with ONLY the preview ID
             const result = await createCheckout({
                 userId: user.id,
                 items: itemsForApi,
@@ -332,11 +359,11 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                 total,
                 metadata: {
                     userId: user.id,
-                    originalSubtotal: subtotal,
-                    storeCreditUsed: 0,
+                    originalSubtotal: subtotal.toString(),
+                    storeCreditUsed: "0",
                     isRepeatOrder: "true",
                     originalOrderId: order.id,
-                    items: itemString,
+                    orderPreviewId: previewId, // ONLY this ID!
                 },
             }).unwrap();
 
@@ -366,6 +393,9 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
 
         return `${baseClass} ${statusClasses[status] || statusClasses.PENDING}`;
     };
+
+    // Combine loading states for the button
+    const isLoading = isCheckoutLoading || isPreviewLoading;
 
     if (displayedOrders.length === 0) {
         return (
@@ -412,7 +442,6 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                                 <div className="text-right">
                                     <div className="text-xl font-bold text-cyan-400">${order.total?.toFixed(2) || "0.00"}</div>
                                     <div className="text-sm text-gray-400">{orderItems.length} items</div>
-                                    {/* ADDED: Shipping amount display */}
                                     <div className="text-xs text-gray-500 mt-1">Shipping: {order.shipping === 0 ? "FREE" : `$${order.shipping?.toFixed(2)}`}</div>
                                 </div>
                             </div>
@@ -433,8 +462,8 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                             )}
 
                             <div className="flex gap-2">
-                                <button onClick={() => handleDirectCheckout(order)} disabled={!isRepeat || isCheckoutLoading} className={`flex-1 py-2 rounded-lg font-semibold transition ${isRepeat && !isCheckoutLoading ? "bg-cyan-500 hover:bg-cyan-600 text-white cursor-pointer" : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"}`}>
-                                    {isCheckoutLoading ? "Processing..." : isRepeat ? "🔄 Repeat Order" : "📦 Stock Out"}
+                                <button onClick={() => handleDirectCheckout(order)} disabled={!isRepeat || isLoading} className={`flex-1 py-2 rounded-lg font-semibold transition ${isRepeat && !isLoading ? "bg-cyan-500 hover:bg-cyan-600 text-white cursor-pointer" : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"}`}>
+                                    {isLoading ? "Processing..." : isRepeat ? "🔄 Repeat Order" : "📦 Stock Out"}
                                 </button>
                                 <Link href={`/dashboard/orders/${order.id}`} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-center transition">
                                     View Details
