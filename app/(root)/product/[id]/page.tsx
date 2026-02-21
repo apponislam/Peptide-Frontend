@@ -169,7 +169,16 @@ export default function ProductPage() {
                                         <div className="flex items-center gap-4">
                                             <div className="text-right">
                                                 <div className="text-sm text-gray-500 line-through">${size.price}</div>
-                                                <div className="text-xl md:text-2xl font-bold text-cyan-400">${getMemberPrice(size.price)}</div>
+                                                {/* <div className="text-xl md:text-2xl font-bold text-cyan-400">${getMemberPrice(size.price)}</div> */}
+                                                <div
+                                                    className={`text-xl md:text-2xl font-bold ${
+                                                        tier.name === "VIP" || tier.name === "Founder"
+                                                            ? "text-yellow-400" // or "text-yellow-500", "text-gold-500", etc.
+                                                            : "text-cyan-400"
+                                                    }`}
+                                                >
+                                                    ${getMemberPrice(size.price)}
+                                                </div>
                                             </div>
                                             <div className="flex items-center gap-2 bg-slate-800 rounded-lg p-2">
                                                 <button onClick={() => handleRemoveFromCart(product.id, size.mg)} className={`w-8 h-8 flex items-center justify-center rounded font-bold ${quantity === 0 ? "bg-slate-800 cursor-not-allowed opacity-50" : "bg-slate-700 hover:bg-slate-600"} text-white`} disabled={quantity === 0}>

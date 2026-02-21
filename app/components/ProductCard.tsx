@@ -293,7 +293,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addToCart, removeFromCart } from "../redux/features/cart/cartSlice";
 import { selectCartItems } from "../redux/features/cart/cartSlice";
 import { useGetMeQuery } from "../redux/features/auth/authApi";
-import { getMemberPrice } from "../utils/pricing";
+import { getMemberPrice, getTier } from "../utils/pricing";
 
 interface ProductCardProps {
     product: Product;
@@ -304,6 +304,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     const cart = useSelector(selectCartItems);
     const { data: userData } = useGetMeQuery();
     const user = userData?.data;
+    const tier = getTier(user?.tier);
 
     const API_URL = process.env.NEXT_PUBLIC_BASE_API || "http://localhost:5050";
 
@@ -350,7 +351,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                                 <div className="flex items-center gap-1 md:gap-2">
                                     <div className="flex flex-col items-end">
                                         <span className="text-white text-xs line-through">${size.price.toFixed(2)}</span>
-                                        <span className="text-cyan-400 font-bold text-sm md:text-base">${getMemberPrice(size.price, user ? user : null)}</span>
+                                        <span className={`font-bold text-sm md:text-base ${tier.name === "VIP" || tier.name === "Founder" ? "text-yellow-400" : "text-cyan-400"}`}>${getMemberPrice(size.price, user ? user : null)}</span>
                                     </div>
                                     {show ? (
                                         <div className="flex items-center gap-1 bg-slate-700 rounded px-2 py-1">

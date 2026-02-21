@@ -569,6 +569,47 @@ export default function CartSidebar() {
             const total = calculateTotal();
 
             // Create checkout session
+            // const result = await createCheckout({
+            //     userId: user.id,
+            //     items: itemsForApi,
+            //     shippingAmount,
+            //     subtotal,
+            //     storeCreditUsed: 0,
+            //     total,
+            //     metadata: {
+            //         userId: user.id,
+            //         originalSubtotal: subtotal,
+            //         storeCreditUsed: 0,
+            //         itemDetails: JSON.stringify(
+            //             cart.map((item) => ({
+            //                 productId: item.product.id,
+            //                 originalPrice: item.size.price,
+            //                 quantity: item.quantity,
+            //                 name: item.product.name,
+            //                 size: item.size.mg,
+            //                 finalPrice: parseFloat(getMemberPrice(item.size.price)),
+            //             })),
+            //         ),
+            //     },
+            // }).unwrap();
+
+            // const result = await createCheckout({
+            //     userId: user.id,
+            //     items: itemsForApi,
+            //     shippingAmount,
+            //     subtotal,
+            //     storeCreditUsed: 0,
+            //     total,
+            //     metadata: {
+            //         userId: user.id,
+            //         originalSubtotal: subtotal,
+            //         storeCreditUsed: 0,
+            //         itemCount: cart.length,
+            //         itemIds: JSON.stringify(cart.map((item) => item.product.id)),
+            //     },
+            // }).unwrap();
+
+            const itemString = cart.map((item) => `${item.product.id}-${item.size.mg}-${item.quantity}`).join(",");
             const result = await createCheckout({
                 userId: user.id,
                 items: itemsForApi,
@@ -580,16 +621,8 @@ export default function CartSidebar() {
                     userId: user.id,
                     originalSubtotal: subtotal,
                     storeCreditUsed: 0,
-                    itemDetails: JSON.stringify(
-                        cart.map((item) => ({
-                            productId: item.product.id,
-                            originalPrice: item.size.price,
-                            quantity: item.quantity,
-                            name: item.product.name,
-                            size: item.size.mg,
-                            finalPrice: parseFloat(getMemberPrice(item.size.price)),
-                        })),
-                    ),
+                    items: itemString,
+                    itemCount: cart.length,
                 },
             }).unwrap();
 
@@ -654,7 +687,8 @@ export default function CartSidebar() {
                                         </div>
                                         <div className="text-right">
                                             <div className="text-xs text-gray-500 line-through mb-1">${originalPrice.toFixed(2)}</div>
-                                            <div className="text-cyan-400 font-bold">${discountedPrice}</div>
+                                            {/* <div className="text-cyan-400 font-bold">${discountedPrice}</div> */}
+                                            <div className={`font-bold ${tier.name === "VIP" || tier.name === "Founder" ? "text-yellow-400" : "text-cyan-400"}`}>${discountedPrice}</div>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">

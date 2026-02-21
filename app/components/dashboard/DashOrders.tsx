@@ -215,6 +215,67 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
 
     const displayedOrders = data?.data || orders.slice(0, 3);
 
+    // const handleDirectCheckout = async (order: any) => {
+    //     try {
+    //         if (!user) {
+    //             router.push("/auth/login");
+    //             return;
+    //         }
+
+    //         // Prepare items from the order
+    //         const itemsForApi = order.items.map((item: any) => {
+    //             const sizeInfo = item.product.sizes.find((s: any) => s.mg === item.size);
+    //             const originalPrice = sizeInfo?.price || item.unitPrice;
+    //             const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
+
+    //             return {
+    //                 productId: item.product.id,
+    //                 name: item.product.name,
+    //                 description: `${item.size}mg ${item.product.name}`,
+    //                 price: currentPrice,
+    //                 quantity: item.quantity,
+    //                 size: item.size.toString(),
+    //             };
+    //         });
+
+    //         const subtotal = itemsForApi.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+
+    //         const SHIPPING_RATE = 6.95;
+    //         let shippingAmount = SHIPPING_RATE;
+
+    //         if (user?.tier === "Founder" || user?.tier === "VIP") {
+    //             shippingAmount = 0;
+    //         } else if (user?.tier === "Member" && subtotal >= 150) {
+    //             shippingAmount = 0;
+    //         }
+
+    //         const total = subtotal + shippingAmount;
+
+    //         const result = await createCheckout({
+    //             userId: user.id,
+    //             items: itemsForApi,
+    //             shippingAmount,
+    //             subtotal,
+    //             storeCreditUsed: 0,
+    //             total,
+    //             metadata: {
+    //                 userId: user.id,
+    //                 originalSubtotal: subtotal,
+    //                 storeCreditUsed: 0,
+    //                 isRepeatOrder: "true",
+    //                 originalOrderId: order.id,
+    //             },
+    //         }).unwrap();
+
+    //         if (result.url) {
+    //             window.location.href = result.url;
+    //         }
+    //     } catch (error: any) {
+    //         console.error("Checkout failed:", error);
+    //         alert(`Checkout failed: ${error?.data?.error || error.message}`);
+    //     }
+    // };
+
     const handleDirectCheckout = async (order: any) => {
         try {
             if (!user) {
@@ -228,13 +289,16 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                 const originalPrice = sizeInfo?.price || item.unitPrice;
                 const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
 
+                // Safely handle size value
+                const sizeValue = item.size || 0; // or provide a default value
+
                 return {
                     productId: item.product.id,
                     name: item.product.name,
-                    description: `${item.size}mg ${item.product.name}`,
+                    description: sizeValue ? `${sizeValue}mg ${item.product.name}` : item.product.name,
                     price: currentPrice,
                     quantity: item.quantity,
-                    size: item.size.toString(),
+                    size: sizeValue.toString(), // Now safe to call toString()
                 };
             });
 
@@ -251,6 +315,14 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
 
             const total = subtotal + shippingAmount;
 
+            // Create compact item string with null check
+            const itemString = order.items
+                .map((item: any) => {
+                    const sizeValue = item.size || 0;
+                    return `${item.product.id}-${sizeValue}-${item.quantity}`;
+                })
+                .join(",");
+
             const result = await createCheckout({
                 userId: user.id,
                 items: itemsForApi,
@@ -264,6 +336,7 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                     storeCreditUsed: 0,
                     isRepeatOrder: "true",
                     originalOrderId: order.id,
+                    items: itemString,
                 },
             }).unwrap();
 
