@@ -91,6 +91,33 @@ type ResetPasswordResponse = {
     data?: { message: string };
 };
 
+// my reffarals 
+
+type Referral = {
+    id: string;
+    name: string;
+    email: string;
+    status: "Pending" | "Confirmed";
+    joinedAt: string;
+};
+
+type GetMyReferralsResponse = {
+    success: boolean;
+    message: string;
+    data: Referral[];
+    meta: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+};
+
+type GetMyReferralsRequest = {
+    page?: number;
+    limit?: number;
+};
+
 const authApi = baseApi.injectEndpoints({
     overrideExisting: true,
     endpoints: (builder) => ({
@@ -191,6 +218,19 @@ const authApi = baseApi.injectEndpoints({
                 body: data,
             }),
         }),
+
+        // Get My Referrals endpoint with pagination
+        getMyReferrals: builder.query<GetMyReferralsResponse, GetMyReferralsRequest>({
+            query: (params) => ({
+                url: "/auth/my-referrals",
+                method: "GET",
+                params: {
+                    page: params.page || 1,
+                    limit: params.limit || 10,
+                },
+            }),
+            providesTags: ["User"],
+        }),
     }),
 });
 
@@ -207,4 +247,7 @@ export const {
     useForgotPasswordMutation,
     useVerifyOTPMutation,
     useResetPasswordMutation,
+
+    // my referrals
+    useGetMyReferralsQuery,
 } = authApi;
