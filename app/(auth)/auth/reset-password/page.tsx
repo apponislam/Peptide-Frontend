@@ -12,13 +12,7 @@ import { useResetPasswordMutation } from "@/app/redux/features/auth/authApi";
 
 const resetPasswordSchema = z
     .object({
-        newPassword: z
-            .string()
-            .min(8, "Password must be at least 8 characters")
-            .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-            .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-            .regex(/[0-9]/, "Password must contain at least one number")
-            .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+        newPassword: z.string().min(6, "Password must be at least 6 characters"),
         confirmPassword: z.string().min(1, "Please confirm your password"),
     })
     .refine((data) => data.newPassword === data.confirmPassword, {
@@ -139,9 +133,9 @@ export default function ResetPasswordPage() {
                 <div className="bg-slate-800 rounded-xl md:rounded-2xl p-6 md:p-8 border border-slate-700">
                     <h2 className="text-xl md:text-2xl font-bold text-white mb-6">Reset Password</h2>
 
-                    <form onSubmit={handleSubmit(onSubmit)}>
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         {/* New Password */}
-                        <div className="mb-4">
+                        <div>
                             <div className="relative">
                                 <input type={showNewPassword ? "text" : "password"} placeholder="New Password" {...register("newPassword")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white pr-12" disabled={isLoading || success !== ""} />
                                 <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300">
@@ -164,7 +158,7 @@ export default function ResetPasswordPage() {
                         </div>
 
                         {/* Confirm Password */}
-                        <div className="mb-6">
+                        <div>
                             <div className="relative">
                                 <input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm New Password" {...register("confirmPassword")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white pr-12" disabled={isLoading || success !== ""} />
                                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300">
@@ -172,6 +166,19 @@ export default function ResetPasswordPage() {
                                 </button>
                             </div>
                             {errors.confirmPassword && <p className="text-red-400 text-sm mt-1">{errors.confirmPassword.message}</p>}
+                        </div>
+
+                        {/* Password Requirements - Informational Only */}
+                        <div className="p-3 bg-slate-900/50 rounded-lg">
+                            <p className="text-xs text-gray-400 mb-2">Password strength indicators:</p>
+                            <ul className="text-xs text-gray-500 space-y-1">
+                                <li className={newPassword.length >= 8 ? "text-green-400" : ""}>• {newPassword.length >= 8 ? "✓" : "○"} At least 8 characters (stronger)</li>
+                                <li className={/[A-Z]/.test(newPassword) ? "text-green-400" : ""}>• {/[A-Z]/.test(newPassword) ? "✓" : "○"} Uppercase letter</li>
+                                <li className={/[a-z]/.test(newPassword) ? "text-green-400" : ""}>• {/[a-z]/.test(newPassword) ? "✓" : "○"} Lowercase letter</li>
+                                <li className={/[0-9]/.test(newPassword) ? "text-green-400" : ""}>• {/[0-9]/.test(newPassword) ? "✓" : "○"} Number</li>
+                                <li className={/[^A-Za-z0-9]/.test(newPassword) ? "text-green-400" : ""}>• {/[^A-Za-z0-9]/.test(newPassword) ? "✓" : "○"} Special character</li>
+                            </ul>
+                            <p className="text-xs text-gray-500 mt-2">Minimum 6 characters required.</p>
                         </div>
 
                         <button type="submit" disabled={isLoading || success !== ""} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
@@ -184,18 +191,6 @@ export default function ResetPasswordPage() {
                             ← Back to Login
                         </Link>
                     </div>
-                </div>
-
-                {/* Password Requirements */}
-                <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                    <p className="text-sm text-gray-400 mb-2">Password must contain:</p>
-                    <ul className="text-xs text-gray-500 space-y-1">
-                        <li className={`${newPassword.length >= 8 ? "text-green-400" : ""}`}>✓ At least 8 characters</li>
-                        <li className={`${/[A-Z]/.test(newPassword) ? "text-green-400" : ""}`}>✓ One uppercase letter</li>
-                        <li className={`${/[a-z]/.test(newPassword) ? "text-green-400" : ""}`}>✓ One lowercase letter</li>
-                        <li className={`${/[0-9]/.test(newPassword) ? "text-green-400" : ""}`}>✓ One number</li>
-                        <li className={`${/[^A-Za-z0-9]/.test(newPassword) ? "text-green-400" : ""}`}>✓ One special character</li>
-                    </ul>
                 </div>
             </div>
         </div>
