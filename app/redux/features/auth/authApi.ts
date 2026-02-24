@@ -118,6 +118,31 @@ type GetMyReferralsRequest = {
     limit?: number;
 };
 
+// update profile 
+type UpdateProfileRequest = {
+    name?: string;
+    email?: string;
+};
+
+type UpdateProfileResponse = {
+    success: boolean;
+    message: string;
+    data: TUser;
+};
+
+type ChangePasswordRequest = {
+    currentPassword: string;
+    newPassword: string;
+};
+
+type ChangePasswordResponse = {
+    success: boolean;
+    message: string;
+    data?: {
+        message: string;
+    };
+};
+
 const authApi = baseApi.injectEndpoints({
     overrideExisting: true,
     endpoints: (builder) => ({
@@ -231,6 +256,25 @@ const authApi = baseApi.injectEndpoints({
             }),
             providesTags: ["User"],
         }),
+
+        // Update Profile
+        updateProfile: builder.mutation<UpdateProfileResponse, UpdateProfileRequest>({
+            query: (data) => ({
+                url: "/auth/update-profile",
+                method: "PATCH",
+                body: data,
+            }),
+            invalidatesTags: ["User"],
+        }),
+
+        // Change Password
+        changePassword: builder.mutation<ChangePasswordResponse, ChangePasswordRequest>({
+            query: (data) => ({
+                url: "/auth/change-password",
+                method: "PATCH",
+                body: data,
+            }),
+        }),
     }),
 });
 
@@ -250,4 +294,6 @@ export const {
 
     // my referrals
     useGetMyReferralsQuery,
+    useUpdateProfileMutation, 
+    useChangePasswordMutation,
 } = authApi;

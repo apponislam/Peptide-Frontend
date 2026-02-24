@@ -7,8 +7,14 @@ import DashboardStats from "@/app/components/dashboard/DashboardStats";
 import OrderHistory from "@/app/components/dashboard/DashOrders";
 import InvitationCode from "@/app/components/dashboard/DashInviteCode";
 import Link from "next/link";
+import { useState } from "react";
+import { KeyRound, Settings } from "lucide-react";
+import UpdateProfileModal from "@/app/components/dashboard/UpdateProfile";
+import ChangePasswordModal from "@/app/components/dashboard/ChangePassword";
 
 export default function DashboardPage() {
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const { data, isLoading, isError } = useGetMeQuery();
     const mainUser = data?.data;
     const tier = getTier(mainUser?.referralCount || 0);
@@ -62,11 +68,31 @@ export default function DashboardPage() {
             <div className="container mx-auto px-4 py-6 md:py-8">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl md:text-3xl font-bold text-white mb-6">Hi {mainUser?.name || "there"}</h1>
-                    {["ADMIN", "SUPER_ADMIN"].includes(mainUser?.role) && (
+                    {/* {["ADMIN", "SUPER_ADMIN"].includes(mainUser?.role) && (
                         <Link href="/admin" className="px-4 py-2 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow">
                             ADMIN DASHBOARD
                         </Link>
-                    )}
+                    )} */}
+                    <div className="flex items-center gap-3">
+                        {/* Edit Profile Button */}
+                        <button onClick={() => setIsProfileModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-700">
+                            <Settings className="w-4 h-4" />
+                            <span className="text-sm">Edit Profile</span>
+                        </button>
+
+                        {/* Change Password Button */}
+                        <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-700">
+                            <KeyRound className="w-4 h-4" />
+                            <span className="text-sm">Change Password</span>
+                        </button>
+
+                        {/* Admin Dashboard Button */}
+                        {["ADMIN", "SUPER_ADMIN"].includes(mainUser?.role) && (
+                            <Link href="/admin" className="px-4 py-2 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow">
+                                ADMIN
+                            </Link>
+                        )}
+                    </div>
                 </div>
 
                 <DashboardStats user={mainUser}></DashboardStats>
@@ -79,6 +105,11 @@ export default function DashboardPage() {
 
                 {/* Order History */}
                 <OrderHistory orders={mainUser?.orders || []}></OrderHistory>
+
+                {/* Modals */}
+                <UpdateProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} user={mainUser} />
+
+                <ChangePasswordModal isOpen={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} />
             </div>
         </div>
     );
