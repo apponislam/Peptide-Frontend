@@ -222,6 +222,12 @@ export default function LoginPage() {
                                 {loginSubmitting ? "Signing In..." : "Sign In"}
                             </button>
                         </form>
+
+                        <div className="mt-4 text-center">
+                            <Link href="/auth/forgot-password" className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                                Forgot Password?
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
