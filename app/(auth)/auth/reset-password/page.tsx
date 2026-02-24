@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { EyeClosedIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import {  EyeIcon, EyeOffIcon } from "lucide-react";
 // import { useResetPasswordMutation } from "@/app/redux/features/auth/authApi";
 
 
@@ -141,7 +141,7 @@ export default function ResetPasswordPage() {
                             <div className="relative">
                                 <input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm New Password" {...register("confirmPassword")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white pr-12" />
                                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300">
-                                    {showConfirmPassword ? <EyeClosedIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                                    {showConfirmPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                                 </button>
                             </div>
                             {errors.confirmPassword && <p className="text-red-400 text-sm mt-1">{errors.confirmPassword.message}</p>}
@@ -150,7 +150,7 @@ export default function ResetPasswordPage() {
                         {/* <button type="submit" disabled={isLoading} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
                             {isLoading ? "Resetting..." : "Reset Password"}
                         </button> */}
-                        <button type="submit"  className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
+                        <button type="submit" className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
                             Reset Password
                         </button>
                     </form>
