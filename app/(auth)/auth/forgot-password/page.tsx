@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-// import { useForgotPasswordMutation } from "@/app/redux/features/auth/authApi";
+import { useForgotPasswordMutation } from "@/app/redux/features/auth/authApi";
 
 const forgotPasswordSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -15,7 +16,8 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
-    // const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
+    const router = useRouter();
+    const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
@@ -32,8 +34,13 @@ export default function ForgotPasswordPage() {
         setSuccess("");
 
         try {
-            // const response = await forgotPassword(data).unwrap();
-            // setSuccess(response?.message || "Password reset link sent to your email");
+            const response = await forgotPassword(data).unwrap();
+            setSuccess(response?.message || "Password reset link sent to your email");
+
+            // After 2 seconds, redirect to verify-otp page with email
+            setTimeout(() => {
+                router.push(`/auth/verify-otp?email=${encodeURIComponent(data.email)}`);
+            }, 2000);
         } catch (err: any) {
             setError(err?.data?.message || "Failed to send reset link");
         }
@@ -61,6 +68,7 @@ export default function ForgotPasswordPage() {
                 {success && (
                     <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
                         <p className="text-green-300 text-sm">{success}</p>
+                        <p className="text-green-300 text-sm mt-2">Redirecting to verification page...</p>
                     </div>
                 )}
 
@@ -70,15 +78,12 @@ export default function ForgotPasswordPage() {
 
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="mb-2">
-                            <input type="email" placeholder="Email Address" {...register("email")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white mb-4" />
+                            <input type="email" placeholder="Email Address" {...register("email")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white mb-4" disabled={isLoading || success !== ""} />
                             {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>}
                         </div>
 
-                        {/* <button type="submit" disabled={isLoading} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
+                        <button type="submit" disabled={isLoading || success !== ""} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
                             {isLoading ? "Sending..." : "Send Reset Link"}
-                        </button> */}
-                        <button type="submit" className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
-                            Send Reset Link
                         </button>
                     </form>
 

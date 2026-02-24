@@ -3,48 +3,53 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-// import { useVerifyResetPinMutation } from "@/app/redux/features/auth/authApi";
+import { useVerifyOTPMutation, useForgotPasswordMutation } from "@/app/redux/features/auth/authApi";
 
-const verifyPinSchema = z.object({
-    pin: z.string().length(6, "PIN must be 6 digits"),
+const verifyOTPSchema = z.object({
+    otp: z.string().length(6, "OTP must be 6 digits"),
 });
 
-type VerifyPinFormData = z.infer<typeof verifyPinSchema>;
+type VerifyOTPFormData = z.infer<typeof verifyOTPSchema>;
 
-export default function VerifyPinPage() {
+export default function VerifyOTPPage() {
     const router = useRouter();
-    // const [verifyPin, { isLoading }] = useVerifyResetPinMutation();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email") || "";
+
+    const [verifyOTP, { isLoading }] = useVerifyOTPMutation();
+    const [resendOTP, { isLoading: isResending }] = useForgotPasswordMutation();
     const [error, setError] = useState("");
-    const [pinDigits, setPinDigits] = useState(["", "", "", "", "", ""]);
+    const [success, setSuccess] = useState("");
+    const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     const {
         handleSubmit,
         setValue,
         formState: { errors },
-    } = useForm<VerifyPinFormData>({
-        resolver: zodResolver(verifyPinSchema),
+    } = useForm<VerifyOTPFormData>({
+        resolver: zodResolver(verifyOTPSchema),
     });
 
-    // Handle pin digit input
-    const handlePinChange = (index: number, value: string) => {
+    // Handle OTP digit input
+    const handleOtpChange = (index: number, value: string) => {
         if (value.length > 1) {
             value = value.charAt(0);
         }
 
         if (value && !/^\d+$/.test(value)) return;
 
-        const newPinDigits = [...pinDigits];
-        newPinDigits[index] = value;
-        setPinDigits(newPinDigits);
+        const newOtpDigits = [...otpDigits];
+        newOtpDigits[index] = value;
+        setOtpDigits(newOtpDigits);
 
         // Update form value
-        const fullPin = newPinDigits.join("");
-        setValue("pin", fullPin, { shouldValidate: true });
+        const fullOtp = newOtpDigits.join("");
+        setValue("otp", fullOtp, { shouldValidate: true });
 
         // Auto-focus next input
         if (value && index < 5) {
@@ -53,34 +58,100 @@ export default function VerifyPinPage() {
     };
 
     const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Backspace" && !pinDigits[index] && index > 0) {
+        if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
             inputRefs.current[index - 1]?.focus();
         }
     };
 
-    const onSubmit = async (data: VerifyPinFormData) => {
-        setError("");
+    // Handle paste for full OTP
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData("text");
+        const pastedOtp = pastedData.replace(/\D/g, "").slice(0, 6);
 
-        try {
-            // await verifyPin({ pin: data.pin }).unwrap();
-            router.push("/auth/reset-password");
-        } catch (err: any) {
-            setError(err?.data?.message || "Invalid verification code");
+        if (pastedOtp.length > 0) {
+            const newOtpDigits = [...otpDigits];
+            for (let i = 0; i < pastedOtp.length; i++) {
+                if (i < 6) newOtpDigits[i] = pastedOtp[i];
+            }
+            setOtpDigits(newOtpDigits);
+            setValue("otp", newOtpDigits.join(""), { shouldValidate: true });
 
-            // Clear PIN on error
-            setPinDigits(["", "", "", "", "", ""]);
-            setValue("pin", "");
-            inputRefs.current[0]?.focus();
+            // Focus next empty field or last field
+            const nextIndex = Math.min(pastedOtp.length, 5);
+            inputRefs.current[nextIndex]?.focus();
         }
     };
 
     // Auto-submit when 6 digits are entered
     useEffect(() => {
-        const fullPin = pinDigits.join("");
-        if (fullPin.length === 6) {
+        const fullOtp = otpDigits.join("");
+        if (fullOtp.length === 6) {
             handleSubmit(onSubmit)();
         }
-    }, [pinDigits]);
+    }, [otpDigits]);
+
+    const onSubmit = async (data: VerifyOTPFormData) => {
+        if (!email) {
+            setError("Email not found. Please start over.");
+            return;
+        }
+
+        setError("");
+        setSuccess("");
+
+        try {
+            const response = await verifyOTP({ email, otp: data.otp }).unwrap();
+            setSuccess("OTP verified successfully!");
+
+            // Redirect to reset password page with token from response
+            setTimeout(() => {
+                router.push(`/auth/reset-password?token=${response.data?.token}`);
+            }, 1500);
+        } catch (err: any) {
+            setError(err?.data?.message || "Invalid OTP");
+
+            // Clear OTP on error
+            setOtpDigits(["", "", "", "", "", ""]);
+            setValue("otp", "");
+            inputRefs.current[0]?.focus();
+        }
+    };
+
+    const handleResendOTP = async () => {
+        if (!email) {
+            setError("Email not found. Please start over.");
+            return;
+        }
+
+        setError("");
+        setSuccess("");
+
+        try {
+            await resendOTP({ email }).unwrap();
+            setSuccess("New OTP sent to your email!");
+
+            // Clear OTP fields
+            setOtpDigits(["", "", "", "", "", ""]);
+            setValue("otp", "");
+            inputRefs.current[0]?.focus();
+        } catch (err: any) {
+            setError(err?.data?.message || "Failed to resend OTP");
+        }
+    };
+
+    if (!email) {
+        return (
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+                <div className="bg-slate-800 rounded-xl p-8 border border-slate-700 text-center">
+                    <p className="text-red-400 mb-4">No email provided</p>
+                    <Link href="/auth/forgot-password" className="text-cyan-400 hover:text-cyan-300">
+                        Go back to forgot password
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
@@ -91,6 +162,7 @@ export default function VerifyPinPage() {
                         <Image src="/peptide-logo.png" alt="PEPTIDE.CLUB" width={0} height={0} sizes="100vw" className="h-16 md:h-20 w-auto" priority />
                     </div>
                     <p className="text-gray-400 text-base">Enter verification code</p>
+                    <p className="text-gray-500 text-sm mt-2">{email}</p>
                 </div>
 
                 {/* Error Message */}
@@ -100,7 +172,14 @@ export default function VerifyPinPage() {
                     </div>
                 )}
 
-                {/* Verify PIN Form */}
+                {/* Success Message */}
+                {success && (
+                    <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
+                        <p className="text-green-300 text-sm">{success}</p>
+                    </div>
+                )}
+
+                {/* Verify OTP Form */}
                 <div className="bg-slate-800 rounded-xl md:rounded-2xl p-6 md:p-8 border border-slate-700">
                     <h2 className="text-xl md:text-2xl font-bold text-white mb-2">Verify Code</h2>
                     <p className="text-gray-400 text-sm mb-6">We've sent a 6-digit code to your email</p>
@@ -117,32 +196,26 @@ export default function VerifyPinPage() {
                                         ref={(el) => {
                                             inputRefs.current[index] = el;
                                         }}
-                                        value={pinDigits[index]}
-                                        onChange={(e) => handlePinChange(index, e.target.value)}
+                                        value={otpDigits[index]}
+                                        onChange={(e) => handleOtpChange(index, e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(index, e)}
+                                        onPaste={handlePaste}
                                         className="w-12 h-12 text-center text-xl font-bold bg-slate-900 border border-slate-700 rounded-lg text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none"
+                                        disabled={isLoading || success !== ""}
                                     />
                                 ))}
                             </div>
-                            {errors.pin && <p className="text-red-400 text-sm mt-2 text-center">{errors.pin.message}</p>}
+                            {errors.otp && <p className="text-red-400 text-sm mt-2 text-center">{errors.otp.message}</p>}
                         </div>
 
-                        {/* <button type="submit" disabled={isLoading || pinDigits.join("").length !== 6} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
+                        <button type="submit" disabled={isLoading || otpDigits.join("").length !== 6 || success !== ""} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
                             {isLoading ? "Verifying..." : "Verify Code"}
-                        </button> */}
-                        <button type="submit" disabled={pinDigits.join("").length !== 6} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
-                            Verify Code
                         </button>
                     </form>
 
                     <div className="mt-6 text-center">
-                        <button
-                            onClick={() => {
-                                /* Resend code logic */
-                            }}
-                            className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
-                        >
-                            Resend Code
+                        <button onClick={handleResendOTP} disabled={isResending || success !== ""} className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-50">
+                            {isResending ? "Sending..." : "Resend Code"}
                         </button>
                     </div>
 
@@ -152,6 +225,8 @@ export default function VerifyPinPage() {
                         </Link>
                     </div>
                 </div>
+
+                <p className="text-center text-gray-500 text-sm mt-6">The code will expire in 10 minutes</p>
             </div>
         </div>
     );

@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {  EyeIcon, EyeOffIcon } from "lucide-react";
-// import { useResetPasswordMutation } from "@/app/redux/features/auth/authApi";
-
+import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { useResetPasswordMutation } from "@/app/redux/features/auth/authApi";
 
 const resetPasswordSchema = z
     .object({
@@ -31,7 +30,10 @@ type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPasswordPage() {
     const router = useRouter();
-    // const [resetPassword, { isLoading }] = useResetPasswordMutation();
+    const searchParams = useSearchParams();
+    const token = searchParams.get("token") || "";
+
+    const [resetPassword, { isLoading }] = useResetPasswordMutation();
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -48,6 +50,13 @@ export default function ResetPasswordPage() {
 
     const newPassword = watch("newPassword", "");
 
+    // Redirect if no token
+    useEffect(() => {
+        if (!token) {
+            router.push("/auth/forgot-password");
+        }
+    }, [token, router]);
+
     const getPasswordStrength = () => {
         let strength = 0;
         if (newPassword.length >= 8) strength++;
@@ -63,14 +72,19 @@ export default function ResetPasswordPage() {
     const strengthColor = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-blue-500", "bg-green-500"];
 
     const onSubmit = async (data: ResetPasswordFormData) => {
+        if (!token) {
+            setError("Invalid reset token");
+            return;
+        }
+
         setError("");
         setSuccess("");
 
         try {
-            // await resetPassword({
-            //     newPassword: data.newPassword,
-            //     confirmPassword: data.confirmPassword,
-            // }).unwrap();
+            await resetPassword({
+                token: token,
+                newPassword: data.newPassword,
+            }).unwrap();
 
             setSuccess("Password reset successfully!");
 
@@ -82,6 +96,19 @@ export default function ResetPasswordPage() {
             setError(err?.data?.message || "Failed to reset password");
         }
     };
+
+    if (!token) {
+        return (
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+                <div className="bg-slate-800 rounded-xl p-8 border border-slate-700 text-center">
+                    <p className="text-red-400 mb-4">No reset token provided</p>
+                    <Link href="/auth/forgot-password" className="text-cyan-400 hover:text-cyan-300">
+                        Go back to forgot password
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
@@ -116,7 +143,7 @@ export default function ResetPasswordPage() {
                         {/* New Password */}
                         <div className="mb-4">
                             <div className="relative">
-                                <input type={showNewPassword ? "text" : "password"} placeholder="New Password" {...register("newPassword")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white pr-12" />
+                                <input type={showNewPassword ? "text" : "password"} placeholder="New Password" {...register("newPassword")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white pr-12" disabled={isLoading || success !== ""} />
                                 <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300">
                                     {showNewPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                                 </button>
@@ -139,7 +166,7 @@ export default function ResetPasswordPage() {
                         {/* Confirm Password */}
                         <div className="mb-6">
                             <div className="relative">
-                                <input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm New Password" {...register("confirmPassword")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white pr-12" />
+                                <input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm New Password" {...register("confirmPassword")} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white pr-12" disabled={isLoading || success !== ""} />
                                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300">
                                     {showConfirmPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                                 </button>
@@ -147,11 +174,8 @@ export default function ResetPasswordPage() {
                             {errors.confirmPassword && <p className="text-red-400 text-sm mt-1">{errors.confirmPassword.message}</p>}
                         </div>
 
-                        {/* <button type="submit" disabled={isLoading} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
+                        <button type="submit" disabled={isLoading || success !== ""} className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
                             {isLoading ? "Resetting..." : "Reset Password"}
-                        </button> */}
-                        <button type="submit" className="w-full py-3 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-bold hover:shadow-lg transition-shadow disabled:opacity-50 cursor-pointer">
-                            Reset Password
                         </button>
                     </form>
 

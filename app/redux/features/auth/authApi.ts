@@ -70,45 +70,25 @@ type CheckReferralCodeResponse = {
 };
 
 // New types for password reset
-type ForgotPasswordRequest = {
-    email: string;
-};
-
+type ForgotPasswordRequest = { email: string };
 type ForgotPasswordResponse = {
     success: boolean;
     message: string;
-    data?: {
-        message: string;
-        email?: string;
-    };
+    data?: { message: string };
 };
 
-type VerifyOTPRequest = {
-    email: string;
-    otp: string;
-};
-
+type VerifyOTPRequest = { email: string; otp: string };
 type VerifyOTPResponse = {
     success: boolean;
     message: string;
-    data?: {
-        message: string;
-        email?: string;
-    };
+    data?: { token: string }; // ONLY token
 };
 
-type ResetPasswordRequest = {
-    email: string;
-    otp: string;
-    newPassword: string;
-};
-
+type ResetPasswordRequest = { token: string; newPassword: string };
 type ResetPasswordResponse = {
     success: boolean;
     message: string;
-    data?: {
-        message: string;
-    };
+    data?: { message: string };
 };
 
 const authApi = baseApi.injectEndpoints({
@@ -196,7 +176,6 @@ const authApi = baseApi.injectEndpoints({
             }),
         }),
 
-        // NEW: Verify OTP endpoint
         verifyOTP: builder.mutation<VerifyOTPResponse, VerifyOTPRequest>({
             query: (data) => ({
                 url: "/auth/verify-otp",
@@ -205,7 +184,6 @@ const authApi = baseApi.injectEndpoints({
             }),
         }),
 
-        // NEW: Reset Password endpoint
         resetPassword: builder.mutation<ResetPasswordResponse, ResetPasswordRequest>({
             query: (data) => ({
                 url: "/auth/reset-password",
@@ -216,4 +194,17 @@ const authApi = baseApi.injectEndpoints({
     }),
 });
 
-export const { useLoginMutation, useAdminLoginMutation, useRegisterMutation, useRefreshTokenMutation, useLogoutMutation, useGetMeQuery, useUpdateReferralCodeMutation, useCheckReferralCodeQuery } = authApi;
+export const {
+    useLoginMutation,
+    useAdminLoginMutation,
+    useRegisterMutation,
+    useRefreshTokenMutation,
+    useLogoutMutation,
+    useGetMeQuery,
+    useUpdateReferralCodeMutation,
+    useCheckReferralCodeQuery,
+    // forgot password
+    useForgotPasswordMutation,
+    useVerifyOTPMutation,
+    useResetPasswordMutation,
+} = authApi;
