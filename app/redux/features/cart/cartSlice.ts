@@ -87,13 +87,25 @@ const cartSlice = createSlice({
                 }
             }
         },
+        addMultipleToCart: (state, action: PayloadAction<Array<{ product: Product; size: ProductSize; quantity: number }>>) => {
+            action.payload.forEach((item) => {
+                const { product, size, quantity } = item;
+                const existingIndex = state.items.findIndex((cartItem) => cartItem.product.id === product.id && cartItem.size.mg === size.mg);
+
+                if (existingIndex >= 0) {
+                    state.items[existingIndex].quantity += quantity;
+                } else {
+                    state.items.push({ product, size, quantity });
+                }
+            });
+        },
         clearCart: (state) => {
             state.items = [];
         },
     },
 });
 
-export const { openCart, closeCart, toggleCart, addToCart, removeFromCart, removeItemCompletely, updateQuantity, clearCart } = cartSlice.actions;
+export const { openCart, closeCart, toggleCart, addToCart, removeFromCart, removeItemCompletely, updateQuantity, addMultipleToCart, clearCart } = cartSlice.actions;
 
 export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
 export const selectCartOpen = (state: { cart: CartState }) => state.cart.isOpen;

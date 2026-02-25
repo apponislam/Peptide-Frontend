@@ -7,6 +7,7 @@
 // import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
 // import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
 // import { getMemberPrice } from "@/app/utils/pricing";
+// import { useCreateOrderPreviewMutation } from "@/app/redux/features/orderpreview/orderpreviewApi";
 
 // interface OrderHistoryProps {
 //     orders?: Order[];
@@ -20,69 +21,9 @@
 
 //     const { data } = useGetOrdersQuery({ page: 1, limit: 3 });
 //     const [createCheckout, { isLoading: isCheckoutLoading }] = useCreateCheckoutSessionMutation();
+//     const [createOrderPreview, { isLoading: isPreviewLoading }] = useCreateOrderPreviewMutation(); // ← MOVED HERE
 
 //     const displayedOrders = data?.data || orders.slice(0, 3);
-
-//     // const handleDirectCheckout = async (order: any) => {
-//     //     try {
-//     //         if (!user) {
-//     //             router.push("/auth/login");
-//     //             return;
-//     //         }
-
-//     //         // Prepare items from the order
-//     //         const itemsForApi = order.items.map((item: any) => {
-//     //             const sizeInfo = item.product.sizes.find((s: any) => s.mg === item.size);
-//     //             const originalPrice = sizeInfo?.price || item.unitPrice;
-//     //             const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
-
-//     //             return {
-//     //                 productId: item.product.id,
-//     //                 name: item.product.name,
-//     //                 description: `${item.size}mg ${item.product.name}`,
-//     //                 price: currentPrice,
-//     //                 quantity: item.quantity,
-//     //                 size: item.size.toString(),
-//     //             };
-//     //         });
-
-//     //         const subtotal = itemsForApi.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-
-//     //         const SHIPPING_RATE = 6.95;
-//     //         let shippingAmount = SHIPPING_RATE;
-
-//     //         if (user?.tier === "Founder" || user?.tier === "VIP") {
-//     //             shippingAmount = 0;
-//     //         } else if (user?.tier === "Member" && subtotal >= 150) {
-//     //             shippingAmount = 0;
-//     //         }
-
-//     //         const total = subtotal + shippingAmount;
-
-//     //         const result = await createCheckout({
-//     //             userId: user.id,
-//     //             items: itemsForApi,
-//     //             shippingAmount,
-//     //             subtotal,
-//     //             storeCreditUsed: 0,
-//     //             total,
-//     //             metadata: {
-//     //                 userId: user.id,
-//     //                 originalSubtotal: subtotal,
-//     //                 storeCreditUsed: 0,
-//     //                 isRepeatOrder: "true",
-//     //                 originalOrderId: order.id,
-//     //             },
-//     //         }).unwrap();
-
-//     //         if (result.url) {
-//     //             window.location.href = result.url;
-//     //         }
-//     //     } catch (error: any) {
-//     //         console.error("Checkout failed:", error);
-//     //         alert(`Checkout failed: ${error?.data?.error || error.message}`);
-//     //     }
-//     // };
 
 //     const handleDirectCheckout = async (order: any) => {
 //         try {
@@ -91,30 +32,28 @@
 //                 return;
 //             }
 
-//             // Prepare items from the order
-//             const itemsForApi = order.items.map((item: any) => {
+//             // Prepare full item details from the order
+//             const fullItemDetails = order.items.map((item: any) => {
 //                 const sizeInfo = item.product.sizes.find((s: any) => s.mg === item.size);
 //                 const originalPrice = sizeInfo?.price || item.unitPrice;
 //                 const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
 
-//                 // Safely handle size value
-//                 const sizeValue = item.size || 0; // or provide a default value
-
 //                 return {
 //                     productId: item.product.id,
 //                     name: item.product.name,
-//                     description: sizeValue ? `${sizeValue}mg ${item.product.name}` : item.product.name,
-//                     price: currentPrice,
+//                     size: item.size,
 //                     quantity: item.quantity,
-//                     size: sizeValue.toString(), // Now safe to call toString()
+//                     originalPrice: originalPrice,
+//                     finalPrice: currentPrice,
+//                     description: `${item.size}mg ${item.product.name}`,
 //                 };
 //             });
 
-//             const subtotal = itemsForApi.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+//             const subtotal = fullItemDetails.reduce((sum: number, item: any) => sum + item.finalPrice * item.quantity, 0);
 
+//             // Calculate shipping
 //             const SHIPPING_RATE = 6.95;
 //             let shippingAmount = SHIPPING_RATE;
-
 //             if (user?.tier === "Founder" || user?.tier === "VIP") {
 //                 shippingAmount = 0;
 //             } else if (user?.tier === "Member" && subtotal >= 150) {
@@ -123,14 +62,27 @@
 
 //             const total = subtotal + shippingAmount;
 
-//             // Create compact item string with null check
-//             const itemString = order.items
-//                 .map((item: any) => {
-//                     const sizeValue = item.size || 0;
-//                     return `${item.product.id}-${sizeValue}-${item.quantity}`;
-//                 })
-//                 .join(",");
+//             // 1. CREATE ORDER PREVIEW IN DATABASE
+//             const previewResult = await createOrderPreview({
+//                 items: fullItemDetails,
+//                 subtotal,
+//                 shippingAmount,
+//                 total,
+//             }).unwrap();
 
+//             const previewId = previewResult.data.previewId;
+
+//             // 2. Prepare minimal items for Stripe API
+//             const itemsForApi = fullItemDetails.map((item: any) => ({
+//                 productId: item.productId,
+//                 name: item.name,
+//                 description: item.description,
+//                 price: item.finalPrice,
+//                 quantity: item.quantity,
+//                 size: item.size.toString(),
+//             }));
+
+//             // 3. Create checkout session with ONLY the preview ID
 //             const result = await createCheckout({
 //                 userId: user.id,
 //                 items: itemsForApi,
@@ -140,11 +92,11 @@
 //                 total,
 //                 metadata: {
 //                     userId: user.id,
-//                     originalSubtotal: subtotal,
-//                     storeCreditUsed: 0,
+//                     originalSubtotal: subtotal.toString(),
+//                     storeCreditUsed: "0",
 //                     isRepeatOrder: "true",
 //                     originalOrderId: order.id,
-//                     items: itemString,
+//                     orderPreviewId: previewId, // ONLY this ID!
 //                 },
 //             }).unwrap();
 
@@ -174,6 +126,9 @@
 
 //         return `${baseClass} ${statusClasses[status] || statusClasses.PENDING}`;
 //     };
+
+//     // Combine loading states for the button
+//     const isLoading = isCheckoutLoading || isPreviewLoading;
 
 //     if (displayedOrders.length === 0) {
 //         return (
@@ -220,7 +175,6 @@
 //                                 <div className="text-right">
 //                                     <div className="text-xl font-bold text-cyan-400">${order.total?.toFixed(2) || "0.00"}</div>
 //                                     <div className="text-sm text-gray-400">{orderItems.length} items</div>
-//                                     {/* ADDED: Shipping amount display */}
 //                                     <div className="text-xs text-gray-500 mt-1">Shipping: {order.shipping === 0 ? "FREE" : `$${order.shipping?.toFixed(2)}`}</div>
 //                                 </div>
 //                             </div>
@@ -241,8 +195,8 @@
 //                             )}
 
 //                             <div className="flex gap-2">
-//                                 <button onClick={() => handleDirectCheckout(order)} disabled={!isRepeat || isCheckoutLoading} className={`flex-1 py-2 rounded-lg font-semibold transition ${isRepeat && !isCheckoutLoading ? "bg-cyan-500 hover:bg-cyan-600 text-white cursor-pointer" : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"}`}>
-//                                     {isCheckoutLoading ? "Processing..." : isRepeat ? "🔄 Repeat Order" : "📦 Stock Out"}
+//                                 <button onClick={() => handleDirectCheckout(order)} disabled={!isRepeat || isLoading} className={`flex-1 py-2 rounded-lg font-semibold transition ${isRepeat && !isLoading ? "bg-cyan-500 hover:bg-cyan-600 text-white cursor-pointer" : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"}`}>
+//                                     {isLoading ? "Processing..." : isRepeat ? "🔄 Repeat Order" : "📦 Stock Out"}
 //                                 </button>
 //                                 <Link href={`/dashboard/orders/${order.id}`} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-center transition">
 //                                     View Details
@@ -272,9 +226,10 @@ import { Order } from "../../types";
 import { useGetOrdersQuery } from "@/app/redux/features/order/orderApi";
 import { useRouter } from "next/navigation";
 import { useGetMeQuery } from "@/app/redux/features/auth/authApi";
-import { useCreateCheckoutSessionMutation } from "@/app/redux/features/payment/paymentApi";
-import { getMemberPrice } from "@/app/utils/pricing";
-import { useCreateOrderPreviewMutation } from "@/app/redux/features/orderpreview/orderpreviewApi";
+import { useDispatch } from "react-redux";
+import { addMultipleToCart, openCart } from "@/app/redux/features/cart/cartSlice";
+import { useState } from "react";
+import { useGetProductsByIdsMutation } from "@/app/redux/features/products/productsApi";
 
 interface OrderHistoryProps {
     orders?: Order[];
@@ -282,97 +237,97 @@ interface OrderHistoryProps {
 
 export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
     const router = useRouter();
+    const dispatch = useDispatch();
+    const [repeatingOrderId, setRepeatingOrderId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const { data: userData } = useGetMeQuery();
     const user = userData?.data;
 
     const { data } = useGetOrdersQuery({ page: 1, limit: 3 });
-    const [createCheckout, { isLoading: isCheckoutLoading }] = useCreateCheckoutSessionMutation();
-    const [createOrderPreview, { isLoading: isPreviewLoading }] = useCreateOrderPreviewMutation(); // ← MOVED HERE
+    const [getProductsByIds, { isLoading: isProductsLoading }] = useGetProductsByIdsMutation();
 
     const displayedOrders = data?.data || orders.slice(0, 3);
 
-    const handleDirectCheckout = async (order: any) => {
+    const handleRepeatOrder = async (order: any) => {
+        setRepeatingOrderId(order.id);
+        setError(null);
+
         try {
             if (!user) {
-                router.push("/auth/login");
+                router.push("/auth/login?redirect=/dashboard");
                 return;
             }
 
-            // Prepare full item details from the order
-            const fullItemDetails = order.items.map((item: any) => {
-                const sizeInfo = item.product.sizes.find((s: any) => s.mg === item.size);
-                const originalPrice = sizeInfo?.price || item.unitPrice;
-                const currentPrice = parseFloat(getMemberPrice(originalPrice, user));
+            // Extract all product IDs from the order
+            const productIds = order.items.map((item: any) => item.product?.id || item.productId);
 
-                return {
-                    productId: item.product.id,
-                    name: item.product.name,
-                    size: item.size,
-                    quantity: item.quantity,
-                    originalPrice: originalPrice,
-                    finalPrice: currentPrice,
-                    description: `${item.size}mg ${item.product.name}`,
-                };
+            // Fetch full product details including current sizes
+            const response = await getProductsByIds(productIds).unwrap();
+            const products = response.data; // Adjust based on your API response
+
+            // Create a map for quick lookup
+            const productMap = new Map();
+            products.forEach((product: any) => {
+                productMap.set(product.id, product);
             });
 
-            const subtotal = fullItemDetails.reduce((sum: number, item: any) => sum + item.finalPrice * item.quantity, 0);
+            // Prepare items to add to cart
+            const itemsToAdd = [];
+            const unavailableItems = [];
 
-            // Calculate shipping
-            const SHIPPING_RATE = 6.95;
-            let shippingAmount = SHIPPING_RATE;
-            if (user?.tier === "Founder" || user?.tier === "VIP") {
-                shippingAmount = 0;
-            } else if (user?.tier === "Member" && subtotal >= 150) {
-                shippingAmount = 0;
+            for (const item of order.items) {
+                const productId = item.product?.id || item.productId;
+                const fullProduct = productMap.get(productId);
+
+                if (!fullProduct) {
+                    unavailableItems.push(`${item.product?.name || "Product"} (not found)`);
+                    continue;
+                }
+
+                // Find the matching size based on mg
+                const size = fullProduct.sizes.find((s: any) => s.mg === item.size);
+
+                if (!size) {
+                    unavailableItems.push(`${fullProduct.name} (${item.size}mg not available)`);
+                    continue;
+                }
+
+                // Check if size is in stock
+                if (size.quantity <= 0) {
+                    unavailableItems.push(`${fullProduct.name} (${item.size}mg out of stock)`);
+                    continue;
+                }
+
+                // Add to cart items (use original quantity, cart will handle limits)
+                itemsToAdd.push({
+                    product: fullProduct,
+                    size: size,
+                    quantity: item.quantity,
+                });
             }
 
-            const total = subtotal + shippingAmount;
-
-            // 1. CREATE ORDER PREVIEW IN DATABASE
-            const previewResult = await createOrderPreview({
-                items: fullItemDetails,
-                subtotal,
-                shippingAmount,
-                total,
-            }).unwrap();
-
-            const previewId = previewResult.data.previewId;
-
-            // 2. Prepare minimal items for Stripe API
-            const itemsForApi = fullItemDetails.map((item: any) => ({
-                productId: item.productId,
-                name: item.name,
-                description: item.description,
-                price: item.finalPrice,
-                quantity: item.quantity,
-                size: item.size.toString(),
-            }));
-
-            // 3. Create checkout session with ONLY the preview ID
-            const result = await createCheckout({
-                userId: user.id,
-                items: itemsForApi,
-                shippingAmount,
-                subtotal,
-                storeCreditUsed: 0,
-                total,
-                metadata: {
-                    userId: user.id,
-                    originalSubtotal: subtotal.toString(),
-                    storeCreditUsed: "0",
-                    isRepeatOrder: "true",
-                    originalOrderId: order.id,
-                    orderPreviewId: previewId, // ONLY this ID!
-                },
-            }).unwrap();
-
-            if (result.url) {
-                window.location.href = result.url;
+            if (itemsToAdd.length === 0) {
+                setError("No items from this order are currently available.");
+                return;
             }
+
+            // Add all items to cart at once
+            dispatch(addMultipleToCart(itemsToAdd));
+
+            // Open the cart sidebar
+            dispatch(openCart());
+
+            // Show success message with details
+            const totalItems = itemsToAdd.reduce((sum, item) => sum + item.quantity, 0);
+            const message = unavailableItems.length > 0 ? `✅ Added ${totalItems} item(s) to cart. ${unavailableItems.length} item(s) unavailable.` : `✅ Added ${totalItems} item(s) to cart!`;
+
+            // alert(message);
         } catch (error: any) {
-            console.error("Checkout failed:", error);
-            alert(`Checkout failed: ${error?.data?.error || error.message}`);
+            console.error("Repeat order failed:", error);
+            setError(error?.data?.message || "Failed to repeat order");
+        } finally {
+            setRepeatingOrderId(null);
         }
     };
 
@@ -394,8 +349,7 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
         return `${baseClass} ${statusClasses[status] || statusClasses.PENDING}`;
     };
 
-    // Combine loading states for the button
-    const isLoading = isCheckoutLoading || isPreviewLoading;
+    const isLoading = isProductsLoading || repeatingOrderId !== null;
 
     if (displayedOrders.length === 0) {
         return (
@@ -418,12 +372,19 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                 <h2 className="text-xl md:text-2xl font-bold text-white">Order History</h2>
             </div>
 
+            {/* Error message */}
+            {error && (
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
+                    <p className="text-red-300 text-sm">{error}</p>
+                </div>
+            )}
+
             <div className="space-y-4">
                 {displayedOrders.map((order: any) => {
                     const orderItems = Array.isArray(order.items) ? order.items : typeof order.items === "object" && order.items !== null ? [order.items] : [];
 
                     const orderDate = order.date || order.createdAt || new Date();
-                    const isRepeat = order.isRepeat;
+                    const isRepeating = repeatingOrderId === order.id;
 
                     return (
                         <div key={order.id} className="bg-slate-900 rounded-lg p-4 md:p-6">
@@ -462,8 +423,8 @@ export default function OrderHistory({ orders = [] }: OrderHistoryProps) {
                             )}
 
                             <div className="flex gap-2">
-                                <button onClick={() => handleDirectCheckout(order)} disabled={!isRepeat || isLoading} className={`flex-1 py-2 rounded-lg font-semibold transition ${isRepeat && !isLoading ? "bg-cyan-500 hover:bg-cyan-600 text-white cursor-pointer" : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"}`}>
-                                    {isLoading ? "Processing..." : isRepeat ? "🔄 Repeat Order" : "📦 Stock Out"}
+                                <button onClick={() => handleRepeatOrder(order)} disabled={isLoading} className={`flex-1 py-2 rounded-lg font-semibold transition ${!isLoading ? "bg-cyan-500 hover:bg-cyan-600 text-white cursor-pointer" : "bg-gray-600 text-gray-400 cursor-not-allowed opacity-50"}`}>
+                                    {isRepeating ? "Adding to Cart..." : "🔄 Repeat Order"}
                                 </button>
                                 <Link href={`/dashboard/orders/${order.id}`} className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-center transition">
                                     View Details
