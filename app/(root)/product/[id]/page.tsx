@@ -66,7 +66,7 @@ export default function ProductPage() {
 
     // Use user.tier instead of referralCount
     const tier = getTier(user?.tier || "Member");
-    const isBacWater = product?.name?.includes("BAC Water") || false;
+    // const isBacWater = product?.name?.includes("BAC Water") || false;
 
     // API URL for images
     const API_URL = process.env.NEXT_PUBLIC_BASE_API || "http://localhost:5050";
@@ -213,23 +213,29 @@ export default function ProductPage() {
                             </div>
                         </div>
 
+                        {/* Tabs */}
                         <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
                             <div className="flex border-b border-slate-700">
                                 <button onClick={() => setSelectedTab("overview")} className={`flex-1 px-4 md:px-6 py-3 md:py-4 text-sm font-semibold ${selectedTab === "overview" ? "text-cyan-400 bg-slate-900 border-b-2 border-cyan-400" : "text-gray-400 hover:text-white"}`}>
                                     Overview
                                 </button>
-                                {!isBacWater && (
+
+                                {/* Show Research tab only if product has references */}
+                                {product.references?.length > 0 && (
                                     <button onClick={() => setSelectedTab("research")} className={`flex-1 px-4 md:px-6 py-3 md:py-4 text-sm font-semibold ${selectedTab === "research" ? "text-cyan-400 bg-slate-900 border-b-2 border-cyan-400" : "text-gray-400 hover:text-white"}`}>
                                         Research
                                     </button>
                                 )}
-                                {!isBacWater && (
+
+                                {/* Show COA tab only if product has COA */}
+                                {product.coa && (
                                     <button onClick={() => setSelectedTab("coa")} className={`flex-1 px-4 md:px-6 py-3 md:py-4 text-sm font-semibold ${selectedTab === "coa" ? "text-cyan-400 bg-slate-900 border-b-2 border-cyan-400" : "text-gray-400 hover:text-white"}`}>
                                         COA
                                     </button>
                                 )}
                             </div>
 
+                            {/* Tab Content */}
                             <div className="p-4 md:p-6 lg:p-8">
                                 {selectedTab === "overview" && (
                                     <div className="space-y-6">
@@ -244,7 +250,7 @@ export default function ProductPage() {
                                     </div>
                                 )}
 
-                                {selectedTab === "research" && !isBacWater && (
+                                {selectedTab === "research" && product.references?.length > 0 && (
                                     <div>
                                         <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">Research References</h3>
                                         <p className="text-gray-400 mb-4 md:mb-6">Peer-reviewed research and academic literature:</p>
@@ -262,33 +268,24 @@ export default function ProductPage() {
                                     </div>
                                 )}
 
-                                {selectedTab === "coa" && !isBacWater && (
+                                {selectedTab === "coa" && product.coa && (
                                     <div>
                                         <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">Certificate of Analysis</h3>
-
-                                        {product.coa ? (
-                                            <div>
-                                                <div className="bg-slate-900 rounded-lg p-4 md:p-6 mb-4">
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-3xl">{product.coa.mimetype?.startsWith("image/") ? "🖼️" : "📄"}</span>
-                                                            <div>
-                                                                <p className="text-white font-semibold">{product.coa.filename}</p>
-                                                                <p className="text-sm text-gray-400">{(product.coa.size / 1024).toFixed(2)} KB</p>
-                                                            </div>
-                                                        </div>
-                                                        <button onClick={() => setShowCoaModal(true)} className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold">
-                                                            View COA
-                                                        </button>
+                                        <div className="bg-slate-900 rounded-lg p-4 md:p-6">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-3xl">{product.coa.mimetype?.startsWith("image/") ? "🖼️" : "📄"}</span>
+                                                    <div>
+                                                        <p className="text-white font-semibold">{product.coa.filename}</p>
+                                                        <p className="text-sm text-gray-400">{(product.coa.size / 1024).toFixed(2)} KB</p>
                                                     </div>
-                                                    <p className="text-xs text-gray-400">Click "View COA" to open the certificate in full screen</p>
                                                 </div>
+                                                <button onClick={() => setShowCoaModal(true)} className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold">
+                                                    View COA
+                                                </button>
                                             </div>
-                                        ) : (
-                                            <div className="bg-slate-900 rounded-lg p-8 text-center">
-                                                <p className="text-gray-400">No COA available for this product</p>
-                                            </div>
-                                        )}
+                                            <p className="text-xs text-gray-400">Click "View COA" to open the certificate in full screen</p>
+                                        </div>
                                     </div>
                                 )}
                             </div>
