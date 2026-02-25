@@ -588,12 +588,19 @@ export default function CartSidebar() {
                         </div>
 
                         {/* Store credit available - ALWAYS SHOW if user has credit */}
-                        {user?.storeCredit && user.storeCredit > 0 && (
+                        {/* {user?.storeCredit && user.storeCredit > 0 && (
                             <div className="mb-2 text-sm text-blue-400 flex justify-between">
                                 <span>Store Credit Available:</span>
                                 <span>${(typeof user.storeCredit === "number" ? user.storeCredit : parseFloat(user.storeCredit)).toFixed(2)}</span>
                             </div>
-                        )}
+                        )} */}
+
+                        {user?.storeCredit && user.storeCredit > 0 ? (
+                            <div className="mb-2 text-sm text-blue-400 flex justify-between">
+                                <span>Store Credit Available:</span>
+                                <span>${Number(user.storeCredit).toFixed(2)}</span>
+                            </div>
+                        ) : null}
 
                         {/* Store credit applied - ONLY shows when credit is used in this order */}
                         {storeCreditUsed > 0 && (
