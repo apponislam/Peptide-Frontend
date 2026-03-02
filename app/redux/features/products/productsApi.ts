@@ -95,6 +95,14 @@ export const productsApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, id) => ["Products", { type: "Products", id }],
         }),
+        removeProductItem: builder.mutation({
+            query: ({ id, type, mg }: { id: number; type: "image" | "coa" | "size"; mg?: number }) => ({
+                url: `/products/${id}/remove`,
+                method: "PATCH",
+                body: { type, mg },
+            }),
+            invalidatesTags: (result, error, { id }) => [{ type: "Products", id }, "Products"],
+        }),
     }),
 });
 
@@ -114,4 +122,6 @@ export const {
     useGetAdminSingleProductQuery,
     useGetProductsByIdsMutation,
     useToggleProductStockMutation,
+    // NEW: Remove product item
+    useRemoveProductItemMutation,
 } = productsApi;

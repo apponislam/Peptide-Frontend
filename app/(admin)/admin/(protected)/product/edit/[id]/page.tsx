@@ -2,7 +2,7 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useGetAdminSingleProductQuery, useUpdateProductMutation } from "@/app/redux/features/products/productsApi";
+import { useGetAdminSingleProductQuery, useUpdateProductMutation, useRemoveProductItemMutation } from "@/app/redux/features/products/productsApi";
 import { useForm, useFieldArray, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -61,6 +61,7 @@ const EditProductPage = () => {
 
     const { data: productData, isLoading: isProductLoading } = useGetAdminSingleProductQuery(productId);
     const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+    const [removeProductItem, { isLoading: isRemoving }] = useRemoveProductItemMutation();
     const API_URL = process.env.NEXT_PUBLIC_BASE_API;
 
     // File states
@@ -70,6 +71,8 @@ const EditProductPage = () => {
     const [coaPreview, setCoaPreview] = useState<string | null>(null);
     const [existingImage, setExistingImage] = useState<string | null>(null);
     const [existingCoa, setExistingCoa] = useState<any>(null);
+    const [removeImageFlag, setRemoveImageFlag] = useState(false);
+    const [removeCoaFlag, setRemoveCoaFlag] = useState(false);
 
     const {
         register,
@@ -155,6 +158,10 @@ const EditProductPage = () => {
                 sizes: product.sizes || [{ mg: 10, price: 0, quantity: 0 }],
                 references: product.references || [],
             });
+
+            // Reset flags
+            setRemoveImageFlag(false);
+            setRemoveCoaFlag(false);
         }
     }, [productData, reset]);
 
@@ -163,6 +170,7 @@ const EditProductPage = () => {
         const file = e.target.files?.[0];
         if (file) {
             setImageFile(file);
+            setRemoveImageFlag(false); // Reset remove flag since we're uploading new file
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImagePreview(reader.result as string);
@@ -176,6 +184,7 @@ const EditProductPage = () => {
         const file = e.target.files?.[0];
         if (file) {
             setCoaFile(file);
+            setRemoveCoaFlag(false); // Reset remove flag since we're uploading new file
             if (file.type.startsWith("image/")) {
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -184,6 +193,122 @@ const EditProductPage = () => {
                 reader.readAsDataURL(file);
             } else {
                 setCoaPreview(null);
+            }
+        }
+    };
+
+    // Remove image
+    const handleRemoveImage = async () => {
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Remove Image",
+            message: "Are you sure you want to remove the product image?",
+            confirmText: "Yes, Remove",
+            cancelText: "Cancel",
+        });
+
+        if (confirmed) {
+            try {
+                await removeProductItem({
+                    id: productId,
+                    type: "image",
+                }).unwrap();
+
+                setExistingImage(null);
+                setRemoveImageFlag(false);
+                setImageFile(null);
+                setImagePreview(null);
+
+                await showModal({
+                    type: "success",
+                    title: "Success!",
+                    message: "Product image removed successfully",
+                    confirmText: "OK",
+                });
+            } catch (error: any) {
+                await showModal({
+                    type: "error",
+                    title: "Error",
+                    message: error?.data?.message || "Failed to remove image",
+                    confirmText: "OK",
+                });
+            }
+        }
+    };
+
+    // Remove COA
+    const handleRemoveCoa = async () => {
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Remove COA",
+            message: "Are you sure you want to remove the Certificate of Analysis?",
+            confirmText: "Yes, Remove",
+            cancelText: "Cancel",
+        });
+
+        if (confirmed) {
+            try {
+                await removeProductItem({
+                    id: productId,
+                    type: "coa",
+                }).unwrap();
+
+                setExistingCoa(null);
+                setRemoveCoaFlag(false);
+                setCoaFile(null);
+                setCoaPreview(null);
+
+                await showModal({
+                    type: "success",
+                    title: "Success!",
+                    message: "COA removed successfully",
+                    confirmText: "OK",
+                });
+            } catch (error: any) {
+                await showModal({
+                    type: "error",
+                    title: "Error",
+                    message: error?.data?.message || "Failed to remove COA",
+                    confirmText: "OK",
+                });
+            }
+        }
+    };
+
+    // Remove size
+    const handleRemoveSize = async (mg: number, index: number) => {
+        const confirmed = await showModal({
+            type: "confirm",
+            title: "Remove Size",
+            message: `Are you sure you want to remove the ${mg}mg size option?`,
+            confirmText: "Yes, Remove",
+            cancelText: "Cancel",
+        });
+
+        if (confirmed) {
+            try {
+                await removeProductItem({
+                    id: productId,
+                    type: "size",
+                    mg,
+                }).unwrap();
+
+                // Remove from local form state
+                removeSize(index);
+
+                await showModal({
+                    type: "success",
+                    title: "Success!",
+                    message: "Size removed successfully",
+                    confirmText: "OK",
+                });
+            } catch (error: any) {
+                await showModal({
+                    type: "error",
+                    title: "Error",
+                    message: error?.data?.message || "Failed to remove size",
+                    confirmText: "OK",
+                });
             }
         }
     };
@@ -201,17 +326,6 @@ const EditProductPage = () => {
                 });
                 return;
             }
-
-            // Check if at least one size has quantity > 0
-            // if (!data.sizes.some((s) => s.quantity > 0)) {
-            //     await showModal({
-            //         type: "error",
-            //         title: "Validation Error",
-            //         message: "At least one size must have quantity greater than 0",
-            //         confirmText: "OK",
-            //     });
-            //     return;
-            // }
 
             // Clean references
             const cleanReferences = data.references.filter((ref) => ref.url.trim() && ref.title.trim());
@@ -231,6 +345,14 @@ const EditProductPage = () => {
             }
             if (coaFile) {
                 formData.append("coa", coaFile);
+            }
+
+            // Add flags to indicate file removal
+            if (removeImageFlag) {
+                formData.append("removeImage", "true");
+            }
+            if (removeCoaFlag) {
+                formData.append("removeCoa", "true");
             }
 
             // Update product
@@ -255,25 +377,7 @@ const EditProductPage = () => {
     };
 
     const handleCancel = async () => {
-        const confirmed = await showModal({
-            type: "confirm",
-            title: "Discard Changes?",
-            message: "Are you sure you want to leave? All unsaved changes will be lost.",
-            confirmText: "Yes, Discard",
-            cancelText: "Cancel",
-        });
-
-        if (confirmed) {
-            router.push("/admin?tab=products");
-        }
-    };
-
-    const removeExistingImage = () => {
-        setExistingImage(null);
-    };
-
-    const removeExistingCoa = () => {
-        setExistingCoa(null);
+        router.push("/admin?tab=products");
     };
 
     const getFullUrl = (path: string) => {
@@ -361,8 +465,8 @@ const EditProductPage = () => {
                                         <div className="relative w-48 h-48 rounded-lg overflow-hidden border border-slate-700">
                                             <Image src={`${API_URL}${existingImage}`} alt="Current product" fill className="object-cover" unoptimized />
                                         </div>
-                                        <button type="button" onClick={removeExistingImage} className="mt-2 px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm">
-                                            Remove Image
+                                        <button type="button" onClick={handleRemoveImage} disabled={isRemoving} className="mt-2 px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm disabled:opacity-50">
+                                            {isRemoving ? "Removing..." : "Remove Image"}
                                         </button>
                                     </div>
                                 )}
@@ -399,8 +503,8 @@ const EditProductPage = () => {
                                                 </p>
                                                 <p className="text-xs text-gray-400">{(existingCoa.size / 1024).toFixed(2)} KB</p>
                                             </div>
-                                            <button type="button" onClick={removeExistingCoa} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm">
-                                                Remove
+                                            <button type="button" onClick={handleRemoveCoa} disabled={isRemoving} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm disabled:opacity-50">
+                                                {isRemoving ? "Removing..." : "Remove"}
                                             </button>
                                         </div>
 
@@ -472,6 +576,7 @@ const EditProductPage = () => {
                             <div className="space-y-4">
                                 {sizeFields.map((field, index) => {
                                     const isDuplicate = duplicateMgIndices.includes(index);
+                                    const currentMg = sizes?.[index]?.mg;
 
                                     return (
                                         <div key={field.id} className={`grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg border ${isDuplicate ? "bg-red-900/20 border-red-500" : "bg-slate-900/50 border-transparent"}`}>
@@ -530,7 +635,7 @@ const EditProductPage = () => {
                                                             {...field}
                                                             type="number"
                                                             step="1"
-                                                            value={field.value === 0 ? 0 : field.value} // Explicitly handle 0
+                                                            value={field.value === 0 ? 0 : field.value}
                                                             onChange={(e) => {
                                                                 const value = e.target.value === "" ? 0 : parseInt(e.target.value, 10);
                                                                 field.onChange(isNaN(value) ? 0 : value);
@@ -546,15 +651,8 @@ const EditProductPage = () => {
 
                                             {sizeFields.length > 1 && (
                                                 <div className="md:col-span-3 flex justify-end">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            removeSize(index);
-                                                            trigger();
-                                                        }}
-                                                        className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm"
-                                                    >
-                                                        Remove
+                                                    <button type="button" onClick={() => handleRemoveSize(currentMg, index)} disabled={isRemoving} className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm disabled:opacity-50">
+                                                        {isRemoving ? "Removing..." : "Remove"}
                                                     </button>
                                                 </div>
                                             )}
@@ -562,9 +660,6 @@ const EditProductPage = () => {
                                     );
                                 })}
                             </div>
-
-                            {/* Stock Warning */}
-                            {/* {sizes && sizes.every((s) => s.quantity === 0) && <p className="mt-4 text-sm text-yellow-400 bg-yellow-900/20 p-2 rounded-lg">⚠️ Warning: All quantities are 0. This product will not be visible to customers.</p>} */}
                         </div>
 
                         {/* References Card */}
@@ -603,10 +698,10 @@ const EditProductPage = () => {
 
                         {/* Submit Buttons */}
                         <div className="flex justify-end gap-4 pt-6">
-                            <button type="button" onClick={handleCancel} className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold" disabled={isUpdating}>
+                            <button type="button" onClick={handleCancel} className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold" disabled={isUpdating || isRemoving}>
                                 Cancel
                             </button>
-                            <button type="submit" className="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-semibold flex items-center gap-2" disabled={isUpdating}>
+                            <button type="submit" className="px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-semibold flex items-center gap-2" disabled={isUpdating || isRemoving}>
                                 {isUpdating ? (
                                     <>
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
