@@ -25,12 +25,12 @@ export default function CartSidebar() {
     const tier = getTier(user?.tier || "Member");
 
     const getMemberPrice = (price: number) => {
-        return (price * (1 - tier.discount / 100)).toFixed(2);
+        return price * (1 - tier.discount / 100);
     };
 
     const calculateSubtotal = () => {
         return cart.reduce((sum, item) => {
-            return sum + parseFloat(getMemberPrice(item.size.price)) * item.quantity;
+            return sum + getMemberPrice(item.size.price) * item.quantity;
         }, 0);
     };
 
@@ -77,38 +77,101 @@ export default function CartSidebar() {
         return Math.min(storeCredit, maxAllowed);
     };
 
-    // Calculate adjusted prices with store credit distributed
-    const calculateAdjustedItems = () => {
+    // Calculate how store credit is distributed - FIRST to shipping, THEN equally to products
+    const calculateStripeDetails = () => {
         const storeCreditUsed = calculateStoreCreditUsed();
-        const subtotal = calculateSubtotal();
-        const totalPayable = calculateTotalPayable();
 
-        // How much Stripe should charge
-        const stripeChargeAmount = totalPayable - storeCreditUsed;
+        // If no store credit used, just return the regular member prices with original shipping
+        if (storeCreditUsed === 0) {
+            return {
+                items: cart.map((item) => ({
+                    ...item,
+                    memberPrice: getMemberPrice(item.size.price),
+                    stripePrice: getMemberPrice(item.size.price),
+                })),
+                shippingAmount: calculateShipping(),
+                totalPayable: calculateTotalPayable(),
+            };
+        }
 
-        return cart.map((item) => {
-            const originalPrice = parseFloat(getMemberPrice(item.size.price));
-            const itemTotal = originalPrice * item.quantity;
-            const itemProportion = subtotal > 0 ? itemTotal / subtotal : 1 / cart.length;
+        const subtotal = calculateSubtotal(); // $16.20
+        const shippingCost = calculateShipping(); // $6.95
+        const totalPayable = calculateTotalPayable(); // $23.15
 
-            // Calculate how much of the Stripe charge applies to this item
-            const stripeChargeForItem = stripeChargeAmount * itemProportion;
+        // STEP 1: Apply store credit to shipping first
+        let remainingCredit = storeCreditUsed; // $10.00
 
-            // Calculate adjusted price per unit (minimum $0.01)
-            const adjustedPricePerUnit = Math.max(0.01, stripeChargeForItem / item.quantity);
+        let shippingAfterCredit = shippingCost;
+        if (remainingCredit >= shippingCost) {
+            shippingAfterCredit = 0;
+            remainingCredit -= shippingCost; // $10 - $6.95 = $3.05 remaining
+        } else {
+            shippingAfterCredit = shippingCost - remainingCredit;
+            remainingCredit = 0;
+        }
+
+        // STEP 2: Calculate total amount to charge for items after shipping credit
+        // Total to charge = (subtotal + shippingAfterCredit) but wait, that's not right
+        // Actually: totalPayable - storeCreditUsed = amount to charge
+        const amountToCharge = totalPayable - storeCreditUsed; // $23.15 - $10 = $13.15
+
+        // STEP 3: Distribute remaining credit across products EQUALLY
+        const productCount = cart.length; // 2 products
+
+        // Calculate total amount to charge for items (after shipping credit is applied)
+        // If shippingAfterCredit is 0, then all amountToCharge goes to items
+        // If shippingAfterCredit > 0, then items amount = amountToCharge - shippingAfterCredit
+        const itemsAmountToCharge = amountToCharge - shippingAfterCredit; // $13.15 - $0 = $13.15
+
+        // Calculate target total for items (what they should sum to after credit)
+        const itemsTargetTotal = itemsAmountToCharge; // $13.15
+
+        // Calculate current items subtotal
+        const currentItemsTotal = subtotal; // $16.20
+
+        // Calculate the reduction factor for items
+        const reductionFactor = itemsTargetTotal / currentItemsTotal; // $13.15 / $16.20 = 0.8117
+
+        // Apply this factor to each item
+        const stripeItems = cart.map((item) => {
+            const memberPrice = getMemberPrice(item.size.price); // $10.80 or $5.40
+            const itemCurrentTotal = memberPrice * item.quantity; // $10.80 or $5.40
+
+            // Calculate new price per unit
+            const newItemTotal = itemCurrentTotal * reductionFactor; // $8.77 or $4.38
+            const stripePricePerUnit = newItemTotal / item.quantity;
+
+            console.log(`Product: ${item.product.name}`);
+            console.log(`  Member price: $${memberPrice.toFixed(2)}`);
+            console.log(`  Current total: $${itemCurrentTotal.toFixed(2)}`);
+            console.log(`  New total: $${newItemTotal.toFixed(2)}`);
+            console.log(`  Stripe price: $${stripePricePerUnit.toFixed(2)}`);
 
             return {
                 ...item,
-                adjustedPrice: adjustedPricePerUnit,
+                memberPrice,
+                stripePrice: stripePricePerUnit,
             };
         });
-    };
 
-    // Calculate the actual amount to charge in Stripe
-    const calculateStripeTotal = () => {
-        const adjustedItems = calculateAdjustedItems();
-        const itemsTotal = adjustedItems.reduce((sum, item) => sum + item.adjustedPrice * item.quantity, 0);
-        return itemsTotal + calculateShipping();
+        // Verify totals
+        const stripeItemsTotal = stripeItems.reduce((sum, item) => sum + item.stripePrice * item.quantity, 0);
+        console.log("=== CREDIT DISTRIBUTION ===");
+        console.log(`Subtotal: $${subtotal.toFixed(2)}`);
+        console.log(`Shipping: $${shippingCost.toFixed(2)}`);
+        console.log(`Total Payable: $${totalPayable.toFixed(2)}`);
+        console.log(`Store Credit Used: $${storeCreditUsed.toFixed(2)}`);
+        console.log(`Amount to Charge: $${amountToCharge.toFixed(2)}`);
+        console.log(`Shipping after credit: $${shippingAfterCredit.toFixed(2)}`);
+        console.log(`Items after credit total: $${stripeItemsTotal.toFixed(2)}`);
+        console.log(`Final total: $${(stripeItemsTotal + shippingAfterCredit).toFixed(2)}`);
+        console.log("===========================");
+
+        return {
+            items: stripeItems,
+            shippingAmount: shippingAfterCredit,
+            totalPayable: amountToCharge,
+        };
     };
 
     // Calculate display total (what user sees)
@@ -138,6 +201,7 @@ export default function CartSidebar() {
     const shippingMessage = getShippingMessage();
     const storeCreditUsed = calculateStoreCreditUsed();
     const displayTotal = calculateDisplayTotal();
+    const stripeDetails = calculateStripeDetails();
 
     const handleCheckout = async () => {
         try {
@@ -147,51 +211,67 @@ export default function CartSidebar() {
                 return;
             }
 
-            const adjustedItems = calculateAdjustedItems();
             const storeCreditUsed = calculateStoreCreditUsed();
-            const stripeTotal = calculateStripeTotal();
+            const subtotal = calculateSubtotal();
+            const originalShippingAmount = calculateShipping();
+            const displayTotal = calculateDisplayTotal();
 
-            const fullItemDetails = adjustedItems.map((item) => ({
+            // Get stripe details with correct distribution
+            const { items: stripeItems, shippingAmount: shippingAfterCredit } = calculateStripeDetails();
+
+            // Get items with their regular member prices (for preview)
+            const previewItems = cart.map((item) => ({
                 productId: item.product.id,
                 name: item.product.name,
                 size: item.size.mg,
                 quantity: item.quantity,
                 originalPrice: item.size.price,
-                finalPrice: item.adjustedPrice,
+                finalPrice: getMemberPrice(item.size.price),
                 description: `${item.size.mg}mg ${item.product.name}`,
             }));
 
-            const subtotal = calculateSubtotal();
-            const shippingAmount = calculateShipping();
-
-            // Create order preview
-            const previewResult = await createOrderPreview({
-                items: fullItemDetails,
-                subtotal,
-                shippingAmount,
-                total: stripeTotal,
-            }).unwrap();
-
-            const previewId = previewResult.data.previewId;
-
-            // Prepare items for Stripe
-            const itemsForApi = adjustedItems.map((item) => ({
+            // Get items with their Stripe prices (for actual payment)
+            const itemsForApi = stripeItems.map((item) => ({
                 productId: item.product.id,
                 name: item.product.name,
                 description: `${item.size.mg}mg ${item.product.name}`,
-                price: item.adjustedPrice,
+                price: item.stripePrice,
                 quantity: item.quantity,
                 size: item.size.mg.toString(),
             }));
 
-            // Create checkout session
+            // Calculate final total (items after credit + shipping after credit)
+            const finalTotal = stripeItems.reduce((sum, item) => sum + item.stripePrice * item.quantity, 0) + shippingAfterCredit;
+
+            console.log("===== ORDER PREVIEW DEBUG =====");
+            console.log("userId:", user.id);
+            console.log("preview items:", previewItems);
+            console.log("stripe items:", itemsForApi);
+            console.log("subtotal:", subtotal);
+            console.log("originalShippingAmount:", originalShippingAmount);
+            console.log("shippingAfterCredit:", shippingAfterCredit);
+            console.log("finalTotal:", finalTotal);
+            console.log("storeCreditUsed:", storeCreditUsed);
+            console.log("===============================");
+
+            // Create order preview with member prices
+            const previewResult = await createOrderPreview({
+                items: previewItems,
+                subtotal: subtotal,
+                shippingAmount: originalShippingAmount,
+                total: finalTotal,
+            }).unwrap();
+
+            const previewId = previewResult.data.previewId;
+
+            // Create checkout session with stripe prices and shipping after credit
             const checkoutResult = await createCheckout({
                 userId: user.id,
                 items: itemsForApi,
-                shippingAmount,
-                subtotal,
+                shippingAmount: shippingAfterCredit, // Use shipping after credit (should be 0 in your case)
+                subtotal: subtotal,
                 storeCreditUsed,
-                total: stripeTotal,
+                total: finalTotal,
                 metadata: {
                     userId: user.id,
                     originalSubtotal: subtotal.toString(),
@@ -247,7 +327,7 @@ export default function CartSidebar() {
                     ) : (
                         cart.map((item) => {
                             const originalPrice = item.size.price;
-                            const discountedPrice = getMemberPrice(originalPrice);
+                            const memberPrice = getMemberPrice(originalPrice);
 
                             const productSize = item.product.sizes.find((s) => s.mg === item.size.mg);
                             const availableQty = productSize?.quantity || 0;
@@ -262,7 +342,7 @@ export default function CartSidebar() {
                                         </div>
                                         <div className="text-right">
                                             <div className="text-xs text-gray-500 line-through mb-1">${originalPrice.toFixed(2)}</div>
-                                            <div className={`font-bold ${tier.name === "VIP" || tier.name === "Founder" ? "text-yellow-400" : "text-cyan-400"}`}>${discountedPrice}</div>
+                                            <div className={`font-bold ${tier.name === "VIP" || tier.name === "Founder" ? "text-yellow-400" : "text-cyan-400"}`}>${memberPrice.toFixed(2)}</div>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -304,22 +384,15 @@ export default function CartSidebar() {
                             <span className={shippingMessage.color}>{shippingMessage.text}</span>
                         </div>
 
-                        {/* Store credit available - ALWAYS SHOW if user has credit */}
-                        {/* {user?.storeCredit && user.storeCredit > 0 && (
-                            <div className="mb-2 text-sm text-blue-400 flex justify-between">
-                                <span>Store Credit Available:</span>
-                                <span>${(typeof user.storeCredit === "number" ? user.storeCredit : parseFloat(user.storeCredit)).toFixed(2)}</span>
-                            </div>
-                        )} */}
-
-                        {user?.storeCredit && user.storeCredit > 0 ? (
+                        {/* Store credit available */}
+                        {user?.storeCredit && Number(user.storeCredit) > 0 ? (
                             <div className="mb-2 text-sm text-blue-400 flex justify-between">
                                 <span>Store Credit Available:</span>
                                 <span>${Number(user.storeCredit).toFixed(2)}</span>
                             </div>
                         ) : null}
 
-                        {/* Store credit applied - ONLY shows when credit is used in this order */}
+                        {/* Store credit applied */}
                         {storeCreditUsed > 0 && (
                             <div className="mb-2 text-sm text-green-400 flex justify-between">
                                 <span>Store Credit Applied:</span>
