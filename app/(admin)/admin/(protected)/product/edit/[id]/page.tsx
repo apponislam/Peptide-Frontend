@@ -388,7 +388,7 @@ const EditProductPage = () => {
 
     if (isProductLoading) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
             </div>
         );
@@ -396,7 +396,7 @@ const EditProductPage = () => {
 
     if (!productData?.data) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-400 mb-4">Product not found</p>
                     <button onClick={() => router.push("/admin?tab=products")} className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold">
@@ -409,7 +409,7 @@ const EditProductPage = () => {
 
     return (
         <AdminProvider>
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 p-4 md:p-6">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] p-4 md:p-6">
                 <div className="max-w-4xl mx-auto">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-8">

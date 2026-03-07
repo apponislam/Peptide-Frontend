@@ -438,7 +438,7 @@
 
 //     if (isOrderLoading) {
 //         return (
-//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//             <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
 //                 <div className="container mx-auto max-w-6xl">
 //                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
 //                     <div className="text-center py-20">Loading order details...</div>
@@ -449,7 +449,7 @@
 
 //     if (!order) {
 //         return (
-//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//             <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
 //                 <div className="container mx-auto max-w-6xl">
 //                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
 //                     <div className="text-center py-20 text-red-400">Order not found or you don't have permission to view it.</div>
@@ -460,7 +460,7 @@
 
 //     if (isValidating) {
 //         return (
-//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//             <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
 //                 <div className="container mx-auto max-w-6xl">
 //                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
 //                     <div className="text-center py-20">
@@ -474,7 +474,7 @@
 
 //     if (validationErrors.length > 0) {
 //         return (
-//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//             <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
 //                 <div className="container mx-auto max-w-6xl">
 //                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
 //                     <div className="bg-red-900/20 border border-red-500 rounded-lg p-6 mb-6">
@@ -497,7 +497,7 @@
 //     }
 
 //     return (
-//         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//         <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
 //             <div className="container mx-auto max-w-6xl">
 //                 <div className="mb-6">
 //                     <h1 className="text-3xl font-bold">Repeat Order</h1>
@@ -1156,7 +1156,7 @@ export default function RepeatOrderPage() {
 
     if (isOrderLoading) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
                 <div className="container mx-auto max-w-6xl">
                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
                     <div className="text-center py-20">Loading order details...</div>
@@ -1167,7 +1167,7 @@ export default function RepeatOrderPage() {
 
     if (!order) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
                 <div className="container mx-auto max-w-6xl">
                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
                     <div className="text-center py-20 text-red-400">Order not found or you don't have permission to view it.</div>
@@ -1178,7 +1178,7 @@ export default function RepeatOrderPage() {
 
     if (isValidating) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
                 <div className="container mx-auto max-w-6xl">
                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
                     <div className="text-center py-20">
@@ -1192,7 +1192,7 @@ export default function RepeatOrderPage() {
 
     if (validationErrors.length > 0) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
                 <div className="container mx-auto max-w-6xl">
                     <h1 className="text-3xl font-bold mb-8">Repeat Order</h1>
                     <div className="bg-red-900/20 border border-red-500 rounded-lg p-6 mb-6">
@@ -1215,7 +1215,7 @@ export default function RepeatOrderPage() {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
             <div className="container mx-auto max-w-6xl">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold">Repeat Order</h1>

@@ -121,7 +121,7 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center p-4">
             <div className="w-full max-w-5xl flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
                 {/* Left Side - Logo & Brand */}
                 <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start">

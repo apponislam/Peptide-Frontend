@@ -38,7 +38,7 @@ export default function AdminProductDetailsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] p-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex justify-center items-center h-64">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
@@ -50,7 +50,7 @@ export default function AdminProductDetailsPage() {
 
     if (error || !product) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] p-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center py-12">
                         <h1 className="text-2xl font-bold text-white mb-4">Product Not Found</h1>
@@ -65,7 +65,7 @@ export default function AdminProductDetailsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 p-4 md:p-6">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] p-4 md:p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">

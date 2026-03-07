@@ -17,7 +17,7 @@ export default function CheckoutCancelPage() {
     }, [router]);
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
             <div className="container mx-auto max-w-4xl">
                 {/* Cancel Header */}
                 <div className="text-center mb-10">

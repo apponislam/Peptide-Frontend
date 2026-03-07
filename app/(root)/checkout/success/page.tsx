@@ -66,7 +66,7 @@ export default function CheckoutSuccessPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
                     <p className="text-white text-lg">Processing your payment...</p>
@@ -77,7 +77,7 @@ export default function CheckoutSuccessPage() {
 
     if (error || !sessionData) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center">
                 <div className="text-center max-w-md p-6 bg-slate-800/50 rounded-xl border border-red-500/30">
                     <div className="text-red-400 text-5xl mb-4">⚠️</div>
                     <h1 className="text-2xl font-bold text-white mb-2">Payment Verification Failed</h1>
@@ -96,7 +96,7 @@ export default function CheckoutSuccessPage() {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
             <div className="container mx-auto max-w-4xl">
                 {/* Success Header */}
                 <div className="text-center mb-10">

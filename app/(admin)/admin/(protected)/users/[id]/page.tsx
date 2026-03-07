@@ -25,7 +25,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
 
     if (isResolving || isLoading) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
                 <div className="p-4 md:p-6 container mx-auto">
                     <div className="flex justify-center items-center h-64">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
@@ -37,7 +37,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
 
     if (!resolvedParams?.id) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
                 <div className="p-4 md:p-6 container mx-auto">
                     <button onClick={() => router.back()} className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors mb-6">
                         <ArrowLeft size={20} /> Back
@@ -53,7 +53,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
 
     if (isError || !userData?.data) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
                 <div className="p-4 md:p-6 container mx-auto">
                     <button onClick={() => router.push("/admin?tab=users")} className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors mb-6">
                         <ArrowLeft size={20} /> Back to Users
@@ -71,7 +71,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
     const { name, email, role, tier, referralCode, storeCredit, referralCount, isReferralValid, createdAt, updatedAt, orders = [], referrals = [], commissionsEarned = [], referrer } = user;
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
             <div className="p-4 md:p-6 container mx-auto ">
                 {/* Back Button and Header */}
                 <div className="mb-6 flex items-center justify-between">

@@ -13,7 +13,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <>
             <AuthProvider>
                 <Header />
-                <main className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">{children}</main>
+                {/* <main className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">{children}</main> */}
+                <main className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">{children}</main>
                 <CartSidebar />
             </AuthProvider>
         </>

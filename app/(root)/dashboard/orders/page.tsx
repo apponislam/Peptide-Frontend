@@ -174,7 +174,7 @@
 
 //     if (isLoading) {
 //         return (
-//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//             <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
 //                 <div className="container mx-auto max-w-7xl">
 //                     <div className="text-center py-20">
 //                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto"></div>
@@ -187,7 +187,7 @@
 
 //     if (error) {
 //         return (
-//             <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//             <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
 //                 <div className="container mx-auto max-w-7xl">
 //                     <div className="text-center py-20 text-red-400">
 //                         <div className="text-4xl mb-4">⚠️</div>
@@ -202,7 +202,7 @@
 //     }
 
 //     return (
-//         <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+//         <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
 //             <div className="container mx-auto max-w-7xl">
 //                 {/* Clean Header */}
 //                 <div className="mb-8">
@@ -533,7 +533,7 @@ export default function OrdersPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
                 <div className="container mx-auto max-w-7xl">
                     <div className="text-center py-20">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto"></div>
@@ -546,7 +546,7 @@ export default function OrdersPage() {
 
     if (ordersError) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
                 <div className="container mx-auto max-w-7xl">
                     <div className="text-center py-20 text-red-400">
                         <div className="text-4xl mb-4">⚠️</div>
@@ -561,7 +561,7 @@ export default function OrdersPage() {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-8">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] text-white p-4 md:p-8">
             <div className="container mx-auto max-w-7xl">
                 {/* Clean Header */}
                 <div className="mb-8">

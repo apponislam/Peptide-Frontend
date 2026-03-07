@@ -9,7 +9,7 @@ export default function StorePage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(12);
+    const [limit, setLimit] = useState(48);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -98,6 +98,11 @@ export default function StorePage() {
                     <div className="product-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">{products.length === 0 ? <div className="col-span-full text-center text-gray-400 py-12">No products found {searchQuery && `for "${searchQuery}"`}</div> : products.map((product: any) => <ProductCard key={product.id} product={product} />)}</div>
 
                     {meta && meta.totalPages > 1 && <Pagination meta={meta} onPageChange={handlePageChange} onLimitChange={handleLimitChange} showLimitSelector={true} />}
+                    <h1 className="mt-6 text-center">
+                        <a href="mailto:Hello@Peptide.Club" className="hover:underline">
+                            Hello@Peptide.Club
+                        </a>
+                    </h1>
                 </>
             )}
         </div>

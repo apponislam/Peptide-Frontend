@@ -139,7 +139,7 @@ export default function LoginPage() {
     const isReferralValid = referralCheck?.data?.available === false;
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center p-4">
             <div className="max-w-4xl w-full">
                 {/* Logo */}
                 <div className="text-center mb-8 md:mb-12">

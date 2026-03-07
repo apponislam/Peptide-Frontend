@@ -108,7 +108,7 @@ export default function ProductPage() {
     // Handle loading state
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
             </div>
         );
@@ -117,7 +117,7 @@ export default function ProductPage() {
     // Handle error state
     if (isError || !product) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-gray-400 mb-4">Product not found</p>
                     <Link href="/" className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg font-semibold">
@@ -129,7 +129,7 @@ export default function ProductPage() {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
             <div className="container mx-auto px-4 py-6 md:py-8">
                 {/* Back Button */}
                 <button onClick={() => router.back()} className="mb-6 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-semibold flex items-center gap-2">

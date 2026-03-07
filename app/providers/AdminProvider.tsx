@@ -100,7 +100,7 @@ const AdminProvider: React.FC<AdminProviderProps> = ({ children, allowNonAdmin =
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+            <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
                     <p className="mt-4 text-gray-600">Checking authentication...</p>
@@ -115,7 +115,7 @@ const AdminProvider: React.FC<AdminProviderProps> = ({ children, allowNonAdmin =
 
     if (!isAdmin) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 p-4">
+            <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] p-4">
                 <div className="w-full max-w-md text-center p-4 sm:p-6 md:p-8 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 shadow-2xl">
                     <div className="mb-4 sm:mb-6">
                         <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-red-500/20 rounded-full mb-3 sm:mb-4">

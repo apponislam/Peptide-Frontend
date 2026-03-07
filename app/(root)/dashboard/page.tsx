@@ -22,7 +22,7 @@ export default function DashboardPage() {
     // Show loading state while data is being fetched
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
                 <div className="container mx-auto px-4 py-6 md:py-8">
                     <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6">Dashboard</h1>
                     <div className="text-white">Loading...</div>
@@ -34,7 +34,7 @@ export default function DashboardPage() {
     // Show error state if query failed
     if (isError || !data?.success) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
                 <div className="container mx-auto px-4 py-6 md:py-8">
                     <h1 className="text-2xl md:text-3xl font-bold text-white mb-6">Dashboard</h1>
                     <DashboardStats></DashboardStats>
@@ -49,7 +49,7 @@ export default function DashboardPage() {
     // If we have data but no user (edge case)
     if (!mainUser) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
                 <div className="container mx-auto px-4 py-6 md:py-8">
                     <h1 className="text-2xl md:text-3xl font-bold text-white mb-6">Dashboard</h1>
                     <DashboardStats></DashboardStats>
@@ -63,7 +63,7 @@ export default function DashboardPage() {
 
     // Main content with user data
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20]">
             {/* Dashboard Content */}
             <div className="container mx-auto px-4 py-6 md:py-8">
                 <div className="flex items-center md:justify-between flex-wrap mb-6">

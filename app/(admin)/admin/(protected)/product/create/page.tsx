@@ -251,7 +251,7 @@ const CreateProductPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 p-4 md:p-6">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">

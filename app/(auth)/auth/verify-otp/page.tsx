@@ -142,7 +142,7 @@ export default function VerifyOTPPage() {
 
     if (!email) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center p-4">
                 <div className="bg-slate-800 rounded-xl p-8 border border-slate-700 text-center">
                     <p className="text-red-400 mb-4">No email provided</p>
                     <Link href="/auth/forgot-password" className="text-cyan-400 hover:text-cyan-300">
@@ -154,7 +154,7 @@ export default function VerifyOTPPage() {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-linear-to-br from-[#010c20] via-[#143665] to-[#010c20] flex items-center justify-center p-4">
             <div className="max-w-md w-full">
                 {/* Logo */}
                 <div className="text-center mb-8">
