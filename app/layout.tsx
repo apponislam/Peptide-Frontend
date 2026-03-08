@@ -17,13 +17,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <head suppressHydrationWarning={true}>
                 <meta property="og:title" content="PEPTIDE.CLUB" />
                 <meta property="og:description" content="Premium Peptides Delivered" />
-                <meta property="og:image" content="https://peptide.club/assets/peptide-social.png" />
+                <meta property="og:image" content="https://peptide.club/social.jpg" />
                 <meta property="og:url" content="https://peptide.club" />
                 <meta property="og:type" content="website" />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="PEPTIDE.CLUB" />
                 <meta name="twitter:description" content="Premium Peptides Delivered" />
-                <meta name="twitter:image" content="https://peptide.club/assets/peptide-social.png" />
+                <meta name="twitter:image" content="https://peptide.club/social.jpg" />
             </head>
             <body className={`${inter.className}`} style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
                 <ReduxProvider>
