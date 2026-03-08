@@ -18,6 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <meta property="og:title" content="PEPTIDE.CLUB" />
                 <meta property="og:description" content="Premium Peptides Delivered" />
                 <meta property="og:image" content="https://peptide.club/social.jpg" />
+                <meta property="og:image:secure_url" content="https://peptide.club/social.jpg" />
+                <meta property="og:image:type" content="image/jpeg" />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
                 <meta property="og:url" content="https://peptide.club" />
                 <meta property="og:type" content="website" />
                 <meta name="twitter:card" content="summary_large_image" />
