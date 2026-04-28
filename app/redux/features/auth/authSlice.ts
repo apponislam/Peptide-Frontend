@@ -48,16 +48,10 @@ const authSlice = createSlice({
             state.token = action.payload.token;
             state.isAuthenticated = true;
         },
-        setDemoUser: (state, action: PayloadAction<TUser>) => {
-            state.demoUser = action.payload;
-        },
         logOut: (state) => {
             state.user = null;
             state.token = null;
             state.isAuthenticated = false;
-        },
-        demoLogOut: (state) => {
-            state.demoUser = null;
         },
         setRedirectPath: (state, action: PayloadAction<string | null>) => {
             state.redirectPath = action.payload;
@@ -72,4 +66,3 @@ export default authSlice.reducer;
 export const currentToken = (state: RootState) => state.auth.token;
 export const currentUser = (state: RootState) => state.auth.user;
 export const redirectPath = (state: RootState) => state.auth.redirectPath;
-// export const demoUser = (state: RootState) => state.auth.demoUser;
